@@ -14,7 +14,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 public class RegistrationActivity extends AppCompatActivity {
-    private static final String TAG = "SignupActivity";
+    private static final String TAG = "RegistrationActivity";
 
     @InjectView(R.id.input_name) EditText _nameText;
     @InjectView(R.id.input_email) EditText _emailText;
@@ -64,7 +64,7 @@ public class RegistrationActivity extends AppCompatActivity {
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        // TODO: Implement Registration logic here.
+        // TODO: Implement Registration logic here. SQL
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
