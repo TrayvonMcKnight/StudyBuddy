@@ -14,10 +14,12 @@ import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
+    private static StudyBuddyConnector server;
 
     @InjectView(R.id.input_email) EditText _emailText;
     @InjectView(R.id.input_password) EditText _passwordText;
@@ -29,6 +31,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
+        server = new StudyBuddyConnector();
+        server.handshake();
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
 
@@ -67,6 +71,38 @@ public class LoginActivity extends AppCompatActivity {
 
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
+
+        switch (server.login(email, password)){
+            case 0: {
+                //Login Successfull
+                Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 1: {
+                // Handshake must occur first.
+                Toast.makeText(getBaseContext(), "Incorrect Login Method.  Handshake first.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 2: {
+                // No such username in database.
+                Toast.makeText(getBaseContext(), "No such user.  Please check for errors and try again.", Toast.LENGTH_LONG).show();
+                setContentView(R.layout.activity_login);
+                break;
+            }
+            case 3: {
+                // Incorrect password.
+                Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 4: {
+                // 3 bad attempts.  Server Rejected.  Handshake must happen again.
+                Toast.makeText(getBaseContext(), "Server Rejected.  Three incorrect attempts.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            default:{
+                break;
+            }
+        }
 
         // TODO: Implement your own authentication logic here.
 
