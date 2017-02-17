@@ -6,6 +6,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +29,9 @@ public class Database{
         try {
             this.db_con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
         } catch (SQLException ex) {
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("The Database does not appear to exist.  Can not continue without this major component.");
+            System.exit(1);
         }
         try {
             this.sql = "use studybuddy";
@@ -114,5 +118,141 @@ public class Database{
         return success;
     }
     
+    public ResultSet returnUserInfo(String username) {
+        ResultSet result = null;
+        this.sql = "SELECT * FROM members WHERE email= ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            this.statement.setString(1, username);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            result = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+    
+    public boolean updateLastLoginTime(String username) {
+        boolean result = false;
+        if (this.getUserID(username) != 0) {
+            Date curDate = new Date();
+            SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            this.sql = "UPDATE members SET last_login= ? WHERE email= ?";
+            try {
+                statement = db_con.prepareStatement(sql);
+                statement.setString(1, ft.format(curDate));
+                statement.setString(2, username);
+                statement.executeUpdate();
+                result = true;
+
+            } catch (SQLException ex) {
+                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+                return result;
+            }
+        }
+        return result;
+    }
+
+    public boolean updateUserPassword(String username, String pass) {
+        boolean success = false;
+        if (this.getUserID(username) != 0) {
+            try {
+                this.sql = "UPDATE members SET pass_word= ? WHERE email= ?";
+                statement = db_con.prepareStatement(this.sql);
+                statement.setString(1, pass);
+                statement.setString(2, username);
+                statement.executeUpdate();
+                success = true;
+            } catch (SQLException ex) {
+                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return success;
+    }
+
+    public boolean updateUserLoggedIn(String username, boolean status) {
+        boolean success = false;
+        if (this.getUserID(username) != 0) {
+            int stat;
+            if (status) {
+                stat = 1;
+            } else {
+                stat = 0;
+            }
+            try {
+                this.sql = "UPDATE members SET logged_in= ? WHERE email= ?";
+                statement = db_con.prepareStatement(this.sql);
+                statement.setInt(1, stat);
+                statement.setString(2, username);
+                statement.executeUpdate();
+                success = true;
+            } catch (SQLException ex) {
+                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return success;
+    }
+    
+    public int getUserID(String username) {
+        int id = 0;
+        this.sql = "SELECT user_id_number FROM members WHERE email= ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, username);
+            ResultSet result = statement.executeQuery();
+            while (result.next()) {
+                id = result.getInt("user_id_number");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return id;
+    }
+    
+    /*
+     The getUserStatus method will accept a string representing a username and
+     will return an integer which represents the status of the corresponding
+     user.
+     0 = Available
+     1 = Away
+     2 = Unavailable
+     3 = Invisible
+     */
+    public int getUserStatus(String username) {
+        /*
+        int stat = 9;
+        this.sql = "SELECT user_status FROM members WHERE email= ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, username);
+            ResultSet result = statement.executeQuery();
+            while (result.next()) {
+                if (result.getString("user_status").equals("Available")) {
+                    stat = 0;
+                }
+                if (result.getString("user_status").equals("Away")) {
+                    stat = 1;
+                }
+                if (result.getString("user_status").equals("Unavailable")) {
+                    stat = 2;
+                }
+                if (result.getString("user_status").equals("Invisible")) {
+                    stat = 3;
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return stat; */
+        return 0;
+
+    }
     
 }
