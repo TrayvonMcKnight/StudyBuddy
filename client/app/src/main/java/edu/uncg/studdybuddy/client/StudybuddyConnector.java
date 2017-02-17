@@ -21,7 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "192.168.0.200";   // byte array to hold server IP address.
+    private final String IP = "metalnet.metalsauce.com";   // byte array to hold server IP address.
     private final int port = 6000; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
