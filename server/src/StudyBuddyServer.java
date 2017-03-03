@@ -67,9 +67,91 @@ public class StudyBuddyServer extends Thread{
     }
     
      public static void main(String[] args) {
-        int port = 6000;
+        int port = 8008;
         Thread t = new StudyBuddyServer(port);
         t.start();
+    }
+     
+    private class AuthenticationThread extends Thread{
+        // Private thread fields
+        private final Socket con;
+        private final OnlineClientList onlineList;
+        private final Thread loginThread;
+        
+        // Thread Constructor
+        public AuthenticationThread(Socket con, OnlineClientList list) {
+            this.con = con;
+            this.onlineList = list;
+            this.loginThread = this;
+        }
+        
+        @Override
+        public void run() {
+            DataInputStream inStream = null;
+            DataOutputStream outStream = null;
+            try {
+                inStream = new DataInputStream(con.getInputStream());
+                outStream = new DataOutputStream(con.getOutputStream());
+                String authType = (String) inStream.readUTF();
+                    String[] pieces = authType.split(":");
+                    if (pieces[1].equals("CREATEACCOUNT") && pieces[0].equals("09")) {
+                        this.createAccount(inStream, outStream, pieces);
+                    } else if(pieces[1].equals("LOGIN") && pieces[0].equals("01")){
+                        this.login(inStream, outStream, pieces);
+                    } else {
+                        // Invalid response received and session terminated.
+                        outStream.writeUTF("GOODBYE");
+                        Date curDate = new Date();
+                        System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Authentication:: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Authentication Rejected - Incorrect Protocol.  Session Terminated.");
+                        inStream.close();
+                        outStream.close();
+                    }
+            } catch (IOException ex) {
+                Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    inStream.close();
+                    outStream.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+        }
+
+        private void createAccount(DataInputStream inStream, DataOutputStream outStream, String[] pieces) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        private void login(DataInputStream inStream, DataOutputStream outStream, String[] pieces) {
+            int attempts = 1;
+            String login = "";
+            while (attempts != 4){
+                // If this is not the first call to this method.....
+                if (attempts != 1){
+                    try {
+                        // Get another login attempt.
+                        login = (String) inStream.readUTF();
+                        pieces = login.split(":");
+                    } catch (IOException ex) {
+                        Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    if (!pieces[2].equals("null") && !pieces[3].equals("null")){
+                        
+                    } else {
+                        try {
+                            Date curDate = new Date();
+                            System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - User canceled login.");
+                            String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":05:LOGINCANCELED:00";
+                            outStream.writeUTF(reply);
+                            this.con.close();
+                            attempts = 4;
+                        } catch (IOException ex) {
+                            Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        }
     }
     
     private class LoginThread extends Thread {
@@ -115,7 +197,7 @@ public class StudyBuddyServer extends Thread{
                                 Date curDate = new Date();
                                 database.updateLastLoginTime(this.userName);
                                 database.updateUserLoggedIn(this.userName, true);
-                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("user_name") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("email") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
                                 String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
                                 outStream.writeUTF(reply);
                                 //Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("user_name"));
@@ -165,4 +247,4 @@ public class StudyBuddyServer extends Thread{
             }
         }
     }
-}
+    }
