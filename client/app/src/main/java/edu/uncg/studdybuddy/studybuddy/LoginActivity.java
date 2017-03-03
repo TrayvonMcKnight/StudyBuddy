@@ -14,23 +14,27 @@ import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
+    private static StudyBuddyConnector server;
 
-    @InjectView(R.id.input_email) EditText _emailText;
-    @InjectView(R.id.input_password) EditText _passwordText;
-    @InjectView(R.id.btn_login) Button _loginButton;
-    @InjectView(R.id.link_signup) TextView _signupLink;
+    @InjectView(R.id.input_email) EditText emailText;
+    @InjectView(R.id.input_password) EditText passwordText;
+    @InjectView(R.id.btn_login) Button loginButton;
+    @InjectView(R.id.link_signup) TextView signupLink;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
+        server = new StudyBuddyConnector();
+        server.handshake();
 
-        _loginButton.setOnClickListener(new View.OnClickListener() {
+        loginButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -38,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        _signupLink.setOnClickListener(new View.OnClickListener() {
+        signupLink.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -57,7 +61,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        _loginButton.setEnabled(false);
+        loginButton.setEnabled(false);
 
         final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
                 R.style.AppTheme);
@@ -65,8 +69,40 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
 
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
+        String email = emailText.getText().toString();
+        String password = passwordText.getText().toString();
+
+        switch (server.login(email, password)){
+            case 0: {
+                //Login Successfull
+                Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 1: {
+                // Handshake must occur first.
+                Toast.makeText(getBaseContext(), "Incorrect Login Method.  Handshake first.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 2: {
+                // No such username in database.
+                Toast.makeText(getBaseContext(), "No such user.  Please check for errors and try again.", Toast.LENGTH_LONG).show();
+                setContentView(R.layout.activity_login);
+                break;
+            }
+            case 3: {
+                // Incorrect password.
+                Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 4: {
+                // 3 bad attempts.  Server Rejected.  Handshake must happen again.
+                Toast.makeText(getBaseContext(), "Server Rejected.  Three incorrect attempts.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            default:{
+                break;
+            }
+        }
 
         // TODO: Implement your own authentication logic here.
 
@@ -101,34 +137,34 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginSuccess() {
-        _loginButton.setEnabled(true);
+        loginButton.setEnabled(true);
         finish();
     }
 
     public void onLoginFailed() {
         Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
 
-        _loginButton.setEnabled(true);
+        loginButton.setEnabled(true);
     }
 
     public boolean validate() {
         boolean valid = true;
 
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
+        String email = emailText.getText().toString();
+        String password = passwordText.getText().toString();
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
+            emailText.setError("enter a valid email address");
             valid = false;
         } else {
-            _emailText.setError(null);
+            emailText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
+            passwordText.setError("between 4 and 10 alphanumeric characters");
             valid = false;
         } else {
-            _passwordText.setError(null);
+            passwordText.setError(null);
         }
 
         return valid;

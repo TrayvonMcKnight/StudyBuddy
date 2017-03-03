@@ -4,12 +4,17 @@ import StudyBuddy.OnlineClientList;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class StudyBuddyServer extends Thread{
     private ServerSocket serverSocket;
@@ -62,9 +67,91 @@ public class StudyBuddyServer extends Thread{
     }
     
      public static void main(String[] args) {
-        int port = 6000;
+        int port = 8008;
         Thread t = new StudyBuddyServer(port);
         t.start();
+    }
+     
+    private class AuthenticationThread extends Thread{
+        // Private thread fields
+        private final Socket con;
+        private final OnlineClientList onlineList;
+        private final Thread loginThread;
+        
+        // Thread Constructor
+        public AuthenticationThread(Socket con, OnlineClientList list) {
+            this.con = con;
+            this.onlineList = list;
+            this.loginThread = this;
+        }
+        
+        @Override
+        public void run() {
+            DataInputStream inStream = null;
+            DataOutputStream outStream = null;
+            try {
+                inStream = new DataInputStream(con.getInputStream());
+                outStream = new DataOutputStream(con.getOutputStream());
+                String authType = (String) inStream.readUTF();
+                    String[] pieces = authType.split(":");
+                    if (pieces[1].equals("CREATEACCOUNT") && pieces[0].equals("09")) {
+                        this.createAccount(inStream, outStream, pieces);
+                    } else if(pieces[1].equals("LOGIN") && pieces[0].equals("01")){
+                        this.login(inStream, outStream, pieces);
+                    } else {
+                        // Invalid response received and session terminated.
+                        outStream.writeUTF("GOODBYE");
+                        Date curDate = new Date();
+                        System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Authentication:: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Authentication Rejected - Incorrect Protocol.  Session Terminated.");
+                        inStream.close();
+                        outStream.close();
+                    }
+            } catch (IOException ex) {
+                Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    inStream.close();
+                    outStream.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+        }
+
+        private void createAccount(DataInputStream inStream, DataOutputStream outStream, String[] pieces) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        private void login(DataInputStream inStream, DataOutputStream outStream, String[] pieces) {
+            int attempts = 1;
+            String login = "";
+            while (attempts != 4){
+                // If this is not the first call to this method.....
+                if (attempts != 1){
+                    try {
+                        // Get another login attempt.
+                        login = (String) inStream.readUTF();
+                        pieces = login.split(":");
+                    } catch (IOException ex) {
+                        Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    if (!pieces[2].equals("null") && !pieces[3].equals("null")){
+                        
+                    } else {
+                        try {
+                            Date curDate = new Date();
+                            System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - User canceled login.");
+                            String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":05:LOGINCANCELED:00";
+                            outStream.writeUTF(reply);
+                            this.con.close();
+                            attempts = 4;
+                        } catch (IOException ex) {
+                            Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        }
     }
     
     private class LoginThread extends Thread {
@@ -79,5 +166,85 @@ public class StudyBuddyServer extends Thread{
             this.onlineList = list;
             this.loginThread = this;
         }
+
+        @Override
+        public void run() {
+            try {
+                // Create and Instanciate both the object input and output streams from the connection object.
+                ObjectInputStream inFromClient = new ObjectInputStream(con.getInputStream());
+                ObjectOutputStream outToClient = new ObjectOutputStream(con.getOutputStream());
+                DataInputStream inStream = new DataInputStream(con.getInputStream());
+                DataOutputStream outStream = new DataOutputStream(con.getOutputStream());
+
+                // Set up a loop which will iterate 3 times in an attempt to allow the user to log into the server.
+                for (int counter = 1; counter <= 3; counter++) {
+                    String login = (String) inStream.readUTF();
+                    String[] pieces = login.split(":");
+                    if (pieces[1].equals("LOGIN") && pieces[0].equals("01")) {
+                        if (!pieces[2].equals("null") && !pieces[3].equals("null")){                           
+                            this.userName = pieces[2];
+                            this.passWord = pieces[3];
+                            result = database.returnUserInfo(this.userName);
+
+                            if (!result.next()) {
+                                Date curDate = new Date();
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - No such user.");
+                                if (counter != 3) {
+                                    String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":01:NOUSER:00";
+                                    outStream.writeUTF(reply);
+                                }
+                            } else if (result.getString("pass_word").equals(passWord)) {
+                                Date curDate = new Date();
+                                database.updateLastLoginTime(this.userName);
+                                database.updateUserLoggedIn(this.userName, true);
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("email") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
+                                String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
+                                outStream.writeUTF(reply);
+                                //Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("user_name"));
+                                //Thread session = new Thread(sess);
+                                //onlineList.addClient(result.getString("user_name"), result.getString("email"), con.getRemoteSocketAddress().toString().substring(1), database.getUserStatus(userName), inFromClient, outToClient, sess);
+                                //session.start();
+                                break;
+                            } else if (!result.getString("pass_word").equals(passWord)) {
+                                Date curDate = new Date();
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - Incorrect password.");
+                                if (counter != 3) {
+                                    String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":02:BADPASS:00";
+                                    outStream.writeUTF(reply);
+                                }
+                            }
+                            if (counter == 3) {
+                                Date curDate = new Date();
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - Too many failed attempts.");
+                                String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":03:GOODBYE:00";
+                                outStream.writeUTF(reply);
+                                con.close();
+                            }
+                        } else {
+                            Date curDate = new Date();
+                            System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - User canceled login.");
+                            String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":05:LOGINCANCELED:00";
+                            outStream.writeUTF(reply);
+                            this.con.close();
+                            counter = 3;
+                          }
+                    } else {
+                        String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":04:INVALIDTYPE:00";
+                        outStream.writeUTF(reply);
+                        this.con.close();
+                    }
+                }
+
+            } catch (IOException ex) {
+                //Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                Date curDate = new Date();
+                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::INVALID:::: Packet from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Session Terminated.");
+                loginThread.stop();
+            } catch (SQLException ex) {
+                System.out.println("Database not present");
+                System.out.println(ex.toString());
+                Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
-}
+    }
