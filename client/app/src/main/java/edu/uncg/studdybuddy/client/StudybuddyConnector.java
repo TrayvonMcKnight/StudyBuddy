@@ -21,8 +21,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "metalnet.metalsauce.com";   // byte array to hold server IP address.
-    private final int port = 6000; // integer to hold server port number.
+    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
     private final int handshakeTimeout = 5000; // integer to hold the server timeout for the handshake.
@@ -47,7 +47,6 @@ public class StudyBuddyConnector {
         this.messageHandler = null;
         this.messageQueue = null;
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-
         StrictMode.setThreadPolicy(policy);
         try {
             this.address = InetAddress.getByName(IP);   // Bind the InetAddress to the server IP
@@ -146,6 +145,7 @@ public class StudyBuddyConnector {
             ex.printStackTrace();
         }
         switch (answer) {
+            // If the login is accepted...
             case "ACCEPTED":
                 loggedIn = true;
                 this.userName = user;
@@ -169,6 +169,31 @@ public class StudyBuddyConnector {
                 return 5;   // return 5 if user canceled the login request.
         }
         return 1;
+    }
+
+    public int createNewUser(String name, String email, String pass1, String pass2){
+        if (!this.loggedIn){
+            String answer = ""; // initialize the reply string so scope will fall outside of Try/Catch block.
+            String[] pieces = {};
+            String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 +":"+ name + ":01";
+            try {
+                this.out.writeUTF(create);
+                String reply = (String) in.readUTF();
+                pieces = reply.split(":");
+                answer = pieces[5];
+                switch (answer){
+                    case "ACCEPTED":{
+
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            return 5;
+        }
+        return 0;
     }
 
     public boolean logout() {
