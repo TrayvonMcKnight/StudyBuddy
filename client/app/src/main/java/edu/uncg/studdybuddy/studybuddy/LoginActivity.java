@@ -51,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_SIGNUP);
             }
         });
+
     }
 
     public void login() {
@@ -104,7 +105,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
 
-        // TODO: Implement your own authentication logic here.
+        // TODO: Implement authentication logic here.
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
@@ -124,7 +125,6 @@ public class LoginActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
 
                 // TODO: Implement successful signup logic here
-                // By default we just finish the Activity and log them in automatically
                 this.finish();
             }
         }
@@ -132,12 +132,15 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // disable going back to the MainActivity
+        // disable going back to the LoginActivity
         moveTaskToBack(true);
     }
 
     public void onLoginSuccess() {
         loginButton.setEnabled(true);
+        //Start Main menu activity
+        Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+        startActivity(intent);
         finish();
     }
 
