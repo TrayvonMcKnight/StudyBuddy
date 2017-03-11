@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -19,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Created by Metalaxe on 2/10/2017.
  */
 
-public class StudyBuddyConnector {
+public class StudyBuddyConnector implements Serializable {
     // Private class fields
     private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
