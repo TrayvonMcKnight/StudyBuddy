@@ -2,6 +2,7 @@ package edu.uncg.studdybuddy.studybuddy;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -16,9 +17,11 @@ import butterknife.InjectView;
 public class RegistrationActivity extends AppCompatActivity {
     private static final String TAG = "RegistrationActivity";
 
-    @InjectView(R.id.input_name) EditText _nameText;
+    @InjectView(R.id.input_fname) EditText _fnameText;
+    @InjectView(R.id.input_lname) EditText _lnameText;
     @InjectView(R.id.input_email) EditText _emailText;
     @InjectView(R.id.input_password) EditText _passwordText;
+    @InjectView(R.id.input_password2) EditText _password2Text;
     @InjectView(R.id.btn_register) Button _registerButton;
     @InjectView(R.id.link_login) TextView _loginLink;
 
@@ -60,13 +63,15 @@ public class RegistrationActivity extends AppCompatActivity {
         progressDialog.setMessage("Creating Account...");
         progressDialog.show();
 
-        String name = _nameText.getText().toString();
+        String fname = _fnameText.getText().toString();
+        String lname = _lnameText.getText().toString();
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
+        String password2 = _password2Text.getText().toString();
 
         // TODO: Implement Registration logic here. SQL
 
-        new android.os.Handler().postDelayed(
+        new Handler().postDelayed(
                 new Runnable() {
                     public void run() {
                         // On complete call either onSignupSuccess or onSignupFailed
@@ -94,15 +99,24 @@ public class RegistrationActivity extends AppCompatActivity {
     public boolean validate() {
         boolean valid = true;
 
-        String name = _nameText.getText().toString();
+        String fname = _fnameText.getText().toString();
+        String lname = _lnameText.getText().toString();
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
+        String password2 = _password2Text.getText().toString();
 
-        if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("at least 3 characters");
+        //Invalid name
+        if (fname.isEmpty() || fname.length() < 3) {
+            _fnameText.setError("at least 3 characters");
             valid = false;
-        } else {
-            _nameText.setError(null);
+        }
+        else if((lname.isEmpty() || lname.length() < 3)) {
+            _lnameText.setError("at least 3 characters");
+            valid = false;
+        }
+        else {
+            _fnameText.setError(null);
+            _lnameText.setError(null);
         }
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -112,11 +126,17 @@ public class RegistrationActivity extends AppCompatActivity {
             _emailText.setError(null);
         }
 
+        //password not long enough
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
             _passwordText.setError("between 4 and 10 alphanumeric characters");
             valid = false;
-        } else {
+        }
+        else if(!password.equals(password2)){
+            _password2Text.setError("Password does not match");
+        }
+        else {
             _passwordText.setError(null);
+            _password2Text.setError(null);
         }
 
         return valid;
