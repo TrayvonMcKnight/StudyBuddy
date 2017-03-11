@@ -35,6 +35,7 @@ public class StudyBuddyConnector implements Serializable {
     private InputStream inFromServer;   // TCP Input Stream.
     private DataInputStream in; // TCP Input Data Stream.
     private boolean loggedIn;  // Boolean to hold connection status.
+    private boolean connected;
     private String userName;    // String to represent the username.
     private LinkedBlockingQueue<Object> messages;
     private Thread messageHandler;
@@ -45,6 +46,7 @@ public class StudyBuddyConnector implements Serializable {
     public StudyBuddyConnector(){
         this.client = new Socket(); // No-arg constructor used to change the timeout.
         this.loggedIn = false;
+        this.connected = false;
         this.messageHandler = null;
         this.messageQueue = null;
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -62,6 +64,10 @@ public class StudyBuddyConnector implements Serializable {
         return this.loggedIn;
     }
 
+    public boolean hasConnection(){
+        return this.connected;
+    }
+
     public String getUserName() {
         return this.userName;
     }
@@ -69,6 +75,8 @@ public class StudyBuddyConnector implements Serializable {
     public void close() {
         try {
             this.client.close();
+            this.loggedIn = false;
+            this.connected = false;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -100,6 +108,7 @@ public class StudyBuddyConnector implements Serializable {
             if (in.readUTF().equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
                 outToServerObj = new ObjectOutputStream(this.client.getOutputStream());
                 inFromServerObj = new ObjectInputStream(this.client.getInputStream());
+                this.connected = true;
                 return 0;   // Read from input stream and return success if server responds positive.
             }
         } catch (IOException ex) {
