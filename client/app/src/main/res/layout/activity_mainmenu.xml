@@ -17,7 +17,8 @@
         android:visibility="visible"
         android:layout_margin="0dp"
         tools:layout_editor_absoluteY="19dp"
-        tools:layout_editor_absoluteX="26dp" />
+        tools:layout_editor_absoluteX="26dp"
+        android:cropToPadding="false" />
 
     <ImageButton
         app:srcCompat="@drawable/settings"
@@ -28,7 +29,8 @@
         android:layout_margin="0dp"
         android:clickable="true"
         tools:layout_editor_absoluteX="220dp"
-        app:layout_constraintTop_toTopOf="@+id/profileButton" />
+        app:layout_constraintTop_toTopOf="@+id/profileButton"
+        android:cropToPadding="false" />
 
     <ImageButton
         app:srcCompat="@drawable/classes"
