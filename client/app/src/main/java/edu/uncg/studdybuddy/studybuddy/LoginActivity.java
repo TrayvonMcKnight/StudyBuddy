@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
@@ -36,6 +35,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 login();
+                Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+                startActivity(intent);
             }
         });
 
@@ -51,6 +52,7 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
+    //TODO: Take out the login logic
     public void login() {
         Log.d(TAG, "Login");
 
