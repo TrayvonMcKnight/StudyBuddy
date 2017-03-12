@@ -19,7 +19,6 @@ import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
-    private static StudyBuddyConnector server;
 
     @InjectView(R.id.input_email) EditText emailText;
     @InjectView(R.id.input_password) EditText passwordText;
@@ -31,8 +30,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
-        server = new StudyBuddyConnector();
-        server.handshake();
 
         loginButton.setOnClickListener(new View.OnClickListener() {
 
@@ -73,7 +70,7 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailText.getText().toString();
         String password = passwordText.getText().toString();
 
-        switch (server.login(email, password)){
+        switch (StartActivity.server.login(email, password)){
             case 0: {
                 //Login Successfull
                 Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();

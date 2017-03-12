@@ -17,10 +17,10 @@ import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by Metalaxe on 2/10/2017.
+ * Created by Anthony Ratliff, Travon McKnight and Jlesa Carr on 2/10/2017.
  */
 
-public class StudyBuddyConnector implements Serializable {
+public class StudyBuddyConnector {
     // Private class fields
     private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
