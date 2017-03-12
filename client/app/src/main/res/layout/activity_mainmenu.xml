@@ -9,7 +9,7 @@
 
 
     <ImageButton
-        app:srcCompat="@mipmap/ic_launcher"
+        app:srcCompat="@drawable/profile"
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="0dp"
         android:id="@+id/profileButton"
@@ -19,7 +19,7 @@
         android:layout_margin="0dp" />
 
     <ImageButton
-        app:srcCompat="@mipmap/ic_launcher"
+        app:srcCompat="@drawable/settings"
         android:id="@+id/settingsButton"
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -29,8 +29,8 @@
         tools:layout_editor_absoluteX="0dp" />
 
     <ImageButton
-        app:srcCompat="@mipmap/ic_launcher"
-        android:id="@+id/imageButton6"
+        app:srcCompat="@drawable/classes"
+        android:id="@+id/classesButton"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:visibility="visible"
