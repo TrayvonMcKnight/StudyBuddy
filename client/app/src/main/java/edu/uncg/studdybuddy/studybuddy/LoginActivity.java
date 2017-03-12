@@ -35,8 +35,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 login();
-                Intent menu = new Intent(getApplicationContext(), MainMenu.class);
-                startActivity(menu);
+                Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+                startActivity(intent);
             }
         });
 
