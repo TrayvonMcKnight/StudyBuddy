@@ -1,1 +1,7 @@
 /server/nbproject/private/
+<<<<<<< HEAD
+/server/build/
+/server/dist/
+=======
+client/.idea/vcs.xml
+>>>>>>> 21cfa4888e1aebee2a651b6144cea6487bf90a97
