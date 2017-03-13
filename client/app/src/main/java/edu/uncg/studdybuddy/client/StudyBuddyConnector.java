@@ -22,8 +22,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
-    private final int port = 8008; // integer to hold server port number.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
+    private final int port = 6000; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
     private final int handshakeTimeout = 5000; // integer to hold the server timeout for the handshake.
@@ -44,7 +44,7 @@ public class StudyBuddyConnector {
 
     // Class constructor
     public StudyBuddyConnector(){
-        this.client = new Socket(); // No-arg constructor used to change the timeout.
+
         this.loggedIn = false;
         this.connected = false;
         this.messageHandler = null;
@@ -92,9 +92,11 @@ public class StudyBuddyConnector {
      4 = Server timeout / server did not respond in the allotted time.
      */
     public int handshake() {
+        this.client = new Socket(); // No-arg constructor used to change the timeout.
         try {
             this.client.connect(new InetSocketAddress(address, port), handshakeTimeout); // Attempt to locate the server and timeout if not found.
         } catch (IOException e) {
+            System.out.println(e.toString());
             return 4;   // Return if socket can not connect due to timeout.
         }
         try {
@@ -106,18 +108,19 @@ public class StudyBuddyConnector {
             this.in = new DataInputStream(inFromServer); // Instantiate data stream from input stream.
 
             if (in.readUTF().equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
+                // Possibly consider not getting these until the session has been created.
                 outToServerObj = new ObjectOutputStream(this.client.getOutputStream());
                 inFromServerObj = new ObjectInputStream(this.client.getInputStream());
                 this.connected = true;
                 return 0;   // Read from input stream and return success if server responds positive.
             }
         } catch (IOException ex) {
-            //Logger.getLogger(IRC.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex);
             try {
                 this.inFromServer.close();
                 this.outToServer.close();
             } catch (IOException ex1) {
-                //Logger.getLogger(IRC.class.getName()).log(Level.SEVERE, null, ex1);
+                System.out.println(ex1);
             }
             return 1;   // Return rejection if error is received.
         }
@@ -125,7 +128,7 @@ public class StudyBuddyConnector {
             this.inFromServer.close();
             this.outToServer.close();
         } catch (IOException ex) {
-            //Logger.getLogger(IRC.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex);
         }
         return 2;   // Return rejection if server responds negative.
     }
@@ -139,6 +142,7 @@ public class StudyBuddyConnector {
      2 = Server Rejected / username not found in database.
      3 = Server Rejected / incorrect password for the user.
      4 = Server timeout / server rejection - more than 3 failed attempts.
+     5 = Server Rejected / Cannot create a new account while a user is logged in.
      */
     public int login(String user, String pass) {
         String answer = ""; // initialize the reply string so scope will fall outside of Try/Catch block.
@@ -174,6 +178,8 @@ public class StudyBuddyConnector {
             case "BADPASS":
                 return 3;   // return 3 if the password is incorrect.
             case "GOODBYE":
+                this.connected = false;
+
                 return 4;   // return 4 if there were too many failed attempts.
             case "LOGINCANCELED":
                 return 5;   // return 5 if user canceled the login request.
@@ -181,29 +187,49 @@ public class StudyBuddyConnector {
         return 1;
     }
 
-    public int createNewUser(String name, String email, String pass1, String pass2){
+    public int createNewUser(String email, String pass1, String pass2, String fName, String lName){
+        int temp = 5;
         if (!this.loggedIn){
             String answer = ""; // initialize the reply string so scope will fall outside of Try/Catch block.
             String[] pieces = {};
-            String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 +":"+ name + ":01";
+            String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 +":"+ fName + ":" + lName;
             try {
                 this.out.writeUTF(create);
                 String reply = (String) in.readUTF();
                 pieces = reply.split(":");
-                answer = pieces[5];
+                answer = pieces[4];
                 switch (answer){
-                    case "ACCEPTED":{
-
+                    case "00":{
+                        temp =0;
+                        break;
+                    }
+                    case "01":{
+                        temp = 1;
+                        break;
+                    }
+                    case "02": {
+                        temp = 2;
+                        break;
+                    }
+                    case "03": {
+                        temp = 3;
+                        break;
+                    }
+                    case "04": {
+                        temp = 4;
+                        break;
+                    }
+                    default: {
+                        // Goodbye was received so handle a disconnect.
+                        temp = 6;
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-        } else {
-            return 5;
         }
-        return 0;
+        return temp;
     }
 
     public boolean logout() {

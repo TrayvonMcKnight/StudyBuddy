@@ -65,12 +65,15 @@ public class SplashActivity extends ActionBarActivity {
                 }
                 case 1: {
                     Toast.makeText(getBaseContext(), "Case 1 Fired", Toast.LENGTH_LONG).show();
+                    break;
                 }
                 case 2:{
                     Toast.makeText(getBaseContext(), "Case 2 Fired", Toast.LENGTH_LONG).show();
+                    break;
                 }
                 case 3: {
                     Toast.makeText(getBaseContext(), "Case 3 Fired", Toast.LENGTH_LONG).show();
+                    break;
                 }
                 case 4: {
                     Toast.makeText(getBaseContext(), "Case 4 Fired", Toast.LENGTH_LONG).show();
