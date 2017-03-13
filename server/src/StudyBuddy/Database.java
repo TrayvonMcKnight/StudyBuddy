@@ -16,7 +16,7 @@ public class Database{
 
     private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
     private final String DB_USER = "studybuddy";
-    private final String DB_PASS = "TheStudyBuddy";
+    private final String DB_PASS = "TheStudyBuddyPassword";
     private Connection db_con;
     private PreparedStatement statement;
     private CallableStatement callable;
