@@ -169,7 +169,7 @@ public class LoginActivity extends AppCompatActivity {
     public void onLoginSuccess() {
         loginButton.setEnabled(true);
         //Start Main menu activity
-        Intent intent = new Intent(getApplicationContext(), StartActivity.class);
+        Intent intent = new Intent(getApplicationContext(), MainMenu.class);
         startActivity(intent);
         finish();
     }
