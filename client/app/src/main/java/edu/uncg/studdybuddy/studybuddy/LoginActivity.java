@@ -31,8 +31,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
-        server = new StudyBuddyConnector();
-        server.handshake();
+        this.server = (StudyBuddyConnector) getIntent().getSerializableExtra("server");
 
         loginButton.setOnClickListener(new View.OnClickListener() {
 
@@ -55,66 +54,65 @@ public class LoginActivity extends AppCompatActivity {
 
     public void login() {
         Log.d(TAG, "Login");
-
-        if (!validate()) {
-            onLoginFailed();
-            return;
-        }
-
-        loginButton.setEnabled(false);
-
-        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
-                R.style.AppTheme);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Authenticating...");
-        progressDialog.show();
-
-        String email = emailText.getText().toString();
-        String password = passwordText.getText().toString();
-
-        switch (server.login(email, password)){
-            case 0: {
-                //Login Successfull
-                Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
-                break;
+            if (!validate()) {
+                onLoginFailed();
+                return;
             }
-            case 1: {
-                // Handshake must occur first.
-                Toast.makeText(getBaseContext(), "Incorrect Login Method.  Handshake first.", Toast.LENGTH_LONG).show();
-                break;
-            }
-            case 2: {
-                // No such username in database.
-                Toast.makeText(getBaseContext(), "No such user.  Please check for errors and try again.", Toast.LENGTH_LONG).show();
-                setContentView(R.layout.activity_login);
-                break;
-            }
-            case 3: {
-                // Incorrect password.
-                Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
-                break;
-            }
-            case 4: {
-                // 3 bad attempts.  Server Rejected.  Handshake must happen again.
-                Toast.makeText(getBaseContext(), "Server Rejected.  Three incorrect attempts.", Toast.LENGTH_LONG).show();
-                break;
-            }
-            default:{
-                break;
-            }
-        }
 
-        // TODO: Implement your own authentication logic here.
+            loginButton.setEnabled(false);
 
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        // On complete call either onLoginSuccess or onLoginFailed
-                        onLoginSuccess();
-                        // onLoginFailed();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
+            final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
+                    R.style.AppTheme);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Authenticating...");
+            progressDialog.show();
+
+            String email = emailText.getText().toString();
+            String password = passwordText.getText().toString();
+
+            switch (server.login(email, password)) {
+                case 0: {
+                    //Login Successful
+                    Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
+                    break;
+                }
+                case 1: {
+                    // Handshake must occur first.
+                    Toast.makeText(getBaseContext(), "Incorrect Login Method.  Handshake first.", Toast.LENGTH_LONG).show();
+                    break;
+                }
+                case 2: {
+                    // No such username in database.
+                    Toast.makeText(getBaseContext(), "No such user.  Please check for errors and try again.", Toast.LENGTH_LONG).show();
+                    setContentView(R.layout.activity_login);
+                    break;
+                }
+                case 3: {
+                    // Incorrect password.
+                    Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
+                    break;
+                }
+                case 4: {
+                    // 3 bad attempts.  Server Rejected.  Handshake must happen again.
+                    Toast.makeText(getBaseContext(), "Server Rejected.  Three incorrect attempts.", Toast.LENGTH_LONG).show();
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            // TODO: Implement your own authentication logic here.
+
+            new android.os.Handler().postDelayed(
+                    new Runnable() {
+                        public void run() {
+                            // On complete call either onLoginSuccess or onLoginFailed
+                            onLoginSuccess();
+                            // onLoginFailed();
+                            progressDialog.dismiss();
+                        }
+                    }, 3000);
     }
 
 
