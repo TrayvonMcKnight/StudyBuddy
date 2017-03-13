@@ -14,12 +14,10 @@ import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
-    private static StudyBuddyConnector server;
 
     @InjectView(R.id.input_email) EditText emailText;
     @InjectView(R.id.input_password) EditText passwordText;
@@ -31,13 +29,18 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
+<<<<<<< HEAD
         this.server = (StudyBuddyConnector) getIntent().getSerializableExtra("server");
+=======
+>>>>>>> 21cfa4888e1aebee2a651b6144cea6487bf90a97
 
         loginButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 login();
+                Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+                startActivity(intent);
             }
         });
 
@@ -50,13 +53,56 @@ public class LoginActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_SIGNUP);
             }
         });
+
     }
 
+    //TODO: Take out the login logic
     public void login() {
         Log.d(TAG, "Login");
+<<<<<<< HEAD
             if (!validate()) {
                 onLoginFailed();
                 return;
+=======
+
+        if (!validate()) {
+            onLoginFailed();
+            return;
+        }
+
+        loginButton.setEnabled(false);
+
+        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
+                R.style.AppTheme);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage("Authenticating...");
+        progressDialog.show();
+
+        String email = emailText.getText().toString();
+        String password = passwordText.getText().toString();
+
+        switch (StartActivity.server.login(email, password)){
+            case 0: {
+                //Login Successfull
+                Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 1: {
+                // Handshake must occur first.
+                Toast.makeText(getBaseContext(), "Incorrect Login Method.  Handshake first.", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case 2: {
+                // No such username in database.
+                Toast.makeText(getBaseContext(), "No such user.  Please check for errors and try again.", Toast.LENGTH_LONG).show();
+                setContentView(R.layout.activity_login);
+                break;
+            }
+            case 3: {
+                // Incorrect password.
+                Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
+                break;
+>>>>>>> 21cfa4888e1aebee2a651b6144cea6487bf90a97
             }
 
             loginButton.setEnabled(false);
@@ -102,6 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
 
+<<<<<<< HEAD
             // TODO: Implement your own authentication logic here.
 
             new android.os.Handler().postDelayed(
@@ -113,6 +160,19 @@ public class LoginActivity extends AppCompatActivity {
                             progressDialog.dismiss();
                         }
                     }, 3000);
+=======
+        // TODO: Implement authentication logic here.
+
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        // On complete call either onLoginSuccess or onLoginFailed
+                        onLoginSuccess();
+                        // onLoginFailed();
+                        progressDialog.dismiss();
+                    }
+                }, 3000);
+>>>>>>> 21cfa4888e1aebee2a651b6144cea6487bf90a97
     }
 
 
@@ -122,7 +182,6 @@ public class LoginActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
 
                 // TODO: Implement successful signup logic here
-                // By default we just finish the Activity and log them in automatically
                 this.finish();
             }
         }
@@ -130,12 +189,15 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // disable going back to the MainActivity
+        // disable going back to the LoginActivity
         moveTaskToBack(true);
     }
 
     public void onLoginSuccess() {
         loginButton.setEnabled(true);
+        //Start Main menu activity
+        Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+        startActivity(intent);
         finish();
     }
 
