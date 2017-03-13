@@ -14,9 +14,9 @@ import java.util.logging.Logger;
 public class Database{
     // Private class fields
 
-    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/"; //javachat?zeroDateTimeBehavior=convertToNull";
+    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
     private final String DB_USER = "studybuddy";
-    private final String DB_PASS = "TheStudyBuddyPassword";
+    private final String DB_PASS = "TheStudyBuddy";
     private Connection db_con;
     private PreparedStatement statement;
     private CallableStatement callable;
@@ -29,7 +29,10 @@ public class Database{
         try {
             this.db_con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
         } catch (SQLException ex) {
-            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            // Code 0 means there is no driver.
+            // Code 1045 means the login was not accepted bad password.
+            System.out.println("Error Code: " + ex.getErrorCode());
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("The Database does not appear to exist.  Can not continue without this major component.");
             System.exit(1);
         }
@@ -54,7 +57,8 @@ public class Database{
     public boolean isConnected() {
         return this.connected;
     }
-
+    
+    // Private Class methods.
     private boolean createDatabaseSchema() {
         boolean success = false;
         this.sql = "CREATE SCHEMA IF NOT EXISTS `studybuddy` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ;";
@@ -116,6 +120,67 @@ public class Database{
         }
 
         return success;
+    }
+    
+    // Public Methods.
+    
+    /*
+     The registerUser method will accept 4 string representing an email, password,
+     first name, and last name. The mehtod will return an integer which
+     represents the status of attempting to create a new account.
+     0 = Account Created.
+     1 = Account Not Created. User already exists in database.
+     2 = Account Not Created. Bad password requirements.
+     3 = Account Not Created. Bad email requirements.
+     4 = Account Not Created. Database error.
+     */
+    public int registerUser(String email, String pass, String fName, String lName){
+        int temp = 0;
+        if (this.getUserID(email) == 0){
+            // Check the password.
+            if (pass.length() > 3){
+                if (email.contains("@") && email.contains(".")){
+                try {
+                    // Add new user to database.
+                    
+                    // the mysql insert statement
+                    this.sql = " insert into members (email, pass_word, first_name, last_name, date_joined, last_login, logged_in)"
+                            + " values (?, ?, ?, ?, ?, ?, ?)";
+                    
+                    // Read the current date and time.
+                    Date curDate = new Date();
+                    SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            
+                    // create the mysql insert prepared statement
+                    this.statement = db_con.prepareStatement(this.sql);
+                    this.statement.setString(1, email);
+                    this.statement.setString(2, pass);
+                    this.statement.setString(3, fName);
+                    this.statement.setString(4, lName);
+                    this.statement.setString(5, ft.format(curDate));
+                    this.statement.setString(6, null);
+                    this.statement.setInt(7, 0);
+                    
+                    // Execute the query.
+                    this.statement.execute();
+                    temp = 0;
+                } catch (SQLException ex) {
+                    Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+                    temp = 4;
+                }
+                }
+                else {
+                    temp = 3;
+                }
+            } else {
+                // Return password error.
+                temp = 2;
+            }
+        } else {
+            // Return user already exists.
+            temp = 1;
+        }
+        return temp;
     }
     
     public ResultSet returnUserInfo(String username) {
