@@ -232,6 +232,20 @@ public class StudyBuddyConnector {
         return temp;
     }
 
+    public int changePassword(String oldPass, String newPass) {
+        if (this.loggedIn) {
+            try {
+                String changePassMess = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":::01";
+                messages.put(changePassMess);
+                Thread.sleep(500);
+                return passwordError;
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+            }
+        }
+        return 2;
+    }
+
     public boolean logout() {
         if (loggedIn) {
             String logoutMess = "00:DISCONNECT:::::01";
@@ -287,10 +301,27 @@ public class StudyBuddyConnector {
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                    iterate = false;
                 }
             }
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private class MessageQueue extends Thread {
 
