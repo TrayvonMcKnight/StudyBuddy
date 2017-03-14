@@ -1,6 +1,7 @@
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -69,6 +70,44 @@ public class RegistrationActivity extends AppCompatActivity {
         String password = _passwordText.getText().toString();
         String password2 = _password2Text.getText().toString();
 
+        if (password.equals(password2)){
+            switch (StartActivity.server.createNewUser(email, password, password2, fname, lname)){
+                case 0: {
+                    Toast.makeText(getBaseContext(), "Account created successfully.  Please login.", Toast.LENGTH_LONG).show();
+                    this.onSignupSuccess();
+                    break;
+                }
+                case 1: {
+                    Toast.makeText(getBaseContext(), "Account creation failed.  A user with that email has already registered.  Please try again.", Toast.LENGTH_LONG).show();
+                    this.onSignupFailed();
+                    break;
+                }
+                case 2: {
+                    Toast.makeText(getBaseContext(), "Account creation failed.  Invalid password format.  Please try again.", Toast.LENGTH_LONG).show();
+                    this.onSignupFailed();
+                    break;
+                }
+                case 3: {
+                    Toast.makeText(getBaseContext(), "Account creation failed.  Invalid email format.  Please try again.", Toast.LENGTH_LONG).show();
+                    this.onSignupFailed();
+                    break;
+                }
+                case 4: {
+                    Toast.makeText(getBaseContext(), "Account creation failed.  Database error.  Please try again.", Toast.LENGTH_LONG).show();
+                    this.onSignupFailed();
+                    break;
+                }
+                case 5: {
+                    Toast.makeText(getBaseContext(), "Account creation failed.  There is a user currently loggin in from this device.  Sign out first and try again.", Toast.LENGTH_LONG).show();
+                    this.onSignupFailed();
+                    break;
+                }
+                default: {
+                    // Server disconnected due to invalid response.  Perform reconnect.
+                }
+            }
+        }
+
         // TODO: Implement Registration logic here. SQL
 
         new Handler().postDelayed(
@@ -76,7 +115,7 @@ public class RegistrationActivity extends AppCompatActivity {
                     public void run() {
                         // On complete call either onSignupSuccess or onSignupFailed
                         // depending on success
-                        onSignupSuccess();
+                        //onSignupSuccess();
                         // onSignupFailed();
                         progressDialog.dismiss();
                     }
@@ -87,12 +126,11 @@ public class RegistrationActivity extends AppCompatActivity {
     public void onSignupSuccess() {
         _registerButton.setEnabled(true);
         setResult(RESULT_OK, null);
+        startActivity(new Intent(this, LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
         finish();
     }
 
     public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
-
         _registerButton.setEnabled(true);
     }
 

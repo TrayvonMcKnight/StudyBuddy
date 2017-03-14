@@ -9,71 +9,67 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
+
 /**
  * Created by Metalaxe on 3/5/2017.
  */
 
-public class SplashActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity {
     private final String VERSION = "1.00";
     TextView versionText;
     TextView statusText;
-    private Handler Handler1 = new Handler();
-    private Handler Handler2 = new Handler();
+    Button clk;
+    private StudyBuddyConnector server;
+    private Handler mHandler = new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+        setContentView(R.layout.activity_main);
 
         this.versionText = (TextView) findViewById(R.id.versionText);
         this.statusText = (TextView) findViewById(R.id.statusText);
-        Handler1.postDelayed(new Runnable() {
+        this.server = new StudyBuddyConnector();
+        clk = (Button) findViewById(R.id.button);
+        mHandler.postDelayed(new Runnable() {
             public void run() {
                 if (performHandshake()) {
 
 
                     statusText.setText("Server Found! Authenticating..");
-                    Handler2.postDelayed(new Runnable() {
-                        public void run() {
-                            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                            startActivity(intent);
-                        }
-                    }, 2000);
-
 
                 } else {
                     statusText.setText("Server Not Found! Try Again Later.");
                 }
             }
-        }, 2000);
+        }, 5000);
         this.versionText.setText("Study Buddy Version: " + VERSION);
         this.statusText.setText("Looking For Server...");
 
     }
 
-    public void openLogin() {
+    public void openLogin(View view) {
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+        intent.putExtra("server", server);
         startActivity(intent);
     }
 
     public boolean performHandshake(){
         boolean success = false;
-        if (!StartActivity.server.hasConnection()){
-            switch (StartActivity.server.handshake()){
+        if (!server.hasConnection()){
+            switch (server.handshake()){
                 case 0: {
                     success = true;
                     break;
                 }
                 case 1: {
                     Toast.makeText(getBaseContext(), "Case 1 Fired", Toast.LENGTH_LONG).show();
-                    break;
                 }
                 case 2:{
                     Toast.makeText(getBaseContext(), "Case 2 Fired", Toast.LENGTH_LONG).show();
-                    break;
                 }
                 case 3: {
                     Toast.makeText(getBaseContext(), "Case 3 Fired", Toast.LENGTH_LONG).show();
-                    break;
                 }
                 case 4: {
                     Toast.makeText(getBaseContext(), "Case 4 Fired", Toast.LENGTH_LONG).show();

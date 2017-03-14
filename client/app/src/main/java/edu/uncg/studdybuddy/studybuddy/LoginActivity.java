@@ -7,6 +7,7 @@ import android.util.Log;
 
 import android.content.Intent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -14,10 +15,13 @@ import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
+    private int loopCounter;
+    private boolean loginAttempted = false;
 
     @InjectView(R.id.input_email) EditText emailText;
     @InjectView(R.id.input_password) EditText passwordText;
@@ -29,14 +33,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
+        this.loopCounter = 0;
 
         loginButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 login();
-                Intent intent = new Intent(getApplicationContext(), MainMenu.class);
-                startActivity(intent);
             }
         });
 
@@ -44,6 +47,13 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
+                // If link was clicked during login, break the login loop and perform another handshake.
+                if (loginAttempted) {
+                    StartActivity.server.login("null", "null");
+                    loginAttempted = false;
+                    loopCounter = 0;
+                    StartActivity.server.handshake();
+                }
                 // Start the Signup activity
                Intent intent = new Intent(getApplicationContext(), RegistrationActivity.class);
                 startActivityForResult(intent, REQUEST_SIGNUP);
@@ -52,10 +62,9 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    //TODO: Take out the login logic
     public void login() {
         Log.d(TAG, "Login");
-
+        this.loginAttempted = true;
         if (!validate()) {
             onLoginFailed();
             return;
@@ -69,49 +78,71 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
 
-        String email = emailText.getText().toString();
-        String password = passwordText.getText().toString();
-
-        switch (StartActivity.server.login(email, password)){
-            case 0: {
-                //Login Successfull
-                Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
-                break;
-            }
-            case 1: {
-                // Handshake must occur first.
-                Toast.makeText(getBaseContext(), "Incorrect Login Method.  Handshake first.", Toast.LENGTH_LONG).show();
-                break;
-            }
-            case 2: {
-                // No such username in database.
-                Toast.makeText(getBaseContext(), "No such user.  Please check for errors and try again.", Toast.LENGTH_LONG).show();
-                setContentView(R.layout.activity_login);
-                break;
-            }
-            case 3: {
-                // Incorrect password.
-                Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
-                break;
-            }
-            case 4: {
-                // 3 bad attempts.  Server Rejected.  Handshake must happen again.
-                Toast.makeText(getBaseContext(), "Server Rejected.  Three incorrect attempts.", Toast.LENGTH_LONG).show();
-                break;
-            }
-            default:{
-                break;
-            }
-        }
+        loginButton.setEnabled(true);
 
         // TODO: Implement authentication logic here.
+
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
                         // On complete call either onLoginSuccess or onLoginFailed
-                        onLoginSuccess();
-                        // onLoginFailed();
+                        if (loopCounter < 3) {
+                            String email = emailText.getText().toString();
+                            String password = passwordText.getText().toString();
+
+                            switch (StartActivity.server.login(email, password)) {
+                                case 0: {
+                                    //Login Successful
+                                    Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
+                                    onLoginSuccess();
+                                    break;
+                                }
+                                case 1: {
+                                    // Handshake must occur first.
+                                    Toast.makeText(getBaseContext(), "Incorrect Login Method.  Handshake first.", Toast.LENGTH_LONG).show();
+                                    loopCounter++;
+                                    break;
+                                }
+                                case 2: {
+                                    // No such username in database.
+                                    Toast.makeText(getBaseContext(), "No such user.  Please check for errors and try again.", Toast.LENGTH_LONG).show();
+                                    loopCounter++;
+                                    emailText.setText("");
+                                    passwordText.setText("");
+                                    if(emailText.requestFocus()) {
+                                        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                                    }
+                                    //setContentView(R.layout.activity_login);
+                                    break;
+                                }
+                                case 3: {
+                                    // Incorrect password.
+                                    Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
+                                    loopCounter++;
+                                    passwordText.setText("");
+                                    if(passwordText.requestFocus()) {
+                                        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                                    }
+                                    break;
+                                }
+                                case 4: {
+                                    // 3 bad attempts.  Server Rejected.  Handshake must happen again.
+                                    Toast.makeText(getBaseContext(), "Server Rejected.  Three incorrect attempts.", Toast.LENGTH_LONG).show();
+                                    StartActivity.server.handshake();
+                                    loopCounter = 0;
+                                    emailText.setText("");
+                                    passwordText.setText("");
+                                    if(emailText.requestFocus()) {
+                                        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                                    }
+                                    break;
+                                }
+                                default: {
+                                    break;
+                                }
+                            }
+                        }
                         progressDialog.dismiss();
                     }
                 }, 3000);
@@ -144,7 +175,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
 
         loginButton.setEnabled(true);
     }
