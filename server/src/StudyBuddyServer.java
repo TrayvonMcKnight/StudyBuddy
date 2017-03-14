@@ -1,6 +1,7 @@
 
 import StudyBuddy.Database;
 import StudyBuddy.OnlineClientList;
+import StudyBuddy.Session;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class StudyBuddyServer extends Thread {
             System.exit(1);
         }
         this.database = new Database();
+        this.onlineList = new OnlineClientList();
         //serverSocket.setSoTimeout(10000);
     }
 
@@ -80,6 +82,10 @@ public class StudyBuddyServer extends Thread {
         private final OnlineClientList onlineList;
         private final Thread authenticationThread;
         private boolean loggedIn = false;
+        DataInputStream inStream;
+        DataOutputStream outStream;
+        ObjectInputStream inFromClient;
+        ObjectOutputStream outToClient;
 
         // Thread Constructor
         public AuthenticationThread(Socket con, OnlineClientList list) {
@@ -91,13 +97,17 @@ public class StudyBuddyServer extends Thread {
 
         @Override
         public void run() {
-            DataInputStream inStream = null;
-            DataOutputStream outStream = null;
             try {
                 inStream = new DataInputStream(con.getInputStream());
                 outStream = new DataOutputStream(con.getOutputStream());
-                ObjectInputStream inFromClient = new ObjectInputStream(con.getInputStream());
-                ObjectOutputStream outToClient = new ObjectOutputStream(con.getOutputStream());
+                inFromClient = new ObjectInputStream(con.getInputStream());
+                outToClient = new ObjectOutputStream(con.getOutputStream());
+            } catch (IOException ex) {
+                Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                
+            try {
+                
                 while (con.isConnected()){
                     if (loggedIn) break;
                 String authType = (String) inStream.readUTF();
@@ -122,12 +132,12 @@ public class StudyBuddyServer extends Thread {
                 this.authenticationThread.stop();
                 }
             } finally {
-                try {
-                    inStream.close();
-                    outStream.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
-                }
+               // try {
+                    //inStream.close();
+                    //outStream.close();
+               // } catch (IOException ex) {
+                    //Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+                //}
             }
         }
 
@@ -210,10 +220,16 @@ public class StudyBuddyServer extends Thread {
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("email") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
                             String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
                             outStream.writeUTF(reply);
-                            //Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("user_name"));
-                            //Thread session = new Thread(sess);
-                            //onlineList.addClient(result.getString("user_name"), result.getString("email"), con.getRemoteSocketAddress().toString().substring(1), database.getUserStatus(userName), inFromClient, outToClient, sess);
-                            //session.start();
+                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("email"), database);
+                            Thread session = new Thread(sess);
+                            String first = result.getString("first_name");
+                            String last = result.getString("last_name");
+                            String mail = result.getString("email");
+                            String ip = con.getRemoteSocketAddress().toString().substring(1);
+                            int stat = database.getUserStatus(userName);
+                            onlineList.addClient(first + " " + last, mail, ip, stat, inFromClient, outToClient, sess);
+                            
+                            session.start();
                             this.loggedIn = true;
                             break;
                         } else if (!result.getString("pass_word").equals(passWord)) {
