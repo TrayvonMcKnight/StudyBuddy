@@ -82,6 +82,7 @@ public class Database{
                 + "  `pass_word` VARCHAR(50) NOT NULL,"
                 + "  `first_name` VARCHAR(50) NULL,"
                 + "  `last_name` VARCHAR(50) NULL,"
+                + "  `user_status` VARCHAR(50) NULL,"
                 + "  `date_joined` DATE NOT NULL,"
                 + "  `last_login` DATE NULL,"
                 + "  `logged_in` TINYINT(1) NOT NULL,"
@@ -144,8 +145,8 @@ public class Database{
                     // Add new user to database.
                     
                     // the mysql insert statement
-                    this.sql = " insert into members (email, pass_word, first_name, last_name, date_joined, last_login, logged_in)"
-                            + " values (?, ?, ?, ?, ?, ?, ?)";
+                    this.sql = " insert into members (email, pass_word, first_name, last_name, user_status, date_joined, last_login, logged_in)"
+                            + " values (?, ?, ?, ?, ?, ?, ?, ?)";
                     
                     // Read the current date and time.
                     Date curDate = new Date();
@@ -157,9 +158,10 @@ public class Database{
                     this.statement.setString(2, pass);
                     this.statement.setString(3, fName);
                     this.statement.setString(4, lName);
-                    this.statement.setString(5, ft.format(curDate));
-                    this.statement.setString(6, null);
-                    this.statement.setInt(7, 0);
+                    this.statement.setString(5, "Available");
+                    this.statement.setString(6, ft.format(curDate));
+                    this.statement.setString(7, null);
+                    this.statement.setInt(8, 0);
                     
                     // Execute the query.
                     this.statement.execute();
@@ -291,7 +293,6 @@ public class Database{
      3 = Invisible
      */
     public int getUserStatus(String username) {
-        /*
         int stat = 9;
         this.sql = "SELECT user_status FROM members WHERE email= ?";
         try {
@@ -315,8 +316,7 @@ public class Database{
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return stat; */
-        return 0;
+        return stat;
 
     }
     
