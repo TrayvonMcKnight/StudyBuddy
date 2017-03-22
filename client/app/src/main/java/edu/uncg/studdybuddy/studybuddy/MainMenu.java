@@ -51,6 +51,8 @@ public class MainMenu extends Activity {
             }
         });
 
+        //StartActivity.server.changePassword("test1234", "test4321");
+
     }
 
 }
