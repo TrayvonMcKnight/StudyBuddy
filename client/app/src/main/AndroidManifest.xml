@@ -33,7 +33,7 @@
             android:label="Settings"/>
         <activity
             android:name=".ClassesActivity"
-            android:label="Clesses"/>
+            android:label="Classes"/>
         <activity
             android:name=".MainMenu"
             android:label="Main Menu">
