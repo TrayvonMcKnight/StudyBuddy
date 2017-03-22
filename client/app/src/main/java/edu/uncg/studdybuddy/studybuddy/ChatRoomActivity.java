@@ -1,3 +1,5 @@
+/**
+
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.support.v7.app.AppCompatActivity;
@@ -132,3 +134,4 @@ public class ChatRoomActivity extends AppCompatActivity implements MessageClient
     }
 }
 
+*/

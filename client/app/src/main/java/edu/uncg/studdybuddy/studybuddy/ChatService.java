@@ -1,8 +1,10 @@
+/**
+
 package edu.uncg.studdybuddy.studybuddy;
 
 /**
  * Created by Trayvon on 3/22/2017.
- */
+ *
 
 import android.app.Service;
 import android.content.Intent;
@@ -180,3 +182,4 @@ public class ChatService extends Service {
     }
 }
 
+*/

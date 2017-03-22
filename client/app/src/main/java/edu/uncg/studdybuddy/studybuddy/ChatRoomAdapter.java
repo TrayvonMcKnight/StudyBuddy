@@ -1,3 +1,5 @@
+/**
+
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.support.v7.app.AppCompatActivity;
@@ -94,3 +96,4 @@ public class ChatroomAdapter extends BaseAdapter {
     }
 }
 
+*/
