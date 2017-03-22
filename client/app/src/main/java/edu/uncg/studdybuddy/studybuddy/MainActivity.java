@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.Serializable;
 
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
@@ -15,7 +18,7 @@ import edu.uncg.studdybuddy.client.StudyBuddyConnector;
  * Created by Metalaxe on 3/5/2017.
  */
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
     private final String VERSION = "1.00";
     TextView versionText;
     TextView statusText;
@@ -50,7 +53,7 @@ public class MainActivity extends ActionBarActivity {
 
     public void openLogin(View view) {
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-        intent.putExtra("server", server);
+        intent.putExtra("server", (Serializable) server);
         startActivity(intent);
     }
 

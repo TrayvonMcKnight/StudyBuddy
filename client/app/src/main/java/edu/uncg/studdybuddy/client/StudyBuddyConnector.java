@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by Anthony Ratliff, Travon McKnight and Jlesa Carr on 2/10/2017.
+ * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
  */
 
 public class StudyBuddyConnector {

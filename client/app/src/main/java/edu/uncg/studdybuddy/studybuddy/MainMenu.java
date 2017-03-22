@@ -3,6 +3,7 @@ package edu.uncg.studdybuddy.studybuddy;
 import android.media.Image;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.content.Intent;
@@ -11,12 +12,12 @@ import android.widget.ImageButton;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class MainMenu extends Activity {
+public class MainMenu extends AppCompatActivity {
     public static final String TAG = "MainMenu";
 
-    @InjectView(R.id.classesButton) ImageButton classesButton;
-    @InjectView(R.id.profileButton) ImageButton profileButton;
-    @InjectView(R.id.settingsButton) ImageButton settingsButton;
+    @InjectView(R.id.classesButton) Button classesButton;
+    @InjectView(R.id.profileButton) Button profileButton;
+    @InjectView(R.id.settingsButton) Button settingsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,20 +25,19 @@ public class MainMenu extends Activity {
         setContentView(R.layout.activity_mainmenu);
         ButterKnife.inject(this);
 
-        classesButton.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), ClassesActivity.class);
-                startActivity(intent);
-            }
-        });
-
         profileButton.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View v){
                 Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+        classesButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), ClassesActivity.class);
                 startActivity(intent);
             }
         });
