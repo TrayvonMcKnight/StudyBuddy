@@ -447,7 +447,6 @@ public class StudyBuddyConnector {
                 } catch (InterruptedException | IOException ex) {
                     ex.printStackTrace();
                 }
-
             }
         }
     }
