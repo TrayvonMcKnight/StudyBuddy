@@ -1,0 +1,2 @@
+include 'StuddyBuddy'
+project('StuddyBuddy').projectDir = new File('client/app')

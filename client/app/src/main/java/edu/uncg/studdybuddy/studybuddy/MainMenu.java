@@ -14,9 +14,9 @@ import butterknife.InjectView;
 public class MainMenu extends Activity {
     public static final String TAG = "MainMenu";
 
-    @InjectView(R.id.classesButton) ImageButton classesButton;
-    @InjectView(R.id.profileButton) ImageButton profileButton;
-    @InjectView(R.id.settingsButton) ImageButton settingsButton;
+    @InjectView(R.id.classesButton) Button classesButton;
+    @InjectView(R.id.profileButton) Button profileButton;
+    @InjectView(R.id.settingsButton) Button settingsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
