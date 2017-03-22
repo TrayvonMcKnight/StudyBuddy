@@ -28,6 +28,8 @@
         <item>-1</item>
     </string-array>
 
+    <string name="change_password">Change Password</string>
+
     <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>
 
