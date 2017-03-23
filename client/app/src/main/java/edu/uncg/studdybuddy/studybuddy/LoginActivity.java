@@ -60,6 +60,10 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        if(!StartActivity.server.hasConnection()){
+            StartActivity.server.handshake();
+        }
+
     }
 
     public void login() {

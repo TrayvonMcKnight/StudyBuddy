@@ -1,18 +1,16 @@
 /**
-
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import edu.uncg.studdybuddy.studybuddy.PushPair;
-import edu.uncg.studdybuddy.studybuddy.Message;
-import edu.uncg.studdybuddy.studybuddy.MessageClient;
-import edu.uncg.studdybuddy.studybuddy.MessageClientListener;
-import edu.uncg.studdybuddy.studybuddy.MessageDeliveryInfo;
-import edu.uncg.studdybuddy.studybuddy.MessageFailureInfo;
+import com.sinch.android.rtc.messaging.Massage.PushPair;
+import com.sinch.android.rtc.messaging.Massage.Message;
+import com.sinch.android.rtc.messaging.Massage.MessageClient;
+import com.sinch.android.rtc.messaging.Massage.MessageClientListener;
+import com.sinch.android.rtc.messaging.Massage.MessageDeliveryInfo;
+import com.sinch.android.rtc.messaging.Massage.MessageFailureInfo;
 
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -62,6 +60,8 @@ public class ChatRoomActivity extends AppCompatActivity implements MessageClient
         });
 
     }
+
+
 
     @Override
     public void onDestroy() {
@@ -133,5 +133,4 @@ public class ChatRoomActivity extends AppCompatActivity implements MessageClient
         Log.d(TAG, "onDelivered");
     }
 }
-
 */

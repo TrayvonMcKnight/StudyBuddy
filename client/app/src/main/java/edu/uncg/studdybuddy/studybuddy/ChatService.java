@@ -1,5 +1,4 @@
 /**
-
 package edu.uncg.studdybuddy.studybuddy;
 
 /**
@@ -13,13 +12,13 @@ import android.os.IBinder;
 import android.util.Log;
 
 import edu.uncg.studdybuddy.studybuddy.*;
-import edu.uncg.studdybuddy.studybuddy.MessageClientListener;
-import edu.uncg.studdybuddy.studybuddy.WritableMessage;
+import com.sinch.android.rtc.messaging.MessageClientListener;
+import com.sinch.android.rtc.messaging.WritableMessage;
 
 public class ChatService extends Service {
 
-    private static final String APP_KEY = "cf3cca87-1934-4acf-82cb-eb621ee0acba";
-    private static final String APP_SECRET = "HYJnpJ6S5USXlyVnMWmDgQ==";
+  //  private static final String APP_KEY = "cf3cca87-1934-4acf-82cb-eb621ee0acba";
+  //  private static final String APP_SECRET = "HYJnpJ6S5USXlyVnMWmDgQ==";
     private static final String ENVIRONMENT = "StudyBuddy.uncg.edu";
 
     private static final String TAG = ChatService.class.getSimpleName();
@@ -181,5 +180,4 @@ public class ChatService extends Service {
         }
     }
 }
-
-*/
+ */
