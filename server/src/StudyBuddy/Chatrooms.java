@@ -34,19 +34,35 @@ public class Chatrooms implements Serializable {
         return temp;
     }
     
+    public int getNumberOfClasses(){
+        return this.numElements;
+    }
+    
+    public String[] getClassNames(){
+        String temp[] = new String[this.getNumberOfClasses()];
+        for (int c = 0; c < this.getNumberOfClasses();c++){
+            temp[c] = this.rooms[c].getClassName();
+        }
+        return temp;
+    }
+    
+    public int getNumberOfStudents(String className){
+        return this.rooms[this.getIndex(className)].returnNumberOfStudents();
+    }
+    
     public void addChatroom(String chatName, String profName){
         this.ensureCapacity();
         this.rooms[this.numElements++] = new Chatroom(chatName, profName);
     }
-    public void addStudent(String chatName, String studName){
-        this.rooms[getIndex(chatName)].addStudent(studName);
+    public void addStudent(String chatName, String studName, String email, Boolean online, int status){
+        this.rooms[getIndex(chatName)].addStudent(studName, email, online, status);
     }
     
     public void addMessage(String chatName, String studName, String time, String message){
         this.rooms[getIndex(chatName)].addMessage(studName, time, message);
     }
     
-    public String[] getStudents(String chatName){
+    public Student[] getStudents(String chatName){
         return this.rooms[this.getIndex(chatName)].getStudents();
     }
     
@@ -63,7 +79,7 @@ public class Chatrooms implements Serializable {
         // Private class fields.
         private final String className;
         private final String professorName;
-        private String[] students;
+        private Student[] students;
         private String[][] messages;
         private int studentElements;
         private int messageElements;
@@ -72,7 +88,7 @@ public class Chatrooms implements Serializable {
         private Chatroom(String classname, String profname){
             this.className = classname;
             this.professorName = profname;
-            this.students = new String[10];
+            this.students = new Student[10];
             this.messages = new String[10][3];
             this.studentElements = 0;
             this.messageElements = 0;
@@ -80,7 +96,7 @@ public class Chatrooms implements Serializable {
         
         private void studentEnsureCapacity(){
             if (this.studentElements == this.students.length){
-                String[] temp = new String[students.length * 2];
+                Student[] temp = new Student[students.length * 2];
                 System.arraycopy(this.students, 0, temp, 0, this.studentElements);
                 this.students = temp;
             }
@@ -112,7 +128,7 @@ public class Chatrooms implements Serializable {
             return this.messageElements;
         }
         
-        private String[] getStudents(){
+        private Student[] getStudents(){
             return this.students;
         }
         
@@ -120,10 +136,9 @@ public class Chatrooms implements Serializable {
             return this.messages;
         }
         
-        private void addStudent(String name){
+        private void addStudent(String name, String email, Boolean online, int status){
             this.studentEnsureCapacity();
-            this.students[this.studentElements++] = name;
-            Arrays.sort(this.students);
+            this.students[this.studentElements++] = new Student(name, email, online, status);
         }
         
         private void addMessage(String sender, String time, String message){
@@ -133,4 +148,6 @@ public class Chatrooms implements Serializable {
             this.messages[this.messageElements++][2] = message;
         }
     }
+    
+    
 }
