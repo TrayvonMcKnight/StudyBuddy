@@ -1,7 +1,6 @@
 package StudyBuddy;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
 public class Chatrooms implements Serializable {
     // Private class fields
@@ -50,9 +49,9 @@ public class Chatrooms implements Serializable {
         return this.rooms[this.getIndex(className)].returnNumberOfStudents();
     }
     
-    public void addChatroom(String chatName, String profName){
+    public void addChatroom(String chatName, String section, String profName){
         this.ensureCapacity();
-        this.rooms[this.numElements++] = new Chatroom(chatName, profName);
+        this.rooms[this.numElements++] = new Chatroom(chatName, profName, section);
     }
     public void addStudent(String chatName, String studName, String email, Boolean online, int status){
         this.rooms[getIndex(chatName)].addStudent(studName, email, online, status);
@@ -78,6 +77,7 @@ public class Chatrooms implements Serializable {
     private class Chatroom implements Serializable {
         // Private class fields.
         private final String className;
+        private final String section;
         private final String professorName;
         private Student[] students;
         private String[][] messages;
@@ -85,8 +85,9 @@ public class Chatrooms implements Serializable {
         private int messageElements;
         
         // Class constructor
-        private Chatroom(String classname, String profname){
+        private Chatroom(String classname, String profname, String section){
             this.className = classname;
+            this.section = section;
             this.professorName = profname;
             this.students = new Student[10];
             this.messages = new String[10][3];
@@ -114,6 +115,10 @@ public class Chatrooms implements Serializable {
         
         private String getClassName(){
             return this.className;
+        }
+        
+        private String getSection(){
+            return this.section;
         }
         
         private String getProfessorName(){
