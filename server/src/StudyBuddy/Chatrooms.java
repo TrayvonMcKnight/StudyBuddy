@@ -22,10 +22,10 @@ public class Chatrooms implements Serializable {
         }
     }
     
-    private int getIndex(String classname){
+    private int getIndex(String classname, String section){
         int temp = -1;
         for (int c = 0;c < this.numElements;c++){
-            if (this.rooms[c].getClassName().equalsIgnoreCase(classname)){
+            if (this.rooms[c].getClassName().equalsIgnoreCase(classname) && this.rooms[c].getSection().equalsIgnoreCase(section)){
                 temp = c;
                 break;
             }
@@ -37,40 +37,48 @@ public class Chatrooms implements Serializable {
         return this.numElements;
     }
     
-    public String[] getClassNames(){
+    public String[] getClassNamesAndSection(){
         String temp[] = new String[this.getNumberOfClasses()];
         for (int c = 0; c < this.getNumberOfClasses();c++){
-            temp[c] = this.rooms[c].getClassName();
+            temp[c] = this.rooms[c].getClassName() + ":" + this.rooms[c].getSection();
         }
         return temp;
     }
     
-    public int getNumberOfStudents(String className){
-        return this.rooms[this.getIndex(className)].returnNumberOfStudents();
+    public int getNumberOfStudents(String className, String section){
+        return this.rooms[this.getIndex(className, section)].returnNumberOfStudents();
     }
     
-    public void addChatroom(String chatName, String section, String profName){
+    public void addChatroom(String chatName, String section, String profName, String email){
         this.ensureCapacity();
-        this.rooms[this.numElements++] = new Chatroom(chatName, profName, section);
+        this.rooms[this.numElements++] = new Chatroom(chatName, profName, section, email);
     }
-    public void addStudent(String chatName, String studName, String email, Boolean online, int status){
-        this.rooms[getIndex(chatName)].addStudent(studName, email, online, status);
-    }
-    
-    public void addMessage(String chatName, String studName, String time, String message){
-        this.rooms[getIndex(chatName)].addMessage(studName, time, message);
+    public void addStudent(String chatName, String section, String studName, String email, Boolean online, int status){
+        this.rooms[getIndex(chatName, section)].addStudent(studName, email, online, status);
     }
     
-    public Student[] getStudents(String chatName){
-        return this.rooms[this.getIndex(chatName)].getStudents();
+    public void addMessage(String chatName, String section, String studName, String time, String message){
+        this.rooms[getIndex(chatName, section)].addMessage(studName, time, message);
     }
     
-    public String[][] getMessages(String chatName){
-        return this.rooms[this.getIndex(chatName)].getMessages();
+    public Student[] getStudents(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getStudents();
     }
     
-    public String getProfessorName(String chatName){
-        return this.rooms[this.getIndex(chatName)].getProfessorName();
+    public String[][] getMessages(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getMessages();
+    }
+    
+    public String getProfessorName(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getProfessorName();
+    }
+    
+    public String getClassSection(String chatName, String section) {
+        return this.rooms[this.getIndex(chatName, section)].getSection();
+    }
+    
+    public String getProfessorEmail(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getProfessorEmail();
     }
     
     
@@ -79,16 +87,18 @@ public class Chatrooms implements Serializable {
         private final String className;
         private final String section;
         private final String professorName;
+        private final String professorEmail;
         private Student[] students;
         private String[][] messages;
         private int studentElements;
         private int messageElements;
         
         // Class constructor
-        private Chatroom(String classname, String profname, String section){
+        private Chatroom(String classname, String profname, String section, String email){
             this.className = classname;
             this.section = section;
             this.professorName = profname;
+            this.professorEmail = email;
             this.students = new Student[10];
             this.messages = new String[10][3];
             this.studentElements = 0;
@@ -119,6 +129,10 @@ public class Chatrooms implements Serializable {
         
         private String getSection(){
             return this.section;
+        }
+        
+        private String getProfessorEmail(){
+            return this.professorEmail;
         }
         
         private String getProfessorName(){
