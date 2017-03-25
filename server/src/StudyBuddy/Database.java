@@ -31,8 +31,13 @@ public class Database{
         } catch (SQLException ex) {
             // Code 0 means there is no driver.
             // Code 1045 means the login was not accepted bad password.
-            System.out.println("Error Code: " + ex.getErrorCode());
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            int error = ex.getErrorCode();
+            if (error == 0){
+                System.out.println("Database Error:  The Java SQL connector is not available.  Please install and try again.");
+            }
+            if (error == 1045){
+                System.out.println("Database Error:  The Username or Password used to access the database is incorrect or not accepted.");
+            }
             System.out.println("The Database does not appear to exist.  Can not continue without this major component.");
             System.exit(1);
         }
@@ -318,6 +323,30 @@ public class Database{
         }
         return stat;
 
+    }
+
+    public ResultSet returnAllClasses() {
+        ResultSet result = null;
+        this.sql = "SELECT * FROM classes";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            result = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+    
+    public ResultSet returnAllClassesByStudent(String email){
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public ResultSet returnAllStudents(String className, String section) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
 }
