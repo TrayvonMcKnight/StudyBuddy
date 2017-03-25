@@ -1,4 +1,5 @@
 
+import StudyBuddy.Chatrooms;
 import StudyBuddy.Database;
 import StudyBuddy.OnlineClientList;
 import StudyBuddy.Session;
@@ -22,6 +23,7 @@ public class StudyBuddyServer extends Thread {
     private ServerSocket serverSocket;
     private Database database;
     private OnlineClientList onlineList;
+    private Chatrooms chatrooms;
 
     public StudyBuddyServer(int port) {
         this.database = null;
@@ -34,6 +36,8 @@ public class StudyBuddyServer extends Thread {
         }
         this.database = new Database();
         this.onlineList = new OnlineClientList();
+        this.chatrooms = new Chatrooms();
+        
         //serverSocket.setSoTimeout(10000);
     }
 
@@ -67,6 +71,28 @@ public class StudyBuddyServer extends Thread {
                 break;
             }
         }
+    }
+    
+    private boolean buildChatrooms(){
+        boolean success = false;
+        ResultSet allClasses = this.database.returnAllClasses();
+        ResultSet students;
+        try {
+            while (allClasses.next()){
+                this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(4), allClasses.getString(5));
+                students = this.database.returnAllStudents(allClasses.getString(2), allClasses.getString(3));
+                Boolean online;
+                    while (students.next()){
+                        if (students.getInt(9) == 1){
+                            online = true;
+                        } else online = false;
+                        this.chatrooms.addStudent(allClasses.getString(2), allClasses.getString(3), students.getString(4) + " " + students.getString(5), students.getString(2), online, students.getInt(6));
+                    }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return success;
     }
 
     public static void main(String[] args) {
