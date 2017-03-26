@@ -9,12 +9,13 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import StudyBuddy.Chatrooms;
 
 /**
  * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
@@ -22,7 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "metalnet.metalsauce.com";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 6000; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -41,6 +42,7 @@ public class StudyBuddyConnector {
     private Thread messageHandler;
     private Thread messageQueue;
     private int passwordError;
+    private Chatrooms chatrooms;
 
     // Class constructor
     public StudyBuddyConnector(){
@@ -168,7 +170,7 @@ public class StudyBuddyConnector {
                 this.messageQueue = new Thread(new MessageQueue());
                 this.messageQueue.start();
                 this.messageHandler.start();
-                //this.getBuddyListFromServer();
+                this.getChatroomsFromServer();
                 //alertClient(new ActionEvent(this, 1, "03:" + pieces[2]));
                 return 0;   // Return 0 if username and password were accepted.
             case "REJECTED":
@@ -246,11 +248,24 @@ public class StudyBuddyConnector {
         return 2;
     }
 
+    private void getChatroomsFromServer() {
+        if (this.loggedIn) {
+            try {
+                String requestList = "02:GETLIST:::::01";
+                this.messages.put(requestList);
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+            }
+        }
+    }
+
+
     public boolean logout() {
         if (loggedIn) {
             String logoutMess = "00:DISCONNECT:::::01";
             try {
                 this.messages.put(logoutMess);
+                this.connected = false;
                 Thread.sleep(500);
                 return true;
             } catch (InterruptedException ex) {
@@ -279,7 +294,7 @@ public class StudyBuddyConnector {
                     String mess = (String) in.readUTF();
                     String[] pieces = mess.split(":");
                     if (pieces[0].equals("00") && pieces[5].equals("GOODBYE") && pieces[6].equals("00")) {
-                        iterate = false;
+                        break;
                     } else if (pieces[0].equals("02") && pieces[1].equals("GETLIST") && pieces[5].equals("INCOMING") && pieces[6].equals("00")) {
                         try {
                             Object obj = (Object) inFromServerObj.readObject();
@@ -352,8 +367,9 @@ public class StudyBuddyConnector {
                                         if (message.contains("GOODBYE")) {
                                             iterate = false;
                                             loggedIn = false;
-                                            messageHandler.stop();
-                                            messageQueue.stop();
+                                            connected = false;
+                                            messageHandler.interrupt();
+                                            messageQueue.interrupt();
                                             client.close();
                                         }
                                         break;
@@ -435,8 +451,8 @@ public class StudyBuddyConnector {
                             }
                             break;
                         }
-                        case "BuddyList": {
-                            //buddies = (BuddyList) object;
+                        case "Chatrooms": {
+                            chatrooms = (Chatrooms) object;
                             //alertClient(new ActionEvent(this, 1, "INCOMING:BUDDYLIST"));
                             break;
                         }
