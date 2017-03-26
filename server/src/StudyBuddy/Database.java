@@ -16,7 +16,7 @@ public class Database{
 
     private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
     private final String DB_USER = "studybuddy";
-    private final String DB_PASS = "TheStudyBuddyPassword";
+    private final String DB_PASS = "TheStudyBuddy";
     private Connection db_con;
     private PreparedStatement statement;
     private CallableStatement callable;
@@ -34,6 +34,7 @@ public class Database{
             int error = ex.getErrorCode();
             if (error == 0){
                 System.out.println("Database Error:  The Java SQL connector is not available.  Please install and try again.");
+                System.out.println(ex);
             }
             if (error == 1045){
                 System.out.println("Database Error:  The Username or Password used to access the database is incorrect or not accepted.");
@@ -342,11 +343,31 @@ public class Database{
     }
     
     public ResultSet returnAllClassesByStudent(String email){
-        throw new UnsupportedOperationException("Not supported yet.");
+        ResultSet temp = null;
+        this.sql = "select name, section, profName, profEmail from classes natural join classestaken natural join members where members.email = ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, email);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return temp;
     }
 
     public ResultSet returnAllStudents(String className, String section) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        ResultSet temp = null;
+        this.sql = "SELECT email, first_name, last_name, user_status, logged_in from members natural join classestaken natural join classes where classes.name = ? and classes.section = ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, className);
+            this.statement.setString(2, section);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return temp;
     }
     
 }
+
