@@ -30,9 +30,11 @@ import java.util.logging.Logger;
         private Thread messageHandling;
         private Thread objectMessageListener;
         private final Database database;
+        private Chatrooms mainChatrooms;
+        private Chatrooms userChatrooms;
 
         // Public constructor.
-        public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database) {
+        public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, Chatrooms userChats) {
             this.con = con;
             this.onlineList = list;
             this.clientIP = con.getRemoteSocketAddress().toString().substring(1);
@@ -43,6 +45,8 @@ import java.util.logging.Logger;
             this.userName = user;
             this.messages = new LinkedBlockingQueue<Object>();
             this.database = database;
+            this.mainChatrooms = mainChats;
+            this.userChatrooms = userChats;
         }
 
         @Override
@@ -84,8 +88,8 @@ import java.util.logging.Logger;
             // Check to see if the user has actually logged out or has just vanished and close.
             if (messageHandling.getState().toString().equals("WAITING")) {
                 try {
-                    messageHandling.interrupt();
-                    objectMessageListener.interrupt();
+                    messageHandling.stop();
+                    objectMessageListener.stop();
                     this.objectIn.close();
                     this.objectOut.close();
                     this.con.close();
@@ -145,6 +149,21 @@ import java.util.logging.Logger;
 
         }
         
+        private void sendChatrooms() { 
+             if (this.userChatrooms == null) { 
+                 System.out.println("Chatrooms were not populated."); 
+                 return;
+             } 
+             Date curDate = new Date(); 
+             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Chatrooms:: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Sending Chatrooms."); 
+             try { 
+                 this.messages.put(this.userChatrooms); 
+             } catch (InterruptedException ex) { 
+                 Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex); 
+             } 
+         } 
+
+        
         private class ObjectMessageHandler extends Thread {
         // Class Fields
 
@@ -158,8 +177,11 @@ import java.util.logging.Logger;
                     } catch (IOException ex) {
                         //System.out.println(ex);
                         //System.out.println("Client Vanished");
-                        userLogout();
+                        if(onlineList.contains(userName)){
+                         userLogout();   
+                        }
                         iterate = false;
+                        break;
                     } catch (InterruptedException ex) {
                         System.out.println("Message put error.");
                         Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
@@ -206,7 +228,7 @@ import java.util.logging.Logger;
                                                 break;
                                             }
                                         }
-                                        // Retrieve the user's buddy list.
+                                        // Retrieve the user's list of chat rooms.
                                         case "02": {
                                             if (pieces[1].equals("GETLIST")) {
                                                 message = pieces[0] + ":" + pieces[1] + ":" + pieces[2] + ":" + pieces[3] + ":00:INCOMING:00";
@@ -287,7 +309,7 @@ import java.util.logging.Logger;
                                         // If the user requests their buddy list, then send the list.
                                     } else if (pieces[0].equals("02") && pieces[1].equals("GETLIST") && pieces[4].equals("00")) {
                                         dataOut.writeUTF(message);
-                                        //sendBuddyList();
+                                        sendChatrooms();
                                     }
                                         else if (pieces[0].equals("08") && pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                         System.out.println("We are sending a message out to: " + message);
@@ -301,10 +323,9 @@ import java.util.logging.Logger;
                                 }
                                 break;
                             }
-                            // If object placed on message queue is of type BuddyList, then send as object.
-                            case "BuddyList":
-                                //BuddyList list = (BuddyList) object;
-                                //objectOut.writeObject(list);
+                            // If object placed on message queue is of type Chatrooms, then send as object.
+                            case "Chatrooms":
+                                objectOut.writeObject((Chatrooms)object);
                                 break;
                             // If any of type of object, then an invalid response is received and the session is terminated.
                             default: {
