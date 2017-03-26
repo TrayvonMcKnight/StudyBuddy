@@ -82,13 +82,19 @@ public class StudyBuddyServer extends Thread {
                 this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(4), allClasses.getString(5));
                 students = this.database.returnAllStudents(allClasses.getString(2), allClasses.getString(3));
                 Boolean online;
+                int status;
                 while (students.next()) {
-                    if (students.getInt(9) == 1) {
+                    if (students.getInt(5) == 1) {
                         online = true;
                     } else {
                         online = false;
                     }
-                    this.chatrooms.addStudent(allClasses.getString(2), allClasses.getString(3), students.getString(4) + " " + students.getString(5), students.getString(2), online, students.getInt(6));
+                    if (students.getString(4).equalsIgnoreCase("Available")){
+                        status = 0;
+                    } else {
+                        status = 1;
+                    }
+                    this.chatrooms.addStudent(allClasses.getString(2), allClasses.getString(3), students.getString(2) + " " + students.getString(3), students.getString(1), online, status);
                 }
             }
         } catch (SQLException ex) {
@@ -250,7 +256,8 @@ public class StudyBuddyServer extends Thread {
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("email") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
                             String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
                             outStream.writeUTF(reply);
-                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("email"), database);
+                            
+                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("email"), database, chatrooms, this.buildUserChatrooms(result.getString("email")));
                             Thread session = new Thread(sess);
                             String first = result.getString("first_name");
                             String last = result.getString("last_name");
@@ -299,6 +306,20 @@ public class StudyBuddyServer extends Thread {
                 System.out.println(ex.toString());
                 Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+        
+        private Chatrooms buildUserChatrooms(String email){
+            Chatrooms temp = new Chatrooms();
+            ResultSet rooms = database.returnAllClassesByStudent(email);
+            try {
+                while (rooms.next()){
+                    temp.addChatroom(chatrooms.getChatroom(rooms.getString(1), rooms.getString(2)));
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            return temp;
         }
     }
 }
