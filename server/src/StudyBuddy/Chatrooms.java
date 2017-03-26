@@ -53,6 +53,16 @@ public class Chatrooms implements Serializable {
         this.ensureCapacity();
         this.rooms[this.numElements++] = new Chatroom(chatName, profName, section, email);
     }
+    
+    public void addChatroom(Chatroom room){
+        this.ensureCapacity();
+        this.rooms[this.numElements++] = room;
+    }
+    
+    public Chatroom getChatroom(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)];
+    }
+    
     public void addStudent(String chatName, String section, String studName, String email, Boolean online, int status){
         this.rooms[getIndex(chatName, section)].addStudent(studName, email, online, status);
     }
