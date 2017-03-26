@@ -39,6 +39,10 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
+                boolean connected = StartActivity.server.hasConnection();
+                if (!StartActivity.server.hasConnection()){
+                    StartActivity.server.handshake();
+                }
                 login();
             }
         });
