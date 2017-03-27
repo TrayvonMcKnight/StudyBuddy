@@ -4,16 +4,23 @@ import android.media.Image;
 import android.os.Bundle;
 import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.content.Intent;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
+import StudyBuddy.Chatrooms;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
+import edu.uncg.studdybuddy.events.Event;
+import edu.uncg.studdybuddy.events.IEventHandler;
 
 public class MainMenu extends AppCompatActivity {
     public static final String TAG = "MainMenu";
+    private Chatrooms chatrooms;
 
     @InjectView(R.id.classesButton) Button classesButton;
     @InjectView(R.id.profileButton) Button profileButton;
@@ -25,6 +32,17 @@ public class MainMenu extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mainmenu);
         ButterKnife.inject(this);
+        StudyBuddyConnector ourConnector = StartActivity.server.getInstance();
+        ourConnector.addEventListener(Event.CHATROOMS, new IEventHandler(){
+
+            @Override
+            public void callback(Event event) {
+                //Toast.makeText(getBaseContext(), "Incoming message: ", Toast.LENGTH_LONG).show();
+                //logOutButton.setText("Chatrooms Here");
+                chatrooms = event.getChatrooms();
+                logOutButton.setText("There are " + chatrooms.getNumberOfClasses());
+            }
+        });
 
         profileButton.setOnClickListener(new View.OnClickListener(){
 
