@@ -1,6 +1,7 @@
 package edu.uncg.studdybuddy.client;
 
 import android.os.StrictMode;
+import android.util.Log;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -13,15 +14,18 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.EventListener;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import StudyBuddy.Chatrooms;
+import edu.uncg.studdybuddy.events.Event;
+import edu.uncg.studdybuddy.events.EventDispatcher;
 
 /**
  * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
  */
 
-public class StudyBuddyConnector {
+public class StudyBuddyConnector extends EventDispatcher {
     // Private class fields
     private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 6000; // integer to hold server port number.
@@ -61,6 +65,17 @@ public class StudyBuddyConnector {
     }
 
     // Public class methods
+
+    public StudyBuddyConnector getInstance(){
+        return this;
+    }
+
+    public void myCallback(){
+        Event event = new Event(Event.CHATROOMS);
+        event.setMessage("The Chat rooms are here.");
+        event.setChatrooms(this.chatrooms);
+        dispatchEvent(event);
+    }
 
     public boolean isLoggedIn() {
         return this.loggedIn;
@@ -453,6 +468,7 @@ public class StudyBuddyConnector {
                         }
                         case "Chatrooms": {
                             chatrooms = (Chatrooms) object;
+                            myCallback();
                             //alertClient(new ActionEvent(this, 1, "INCOMING:BUDDYLIST"));
                             break;
                         }
