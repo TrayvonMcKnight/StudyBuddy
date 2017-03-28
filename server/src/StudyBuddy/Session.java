@@ -109,6 +109,16 @@ import java.util.logging.Logger;
             onlineList.removeClient(userName);
             // Update user status in the database.
             database.updateUserLoggedIn(this.userName, false);
+            // Set Offline in Chatroom class.
+            ResultSet rooms = database.returnAllClassesByStudent(userName);
+            try {
+                while (rooms.next()){
+                    Student stud = this.mainChatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
+                    stud.setOnlineStatus(false);
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+            }
             // Notify the server log that a user is logging out.
             Date curDate = new Date();
             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Disconnect: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Disconnected.");
