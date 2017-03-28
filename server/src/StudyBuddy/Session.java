@@ -58,6 +58,35 @@ import java.util.logging.Logger;
             this.objectMessageListener = new Thread(new ObjectMessageHandler());
             this.objectMessageListener.start();
         }
+        
+        private void sendChatMessage(String name, String section, String sender, String message){
+            if (this.onlineList.contains(sender) && this.mainChatrooms.classContainsStudent(name, section, sender)) {
+                this.mainChatrooms.addMessage(name, section, sender, message);
+                Student[] students = this.mainChatrooms.getStudents(name, section);
+                for (int c = 0;c < students.length;c++){
+                    if (students[c].getOnlineStatus()){
+                        Session theirSession = (Session) this.onlineList.returnUserSession(students[c].getStudentEmail());
+                        String mess = "11:CHATMESS:" + name + ":" + section +":" + sender + "::00:" + message;
+                        theirSession.sendMessage(mess);
+                        String error = "10:CHATMESS:" + name + ":" + section + ":00:SUCCESS:00";
+                        try {
+                            this.messages.put(error);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            } else {
+                String error = "10:CHATMESS:" + name + ":" + section + ":01:FAILURE:00";
+                try {
+                    this.messages.put(error);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                Date curDate = new Date();
+                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChatMess::: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Send message FAILED");
+            }
+        }
 
         private void sendMessage(String mess) {
             try {
@@ -204,6 +233,7 @@ import java.util.logging.Logger;
                             case "String": {
                                 String message = (String) object;
                                 String[] pieces = message.split(":");
+                                System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
                                 if (pieces[6].equals("01")) {
                                     switch (pieces[0]) {
                                         // Disconnect from the server.
@@ -296,6 +326,20 @@ import java.util.logging.Logger;
                                             }
                                         }*/
                                             break;
+                                            
+                                        case "09": {
+                                            break;
+                                        }
+                                        
+                                        case "10": {
+                                            if (pieces[1].equals("CHATMESS")) {
+                                                sendChatMessage(pieces[2], pieces[3], pieces[4], pieces[7]);
+                                                break;
+                                            } else {
+                                                invalid();
+                                                break;
+                                            }
+                                        }
                                         default:
                                             invalid();
                                         

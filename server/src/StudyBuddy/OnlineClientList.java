@@ -31,7 +31,7 @@ public class OnlineClientList{
         else {
             // Iterate through the list until the proper location to place the data has been reached.
             while (curr != header) {
-                int result = add.name.compareTo(curr.name);
+                int result = add.email.compareTo(curr.email);
                 if (result < 0) {
                     // Once the proper location has been found, add the new item.
                     curr.prev.next = add;
@@ -59,7 +59,7 @@ public class OnlineClientList{
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
         while (curr != header) {
-            if (!curr.name.equals(user)) {
+            if (!curr.email.equals(user)) {
                 curr = curr.next; // if data element not found, advance through the list.
             } // else data element is found and we un-link it from the list.
             else {
@@ -96,7 +96,7 @@ public class OnlineClientList{
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
         while (curr != header) {
-            if (!curr.name.equals(user)) {
+            if (!curr.email.equals(user)) {
                 curr = curr.next; // if data element not found, advance through the list.
             } // else data element is found and we un-link it from the list.
             else {
@@ -111,7 +111,7 @@ public class OnlineClientList{
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
         while (curr != header) {
-            if (!curr.name.equals(user)) {
+            if (!curr.email.equals(user)) {
                 curr = curr.next; // if data element not found, advance through the list.
             } // else data element is found and we un-link it from the list.
             else {
@@ -127,7 +127,7 @@ public class OnlineClientList{
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
         while (curr != header) {
-            tempArray[counter] = curr.name;
+            tempArray[counter] = curr.email;
             counter++;
             curr = curr.next;
         }
@@ -138,7 +138,7 @@ public class OnlineClientList{
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
         while (curr != header) {
-            if (!curr.name.equals(username)) {
+            if (!curr.email.equals(username)) {
                 curr = curr.next; // if data element not found, advance through the list.
             } // else data element is found and we un-link it from the list.
             else {
@@ -152,7 +152,7 @@ public class OnlineClientList{
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
         while (curr != header) {
-            if (curr.name.equals(username)) {
+            if (curr.email.equals(username)) {
                 return curr.getSession();
             }
             curr = curr.next;
