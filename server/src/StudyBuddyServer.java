@@ -3,6 +3,7 @@ import StudyBuddy.Chatrooms;
 import StudyBuddy.Database;
 import StudyBuddy.OnlineClientList;
 import StudyBuddy.Session;
+import StudyBuddy.Student;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -256,7 +257,12 @@ public class StudyBuddyServer extends Thread {
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("email") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
                             String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
                             outStream.writeUTF(reply);
-                            
+                            // Update chat rooms.
+                            ResultSet rooms = database.returnAllClassesByStudent(userName);
+                            while (rooms.next()){
+                                Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
+                                stud.setOnlineStatus(true);
+                            }
                             Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("email"), database, chatrooms, this.buildUserChatrooms(result.getString("email")));
                             Thread session = new Thread(sess);
                             String first = result.getString("first_name");
