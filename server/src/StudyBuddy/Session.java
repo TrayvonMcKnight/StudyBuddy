@@ -30,9 +30,11 @@ import java.util.logging.Logger;
         private Thread messageHandling;
         private Thread objectMessageListener;
         private final Database database;
+        private Chatrooms mainChatrooms;
+        private Chatrooms userChatrooms;
 
         // Public constructor.
-        public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database) {
+        public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, Chatrooms userChats) {
             this.con = con;
             this.onlineList = list;
             this.clientIP = con.getRemoteSocketAddress().toString().substring(1);
@@ -43,6 +45,8 @@ import java.util.logging.Logger;
             this.userName = user;
             this.messages = new LinkedBlockingQueue<Object>();
             this.database = database;
+            this.mainChatrooms = mainChats;
+            this.userChatrooms = userChats;
         }
 
         @Override
@@ -53,6 +57,35 @@ import java.util.logging.Logger;
             this.messageHandling.start();
             this.objectMessageListener = new Thread(new ObjectMessageHandler());
             this.objectMessageListener.start();
+        }
+        
+        private void sendChatMessage(String name, String section, String sender, String message){
+            if (this.onlineList.contains(sender) && this.mainChatrooms.classContainsStudent(name, section, sender)) {
+                this.mainChatrooms.addMessage(name, section, sender, message);
+                Student[] students = this.mainChatrooms.getStudents(name, section);
+                for (int c = 0;c < students.length;c++){
+                    if (students[c].getOnlineStatus()){
+                        Session theirSession = (Session) this.onlineList.returnUserSession(students[c].getStudentEmail());
+                        String mess = "11:CHATMESS:" + name + ":" + section +":" + sender + "::00:" + message;
+                        theirSession.sendMessage(mess);
+                        String error = "10:CHATMESS:" + name + ":" + section + ":00:SUCCESS:00";
+                        try {
+                            this.messages.put(error);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            } else {
+                String error = "10:CHATMESS:" + name + ":" + section + ":01:FAILURE:00";
+                try {
+                    this.messages.put(error);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                Date curDate = new Date();
+                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChatMess::: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Send message FAILED");
+            }
         }
 
         private void sendMessage(String mess) {
@@ -76,6 +109,16 @@ import java.util.logging.Logger;
             onlineList.removeClient(userName);
             // Update user status in the database.
             database.updateUserLoggedIn(this.userName, false);
+            // Set Offline in Chatroom class.
+            ResultSet rooms = database.returnAllClassesByStudent(userName);
+            try {
+                while (rooms.next()){
+                    Student stud = this.mainChatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
+                    stud.setOnlineStatus(false);
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+            }
             // Notify the server log that a user is logging out.
             Date curDate = new Date();
             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Disconnect: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Disconnected.");
@@ -84,8 +127,8 @@ import java.util.logging.Logger;
             // Check to see if the user has actually logged out or has just vanished and close.
             if (messageHandling.getState().toString().equals("WAITING")) {
                 try {
-                    messageHandling.interrupt();
-                    objectMessageListener.interrupt();
+                    messageHandling.stop();
+                    objectMessageListener.stop();
                     this.objectIn.close();
                     this.objectOut.close();
                     this.con.close();
@@ -145,6 +188,21 @@ import java.util.logging.Logger;
 
         }
         
+        private void sendChatrooms() { 
+             if (this.userChatrooms == null) { 
+                 System.out.println("Chatrooms were not populated."); 
+                 return;
+             } 
+             Date curDate = new Date(); 
+             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Chatrooms:: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Sending Chatrooms."); 
+             try { 
+                 this.messages.put(this.userChatrooms); 
+             } catch (InterruptedException ex) { 
+                 Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex); 
+             } 
+         } 
+
+        
         private class ObjectMessageHandler extends Thread {
         // Class Fields
 
@@ -158,8 +216,11 @@ import java.util.logging.Logger;
                     } catch (IOException ex) {
                         //System.out.println(ex);
                         //System.out.println("Client Vanished");
-                        userLogout();
+                        if(onlineList.contains(userName)){
+                         userLogout();   
+                        }
                         iterate = false;
+                        break;
                     } catch (InterruptedException ex) {
                         System.out.println("Message put error.");
                         Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
@@ -182,6 +243,7 @@ import java.util.logging.Logger;
                             case "String": {
                                 String message = (String) object;
                                 String[] pieces = message.split(":");
+                                System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
                                 if (pieces[6].equals("01")) {
                                     switch (pieces[0]) {
                                         // Disconnect from the server.
@@ -206,7 +268,7 @@ import java.util.logging.Logger;
                                                 break;
                                             }
                                         }
-                                        // Retrieve the user's buddy list.
+                                        // Retrieve the user's list of chat rooms.
                                         case "02": {
                                             if (pieces[1].equals("GETLIST")) {
                                                 message = pieces[0] + ":" + pieces[1] + ":" + pieces[2] + ":" + pieces[3] + ":00:INCOMING:00";
@@ -274,6 +336,20 @@ import java.util.logging.Logger;
                                             }
                                         }*/
                                             break;
+                                            
+                                        case "09": {
+                                            break;
+                                        }
+                                        
+                                        case "10": {
+                                            if (pieces[1].equals("CHATMESS")) {
+                                                sendChatMessage(pieces[2], pieces[3], pieces[4], pieces[7]);
+                                                break;
+                                            } else {
+                                                invalid();
+                                                break;
+                                            }
+                                        }
                                         default:
                                             invalid();
                                         
@@ -287,7 +363,7 @@ import java.util.logging.Logger;
                                         // If the user requests their buddy list, then send the list.
                                     } else if (pieces[0].equals("02") && pieces[1].equals("GETLIST") && pieces[4].equals("00")) {
                                         dataOut.writeUTF(message);
-                                        //sendBuddyList();
+                                        sendChatrooms();
                                     }
                                         else if (pieces[0].equals("08") && pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                         System.out.println("We are sending a message out to: " + message);
@@ -301,10 +377,9 @@ import java.util.logging.Logger;
                                 }
                                 break;
                             }
-                            // If object placed on message queue is of type BuddyList, then send as object.
-                            case "BuddyList":
-                                //BuddyList list = (BuddyList) object;
-                                //objectOut.writeObject(list);
+                            // If object placed on message queue is of type Chatrooms, then send as object.
+                            case "Chatrooms":
+                                objectOut.writeObject((Chatrooms)object);
                                 break;
                             // If any of type of object, then an invalid response is received and the session is terminated.
                             default: {

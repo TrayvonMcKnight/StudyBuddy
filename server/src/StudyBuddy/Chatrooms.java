@@ -1,7 +1,8 @@
 package StudyBuddy;
 
 import java.io.Serializable;
-import java.util.Arrays;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Chatrooms implements Serializable {
     // Private class fields
@@ -23,10 +24,10 @@ public class Chatrooms implements Serializable {
         }
     }
     
-    private int getIndex(String classname){
+    private int getIndex(String classname, String section){
         int temp = -1;
         for (int c = 0;c < this.numElements;c++){
-            if (this.rooms[c].getClassName().equalsIgnoreCase(classname)){
+            if (this.rooms[c].getClassName().equalsIgnoreCase(classname) && this.rooms[c].getSection().equalsIgnoreCase(section)){
                 temp = c;
                 break;
             }
@@ -34,45 +35,95 @@ public class Chatrooms implements Serializable {
         return temp;
     }
     
-    public void addChatroom(String chatName, String profName){
+    public int getNumberOfClasses(){
+        return this.numElements;
+    }
+    
+    public String[] getClassNamesAndSection(){
+        String temp[] = new String[this.getNumberOfClasses()];
+        for (int c = 0; c < this.getNumberOfClasses();c++){
+            temp[c] = this.rooms[c].getClassName() + ":" + this.rooms[c].getSection();
+        }
+        return temp;
+    }
+    
+    public int getNumberOfStudents(String className, String section){
+        return this.rooms[this.getIndex(className, section)].returnNumberOfStudents();
+    }
+    
+    public void addChatroom(String chatName, String section, String profName, String email){
         this.ensureCapacity();
-        this.rooms[this.numElements++] = new Chatroom(chatName, profName);
-    }
-    public void addStudent(String chatName, String studName){
-        this.rooms[getIndex(chatName)].addStudent(studName);
+        this.rooms[this.numElements++] = new Chatroom(chatName, profName, section, email);
     }
     
-    public void addMessage(String chatName, String studName, String time, String message){
-        this.rooms[getIndex(chatName)].addMessage(studName, time, message);
+    public void addChatroom(Chatroom room){
+        this.ensureCapacity();
+        this.rooms[this.numElements++] = room;
     }
     
-    public String[] getStudents(String chatName){
-        return this.rooms[this.getIndex(chatName)].getStudents();
+    public Chatroom getChatroom(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)];
     }
     
-    public String[][] getMessages(String chatName){
-        return this.rooms[this.getIndex(chatName)].getMessages();
+    public void addStudent(String chatName, String section, String studName, String email, Boolean online, int status){
+        this.rooms[getIndex(chatName, section)].addStudent(studName, email, online, status);
     }
     
-    public String getProfessorName(String chatName){
-        return this.rooms[this.getIndex(chatName)].getProfessorName();
+    public void addMessage(String chatName, String section, String studName, String message){
+        this.rooms[getIndex(chatName, section)].addMessage(studName, message);
+    }
+    
+    public Student[] getStudents(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getStudents();
+    }
+    
+    public Student getStudent(String chatName, String section, String email){
+        return this.rooms[this.getIndex(chatName, section)].getStudent(email);
+    }
+    
+    public String[][] getMessages(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getMessages();
+    }
+    
+    public int getNumberOfMessages(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].messageElements;
+    }
+    
+    public String getProfessorName(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getProfessorName();
+    }
+    
+    public String getClassSection(String chatName, String section) {
+        return this.rooms[this.getIndex(chatName, section)].getSection();
+    }
+    
+    public String getProfessorEmail(String chatName, String section){
+        return this.rooms[this.getIndex(chatName, section)].getProfessorEmail();
+    }
+    
+    public boolean classContainsStudent(String chatName, String section, String email){
+        return this.rooms[this.getIndex(chatName, section)].isStudent(email);
     }
     
     
     private class Chatroom implements Serializable {
         // Private class fields.
         private final String className;
+        private final String section;
         private final String professorName;
-        private String[] students;
+        private final String professorEmail;
+        private Student[] students;
         private String[][] messages;
         private int studentElements;
         private int messageElements;
         
         // Class constructor
-        private Chatroom(String classname, String profname){
+        private Chatroom(String classname, String profname, String section, String email){
             this.className = classname;
+            this.section = section;
             this.professorName = profname;
-            this.students = new String[10];
+            this.professorEmail = email;
+            this.students = new Student[10];
             this.messages = new String[10][3];
             this.studentElements = 0;
             this.messageElements = 0;
@@ -80,7 +131,7 @@ public class Chatrooms implements Serializable {
         
         private void studentEnsureCapacity(){
             if (this.studentElements == this.students.length){
-                String[] temp = new String[students.length * 2];
+                Student[] temp = new Student[students.length * 2];
                 System.arraycopy(this.students, 0, temp, 0, this.studentElements);
                 this.students = temp;
             }
@@ -100,8 +151,25 @@ public class Chatrooms implements Serializable {
             return this.className;
         }
         
+        private String getSection(){
+            return this.section;
+        }
+        
+        private String getProfessorEmail(){
+            return this.professorEmail;
+        }
+        
         private String getProfessorName(){
             return this.professorName;
+        }
+        
+        private boolean isStudent(String email){
+            for (int c = 0; c < this.studentElements;c++){
+                if (this.students[c].getStudentEmail().equalsIgnoreCase(email)){
+                    return true;
+                }
+            }
+            return false;
         }
         
         private int returnNumberOfStudents(){
@@ -112,25 +180,42 @@ public class Chatrooms implements Serializable {
             return this.messageElements;
         }
         
-        private String[] getStudents(){
-            return this.students;
+        private Student[] getStudents(){
+            Student[] temp = new Student[this.studentElements];
+            for (int c = 0;c < this.studentElements;c++){
+                temp[c] = this.students[c];
+            }
+            return temp;
+        }
+        
+        private Student getStudent(String email){
+            for (int c = 0;c < this.studentElements;c++){
+                if (this.students[c].getStudentEmail().equalsIgnoreCase(email)){
+                    return this.students[c];
+                }
+            }
+            return null;
         }
         
         private String[][] getMessages(){
             return this.messages;
         }
         
-        private void addStudent(String name){
+        private void addStudent(String name, String email, Boolean online, int status){
             this.studentEnsureCapacity();
-            this.students[this.studentElements++] = name;
-            Arrays.sort(this.students);
+            this.students[this.studentElements++] = new Student(name, email, online, status);
         }
         
-        private void addMessage(String sender, String time, String message){
+        private void addMessage(String sender, String message){
             this.messageEnsureCapacity();
+            Date curDate = new Date();
+            String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(curDate);
+            System.out.println(time);
             this.messages[this.messageElements][0] = sender;
             this.messages[this.messageElements][1] = time;
             this.messages[this.messageElements++][2] = message;
         }
     }
+    
+    
 }
