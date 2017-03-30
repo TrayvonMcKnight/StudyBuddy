@@ -22,13 +22,25 @@ public class ClassesActivity extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         classes = (Chatrooms) bundle.getSerializable("classes");
 
-        List<String> arrayList = new ArrayList<String>();
-        arrayList.add(classes.getClass().toString());
+        List<String> arrayClass = new ArrayList<String>();
+        List<String> arraySections = new ArrayList<String>();
+
+        String[] classSections = classes.getClassNamesAndSection();
+        for(int i = 0; i < classSections.length; i++){
+            String[] pieces = classSections[i].split(":");
+            arrayClass.add(pieces[0] + "-" + pieces[1]);
+
+            arraySections.add(classes.getProfessorName(pieces[0], pieces[1]));
+        }
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, arrayList );
+                android.R.layout.simple_list_item_1, arrayClass );
+
+        ArrayAdapter<String> arrAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_2, arraySections );
 
         classList.setAdapter(arrayAdapter);
+        classList.setAdapter(arrAdapter);
         //ListView listView = (ListView) findViewById()
     }
 }
