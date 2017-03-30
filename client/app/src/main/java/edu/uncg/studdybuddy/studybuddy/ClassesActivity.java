@@ -3,14 +3,10 @@ package edu.uncg.studdybuddy.studybuddy;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import StudyBuddy.Chatrooms;
-import butterknife.InjectView;
 
 public class ClassesActivity extends AppCompatActivity {
     Chatrooms classes;
@@ -35,7 +31,4 @@ public class ClassesActivity extends AppCompatActivity {
         classList.setAdapter(arrayAdapter);
         //ListView listView = (ListView) findViewById()
     }
-
-
-
 }
