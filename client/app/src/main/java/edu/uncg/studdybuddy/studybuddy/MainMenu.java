@@ -6,12 +6,15 @@ import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.content.Intent;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import StudyBuddy.Chatrooms;
+import StudyBuddy.Student;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
@@ -33,7 +36,7 @@ public class MainMenu extends AppCompatActivity {
         setContentView(R.layout.activity_mainmenu);
         ButterKnife.inject(this);
         StudyBuddyConnector ourConnector = StartActivity.server.getInstance();
-        ourConnector.addEventListener(Event.CHATROOMS, new IEventHandler(){
+        ourConnector.addEventListener(Event.CHATROOMS, new IEventHandler() {
 
             @Override
             public void callback(Event event) {
@@ -41,6 +44,17 @@ public class MainMenu extends AppCompatActivity {
                 //logOutButton.setText("Chatrooms Here");
                 chatrooms = event.getChatrooms();
                 logOutButton.setText("There are " + chatrooms.getNumberOfClasses());
+
+                /*
+                String[] classSections = chatrooms.getClassNamesAndSection();
+                for(int i = 0; i < classSections.length; i++){
+                    String[] pieces = classSections[i].split(":");
+                }
+
+                String[] pieces = classSections[0].split(":");
+                //Access students
+                Student[] students = chatrooms.getStudents(pieces[0], pieces[1]);
+                */
             }
         });
 
@@ -84,5 +98,4 @@ public class MainMenu extends AppCompatActivity {
         //StartActivity.server.changePassword("test1234", "test4321");
 
     }
-
 }
