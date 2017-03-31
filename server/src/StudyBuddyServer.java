@@ -80,7 +80,8 @@ public class StudyBuddyServer extends Thread {
         ResultSet students;
         try {
             while (allClasses.next()) {
-                this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(4), allClasses.getString(5));
+                // Fix this is add new information retrieved from the database.
+                this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(8), allClasses.getString(9));
                 students = this.database.returnAllStudents(allClasses.getString(2), allClasses.getString(3));
                 Boolean online;
                 int status;
@@ -250,11 +251,11 @@ public class StudyBuddyServer extends Thread {
                                 String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":01:NOUSER:00";
                                 outStream.writeUTF(reply);
                             }
-                        } else if (result.getString("pass_word").equals(passWord)) {
+                        } else if (result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
                             database.updateLastLoginTime(userName);
                             database.updateUserLoggedIn(userName, true);
-                            System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("email") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
+                            System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("sEmail") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
                             String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
                             outStream.writeUTF(reply);
                             // Update chat rooms.
@@ -263,11 +264,11 @@ public class StudyBuddyServer extends Thread {
                                 Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
                                 stud.setOnlineStatus(true);
                             }
-                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("email"), database, chatrooms);
+                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms);
                             Thread session = new Thread(sess);
-                            String first = result.getString("first_name");
-                            String last = result.getString("last_name");
-                            String mail = result.getString("email");
+                            String first = result.getString("sFName");
+                            String last = result.getString("sLName");
+                            String mail = result.getString("sEmail");
                             String ip = con.getRemoteSocketAddress().toString().substring(1);
                             int stat = database.getUserStatus(userName);
                             onlineList.addClient(first + " " + last, mail, ip, stat, inFromClient, outToClient, sess);
