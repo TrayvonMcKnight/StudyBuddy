@@ -101,13 +101,13 @@ public class Database{
         } catch (SQLException ex) {
             System.out.println("Could not create students table statement");
             System.out.println(ex);
-            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+          
             return success;}
         
         try {
             this.callable.execute();
         } catch (SQLException ex) {
-            System.out.println("Could not execute create members table");
+            System.out.println("Could not execute create students table");
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;}
         
@@ -125,9 +125,9 @@ public class Database{
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
-            System.out.println("Could not create members table statement");
+            System.out.println("Could not create classes table statement");
             System.out.println(ex);
-            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+           
             return success;}
         
         try {
@@ -159,13 +159,13 @@ public class Database{
         } catch (SQLException ex) {
             System.out.println("Could not create enrolled table statement");
             System.out.println(ex);
-            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+          
             return success;}
 
         try {
             this.callable.execute();
         } catch (SQLException ex) {
-            System.out.println("Could not execute create members table");
+            System.out.println("Could not execute create enrolled table");
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;}
               
@@ -192,16 +192,15 @@ public class Database{
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
-            System.out.println("Could not create enrolled table statement");
+            System.out.println("Could not create attendance table statement");
             System.out.println(ex);
-            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            
             return success;}
         
         try {
             this.callable.execute();
         } catch (SQLException ex) {
-            System.out.println("Could not execute create members table");
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Could not execute create attendance table");            
             return success;}
         
         this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` (\n" +
@@ -213,15 +212,14 @@ public class Database{
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
-            System.out.println("Could not create enrolled table statement");
-            System.out.println(ex);
-            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Could not create offlinemessages table statement");
+            System.out.println(ex);           
             return success;}
         
         try {
             this.callable.execute();
         } catch (SQLException ex) {
-            System.out.println("Could not execute create members table");
+            System.out.println("Could not execute create offlinemessages table");
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;}
         
@@ -265,8 +263,12 @@ public class Database{
                     // Add new user to database.
                     
                     // the mysql insert statement
-                    this.sql = " insert into members (email, pass_word, first_name, last_name, user_status, date_joined, last_login, logged_in)"
+                    this.sql = " insert into students (sEmail, sPass, sFName, sLName, user_status, date_joined, last_login, logged_in)"
                             + " values (?, ?, ?, ?, ?, ?, ?, ?)";
+                    
+                    this.sql = " insert into enrolled (sID, cID)"
+                            + " values (?, ?)";
+                    
                     
                     // Read the current date and time.
                     Date curDate = new Date();
@@ -307,7 +309,7 @@ public class Database{
     
     public ResultSet returnUserInfo(String username) {
         ResultSet result = null;
-        this.sql = "SELECT * FROM members WHERE email= ?";
+        this.sql = "SELECT * FROM students WHERE sEmail= ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
         } catch (SQLException ex) {
@@ -331,7 +333,7 @@ public class Database{
         if (this.getUserID(username) != 0) {
             Date curDate = new Date();
             SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            this.sql = "UPDATE members SET last_login= ? WHERE email= ?";
+            this.sql = "UPDATE students SET last_login= ? WHERE sEmail= ?";
             try {
                 statement = db_con.prepareStatement(sql);
                 statement.setString(1, ft.format(curDate));
@@ -351,7 +353,7 @@ public class Database{
         boolean success = false;
         if (this.getUserID(username) != 0) {
             try {
-                this.sql = "UPDATE members SET pass_word= ? WHERE email= ?";
+                this.sql = "UPDATE students SET sPass= ? WHERE sEmail= ?";
                 statement = db_con.prepareStatement(this.sql);
                 statement.setString(1, pass);
                 statement.setString(2, username);
@@ -374,7 +376,7 @@ public class Database{
                 stat = 0;
             }
             try {
-                this.sql = "UPDATE members SET logged_in= ? WHERE email= ?";
+                this.sql = "UPDATE students SET logged_in= ? WHERE sEmail= ?";
                 statement = db_con.prepareStatement(this.sql);
                 statement.setInt(1, stat);
                 statement.setString(2, username);
@@ -389,7 +391,7 @@ public class Database{
     
     public int getUserID(String username) {
         int id = 0;
-        this.sql = "SELECT user_id_number FROM members WHERE email= ?";
+        this.sql = "SELECT sID FROM students WHERE sEmail= ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, username);
@@ -414,7 +416,7 @@ public class Database{
      */
     public int getUserStatus(String username) {
         int stat = 9;
-        this.sql = "SELECT user_status FROM members WHERE email= ?";
+        this.sql = "SELECT user_status FROM students WHERE sEmail= ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, username);
@@ -458,7 +460,7 @@ public class Database{
     
     public ResultSet returnAllClassesByStudent(String email){
         ResultSet temp = null;
-        this.sql = "select name, section, profName, profEmail from classes natural join classestaken natural join members where members.email = ?";
+        this.sql = "select cID, cName, cDesprition, profLName, profEmail from classes natural join enrolled natural join students where students.sEmail = ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, email);
@@ -471,7 +473,7 @@ public class Database{
 
     public ResultSet returnAllStudents(String className, String section) {
         ResultSet temp = null;
-        this.sql = "SELECT email, first_name, last_name, user_status, logged_in from members natural join classestaken natural join classes where classes.name = ? and classes.section = ?";
+        this.sql = "SELECT sEmail, sFName, sLName, user_status, logged_in from members natural join enrolled natural join classes where classes. = ? and classes.section = ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, className);
