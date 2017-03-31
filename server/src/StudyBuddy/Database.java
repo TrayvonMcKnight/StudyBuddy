@@ -114,7 +114,7 @@ public class Database{
        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`classes` (\n" +
                         "  `cID` INT(12) NOT NULL," +
                         "  `cName` VARCHAR(45) NOT NULL,"+
-                        "  `cSection` INT(12) NOT NULL,"+
+                        "  `cSection` VARCHAR(3) NOT NULL,"+
                         "  `cDay` VARCHAR (5) NOT NULL,"+ 
                         "  `cStartTm` TIME NOT NULL,"+
                         "  `cEndTm` TIME NOT NULL,"+
@@ -401,7 +401,7 @@ public class Database{
             this.statement.setString(1, username);
             ResultSet result = statement.executeQuery();
             while (result.next()) {
-                id = result.getInt("user_id_number");
+                id = result.getInt("sID");
             }
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
@@ -464,7 +464,7 @@ public class Database{
     
     public ResultSet returnAllClassesByStudent(String email){
         ResultSet temp = null;
-        this.sql = "select cID, cName, cDesprition, profLName, profEmail from classes natural join enrolled natural join students where students.sEmail = ?";
+        this.sql = "select cName, cSection, cDescription, profLName, profEmail from classes natural join enrolled natural join students where students.sEmail = ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, email);
@@ -477,7 +477,7 @@ public class Database{
 
     public ResultSet returnAllStudents(String className, String section) {
         ResultSet temp = null;
-        this.sql = "SELECT sEmail, sFName, sLName, user_status, logged_in from members natural join enrolled natural join classes where classes. = ? and classes.section = ?";
+        this.sql = "SELECT sEmail, sFName, sLName, user_status, logged_in from students natural join enrolled natural join classes where classes.cName = ? and classes.cSection = ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, className);
