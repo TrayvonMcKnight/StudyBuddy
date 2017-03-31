@@ -34,7 +34,7 @@ import java.util.logging.Logger;
         private Chatrooms userChatrooms;
 
         // Public constructor.
-        public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, Chatrooms userChats) {
+        public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats) {
             this.con = con;
             this.onlineList = list;
             this.clientIP = con.getRemoteSocketAddress().toString().substring(1);
@@ -46,13 +46,14 @@ import java.util.logging.Logger;
             this.messages = new LinkedBlockingQueue<Object>();
             this.database = database;
             this.mainChatrooms = mainChats;
-            this.userChatrooms = userChats;
+            this.userChatrooms = null;
         }
 
         @Override
         public void run() {
+            this.userChatrooms = this.buildUserChatrooms(this.userName);
             //this.populateBuddyList();
-            //this.broadcastOnlineBuddies(true);
+            this.broadcastOnlineBuddies(true);
             this.messageHandling = new Thread(new MessageQueue());
             this.messageHandling.start();
             this.objectMessageListener = new Thread(new ObjectMessageHandler());
@@ -123,7 +124,7 @@ import java.util.logging.Logger;
             Date curDate = new Date();
             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Disconnect: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Disconnected.");
             // Notify other online users that a buddy is logging off the network.
-            //this.broadcastOnlineBuddies(false);
+            this.broadcastOnlineBuddies(false);
             // Check to see if the user has actually logged out or has just vanished and close.
             if (messageHandling.getState().toString().equals("WAITING")) {
                 try {
@@ -200,7 +201,47 @@ import java.util.logging.Logger;
              } catch (InterruptedException ex) { 
                  Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex); 
              } 
-         } 
+         }
+        
+        private void broadcastOnlineBuddies(boolean online) {
+            //this.userChatrooms = this.buildUserChatrooms(userName);
+            for (int c = 0;c < this.userChatrooms.getNumberOfClasses();c++){
+                String[] roomList = this.userChatrooms.getClassNamesAndSection();
+                String[] pieces = roomList[c].split(":");
+                Student[] students = this.userChatrooms.getStudents(pieces[0], pieces[1]);
+                for (int d = 0;d < students.length;d++){
+                    if (students[d].getStudentEmail().equalsIgnoreCase(userName)){
+                    } else {
+                        if (students[d].getOnlineStatus()){
+                            System.out.println("Only " + students[d].getStudentEmail() + " is online for user " + userName);
+                        Session tempSess = (Session) onlineList.returnUserSession(students[d].getStudentEmail());
+                        String newBuddy;
+                        if (online) {
+                            newBuddy = "06:BUDDYONLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + "::00";
+                        } else {
+                            newBuddy = "06:BUDDYOFFLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + "::00";
+                        }
+                       tempSess.sendMessage(newBuddy);
+                    }
+                    
+                    }
+                }
+            }
+        }
+        
+        private Chatrooms buildUserChatrooms(String email){
+            Chatrooms temp = new Chatrooms();
+            ResultSet rooms = database.returnAllClassesByStudent(email);
+            try {
+                while (rooms.next()){
+                    temp.addChatroom(mainChatrooms.getChatroom(rooms.getString(1), rooms.getString(2)));
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            return temp;
+        }
 
         
         private class ObjectMessageHandler extends Thread {
@@ -243,7 +284,7 @@ import java.util.logging.Logger;
                             case "String": {
                                 String message = (String) object;
                                 String[] pieces = message.split(":");
-                                System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
+                                //System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
                                 if (pieces[6].equals("01")) {
                                     switch (pieces[0]) {
                                         // Disconnect from the server.
@@ -367,8 +408,12 @@ import java.util.logging.Logger;
                                     }
                                         else if (pieces[0].equals("08") && pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                         System.out.println("We are sending a message out to: " + message);
+                                        
+                                    } else if (pieces[0].equals("06")){
+                                        dataOut.writeUTF(message);
+                                    }
                                         // If none of the above conditions are met, just send the message back to client.
-                                    } else {
+                                        else {
                                         dataOut.writeUTF(message);
                                     }
                                     // If message does not end in either 00 or 01, then an invalid response is received and the session is terminated.
