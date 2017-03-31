@@ -114,6 +114,10 @@ public class Database{
        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`classes` (\n" +
                         "  `cID` INT(12) NOT NULL," +
                         "  `cName` VARCHAR(45) NOT NULL,"+
+                        "  `cSection` INT(12) NOT NULL,"+
+                        "  `cDay` VARCHAR (5) NOT NULL,"+ 
+                        "  `cStartTm` TIME NOT NULL,"+
+                        "  `cEndTm` TIME NOT NULL,"+
                         "  `cDescription` VARCHAR(255) NOT NULL," +
                         "  `profLName` VARCHAR(45) NOT NULL," +
                         "  `profEmail` VARCHAR(45) NOT NULL," +
