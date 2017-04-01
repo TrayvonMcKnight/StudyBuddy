@@ -185,6 +185,7 @@ public class StudyBuddyServer extends Thread {
                     Date curDate = new Date();
                     switch (database.registerUser(pieces[2], pieces[3], pieces[5], pieces[6])) {
                         case 0: {
+                            this.assignClasses(pieces[2]);
                             outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":ACCEPTED:00::00");
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Accepted - New user added.");
                             break;
@@ -221,6 +222,26 @@ public class StudyBuddyServer extends Thread {
                     Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
+            }
+        }
+        
+        private void assignClasses(String studentEmail){
+            ResultSet student = database.returnUserInfo(studentEmail);
+            ResultSet allClasses = database.returnAllClassesByStudent(studentEmail);
+            try {
+                if (student.next()){
+                        String studentName = student.getString(4) + " " + student.getString(5);
+                        int available = database.getUserStatus(studentEmail);
+                        int loggedIn = student.getInt(9);
+                        boolean online;
+                        if (loggedIn == 0){
+                            online = true;
+                        } else online = false;
+                        while (allClasses.next()){
+                            chatrooms.addStudent(allClasses.getString(1), allClasses.getString(2), studentName, studentEmail, online, available);
+                        }
+                }   } catch (SQLException ex) {
+                Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -276,7 +297,7 @@ public class StudyBuddyServer extends Thread {
                             session.start();
                             this.loggedIn = true;
                             break;
-                        } else if (!result.getString("pass_word").equals(passWord)) {
+                        } else if (!result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - Incorrect password.");
                             attempts++;
