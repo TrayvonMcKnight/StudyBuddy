@@ -18,8 +18,11 @@ import java.util.EventListener;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import StudyBuddy.Chatrooms;
+import StudyBuddy.Student;
 import edu.uncg.studdybuddy.events.Event;
 import edu.uncg.studdybuddy.events.EventDispatcher;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
@@ -27,8 +30,8 @@ import edu.uncg.studdybuddy.events.EventDispatcher;
 
 public class StudyBuddyConnector extends EventDispatcher {
     // Private class fields
-    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
-    private final int port = 6000; // integer to hold server port number.
+    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
     private final int handshakeTimeout = 5000; // integer to hold the server timeout for the handshake.
@@ -46,6 +49,7 @@ public class StudyBuddyConnector extends EventDispatcher {
     private Thread messageHandler;
     private Thread messageQueue;
     private int passwordError;
+    private int chatError;
     private Chatrooms chatrooms;
 
     // Class constructor
@@ -88,6 +92,11 @@ public class StudyBuddyConnector extends EventDispatcher {
     public String getUserName() {
         return this.userName;
     }
+
+    public Chatrooms getChatrooms(){
+        return this.chatrooms;
+    }
+
 
     public void close() {
         try {
@@ -173,6 +182,7 @@ public class StudyBuddyConnector extends EventDispatcher {
 
         } catch (IOException ex) {
             System.out.println("Message from the outToServerObj not being created.");
+            // This should log out of the server.
             ex.printStackTrace();
         }
         switch (answer) {
@@ -254,6 +264,7 @@ public class StudyBuddyConnector extends EventDispatcher {
             try {
                 String changePassMess = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":::01";
                 messages.put(changePassMess);
+                // Possible semaphore
                 Thread.sleep(500);
                 return passwordError;
             } catch (InterruptedException ex) {
@@ -261,6 +272,21 @@ public class StudyBuddyConnector extends EventDispatcher {
             }
         }
         return 2;
+    }
+
+    public boolean sendToChatroom(String name, String section, String message){
+        if (this.loggedIn) {
+            try {
+                String sendChatMess = "10:CHATMESS:" + name + ":" + section + ":" + this.userName +"::01:" + message;
+                messages.put(sendChatMess);
+                // possible semaphore
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+            }
+        }
+        if (chatError == 0) return true;
+        return false;
     }
 
     private void getChatroomsFromServer() {
@@ -281,7 +307,11 @@ public class StudyBuddyConnector extends EventDispatcher {
             try {
                 this.messages.put(logoutMess);
                 this.connected = false;
+                this.loggedIn = false;
+                // Need a semaphore here.
                 Thread.sleep(500);
+                this.messageQueue.interrupt();
+                this.messageHandler.interrupt();
                 return true;
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
@@ -376,15 +406,15 @@ public class StudyBuddyConnector extends EventDispatcher {
                             String message = (String) object;
                             String[] pieces = message.split(":");
                             //System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
-                            if (pieces[pieces.length - 1].equals("00")) {
+                            if (pieces[6].equals("00")) {
                                 switch (pieces[0]) {
                                     case "00": {
                                         if (message.contains("GOODBYE")) {
                                             iterate = false;
                                             loggedIn = false;
                                             connected = false;
-                                            messageHandler.interrupt();
-                                            messageQueue.interrupt();
+                                            messageHandler.stop();
+                                            messageQueue.stop();
                                             client.close();
                                         }
                                         break;
@@ -416,10 +446,19 @@ public class StudyBuddyConnector extends EventDispatcher {
                                     }
                                     case "06": {
                                         if (pieces[1].equals("BUDDYONLINE")) {
+                                            // set buddy online for the chatroom passed in.
+                                            System.out.println("Buddy " + pieces[2] + " comes online for " + userName);
+                                            Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
+                                            stud.setOnlineStatus(true);
+                                            //System.out.println("User " + stud.getStudentName() + " is now online.");
                                             //buddies.setOnlineStatus(pieces[2], true);
                                             //alertClient(new ActionEvent(this, 1, pieces[1] + ":" + pieces[2]));
 
                                         } else if (pieces[1].equals("BUDDYOFFLINE")) {
+                                            // set buddy offline for the chatroom passed in.
+                                            Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
+                                            stud.setOnlineStatus(false);
+                                            //System.out.println("User " + stud.getStudentName() + " is now offline.");
                                             //buddies.setOnlineStatus(pieces[2], false);
                                             //alertClient(new ActionEvent(this, 1, pieces[1] + ":" + pieces[2]));
                                         }
@@ -449,11 +488,30 @@ public class StudyBuddyConnector extends EventDispatcher {
                                         }
                                         break;
                                     }
+
+                                    case "09": {
+                                        break;
+                                    }
+
+                                    case "10": {
+                                        if (pieces[5].equals("SUCCESS") && pieces[4].equals("00")) {
+                                            chatError = 0;
+                                        } else if (pieces[5].equals("FAILURE") && pieces[4].equals("01")) {
+                                            chatError = 1;
+                                        }
+                                        break;
+                                    }
+
+                                    case "11": {
+                                        if (pieces[1].equals("CHATMESS")) {
+                                            //System.out.println("INCOMING MESSAGE from " + pieces[4] +": " + pieces[7]);
+                                        }
+                                    }
                                     default: {
                                     }
                                 }
                                 break;
-                            } else if (pieces[pieces.length - 1].equals("01")) {
+                            } else if (pieces[6].equals("01")) {
                                 if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")){
                                     String textMessage = (String)messages.take();
                                     out.writeUTF(message);
@@ -468,7 +526,8 @@ public class StudyBuddyConnector extends EventDispatcher {
                         }
                         case "Chatrooms": {
                             chatrooms = (Chatrooms) object;
-                            myCallback();
+                            System.out.println("List Received.");
+                            //myCallback();
                             //alertClient(new ActionEvent(this, 1, "INCOMING:BUDDYLIST"));
                             break;
                         }
@@ -476,8 +535,9 @@ public class StudyBuddyConnector extends EventDispatcher {
                             logout();
                         }
                     }
-                } catch (InterruptedException | IOException ex) {
-                    ex.printStackTrace();
+                } catch (InterruptedException | IOException  | IllegalMonitorStateException ex) {
+                    messageQueue.interrupt();
+                    messageHandler.interrupt();
                 }
             }
         }
