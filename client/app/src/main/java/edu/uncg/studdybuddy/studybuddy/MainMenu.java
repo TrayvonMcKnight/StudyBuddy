@@ -20,7 +20,7 @@ import edu.uncg.studdybuddy.events.IEventHandler;
 
 public class MainMenu extends AppCompatActivity {
     public static final String TAG = "MainMenu";
-    private Chatrooms chatrooms;
+    protected static Chatrooms chatrooms;
 
     @InjectView(R.id.classesButton) Button classesButton;
     @InjectView(R.id.profileButton) Button profileButton;
