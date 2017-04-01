@@ -297,7 +297,7 @@ public class StudyBuddyServer extends Thread {
                             session.start();
                             this.loggedIn = true;
                             break;
-                        } else if (!result.getString("pass_word").equals(passWord)) {
+                        } else if (!result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - Incorrect password.");
                             attempts++;
