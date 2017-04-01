@@ -14,9 +14,9 @@ import java.util.logging.Logger;
 public class Database{
     // Private class fields
 
-    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
+    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/";//?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
     private final String DB_USER = "studybuddy";
-    private final String DB_PASS = "TheStudyBuddy";
+    private final String DB_PASS = "TheStudyBuddyPassword";
     private Connection db_con;
     private PreparedStatement statement;
     private CallableStatement callable;
@@ -53,7 +53,11 @@ public class Database{
             ResultSet resultSet = statement.executeQuery();
         } catch (SQLException ex) {
             System.out.println("First run detected.  Attempting to create the database tables.");
-            this.createDatabaseSchema();
+            if (!this.createDatabaseSchema()){
+                System.out.println("Database Error:  Cannot create all the tables.  Could be a syntax error.");
+                System.out.println("The Database does not appear to exist.  Can not continue without this major component.");
+                System.exit(1);
+            }
         }
         System.out.println("Connected to Database");
         this.connected = true;
@@ -82,35 +86,153 @@ public class Database{
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;
         }
-        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`members` ("
-                + "  `user_id_number` INT(12) NOT NULL AUTO_INCREMENT,"
-                + "  `email` VARCHAR(50) NOT NULL,"
-                + "  `pass_word` VARCHAR(50) NOT NULL,"
-                + "  `first_name` VARCHAR(50) NULL,"
-                + "  `last_name` VARCHAR(50) NULL,"
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`students` ("
+                + "  `sID` INT(12) NOT NULL AUTO_INCREMENT,"
+                + "  `sEmail` VARCHAR(50) NOT NULL,"
+                + "  `sPass` VARCHAR(50) NOT NULL,"
+                + "  `sFName` VARCHAR(50) NULL,"
+                + "  `sLName` VARCHAR(50) NULL,"
                 + "  `user_status` VARCHAR(50) NULL,"
                 + "  `date_joined` DATE NOT NULL,"
                 + "  `last_login` DATE NULL,"
                 + "  `logged_in` TINYINT(1) NOT NULL,"
-                + "  PRIMARY KEY (`user_id_number`),"
-                + "  UNIQUE INDEX `id_number_UNIQUE` (`user_id_number` ASC),"
-                + "  UNIQUE INDEX `user_name_UNIQUE` (`email` ASC)) "
+                + "  PRIMARY KEY (`sID`),"
+                + "  UNIQUE INDEX `id_number_UNIQUE` (`sID` ASC),"
+                + "  UNIQUE INDEX `user_name_UNIQUE` (`sEmail` ASC)) "
                 + "ENGINE = InnoDB;";
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
-            System.out.println("Could not create members table statement");
+            System.out.println("Could not create students table statement");
             System.out.println(ex);
-            //Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            return success;
-        }
+          
+            return success;}
+        
         try {
             this.callable.execute();
         } catch (SQLException ex) {
-            System.out.println("Could not execute create members table");
+            System.out.println("Could not execute create students table");
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            return success;
-        }
+            return success;}
+        
+       this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`classes` (" +
+                        "  `cID` INT(12) NOT NULL," +
+                        "  `cName` VARCHAR(45) NOT NULL,"+
+                        "  `cSection` VARCHAR(3) NOT NULL,"+
+                        "  `cDay` VARCHAR (5) NOT NULL,"+ 
+                        "  `cStartTm` TIME NOT NULL,"+
+                        "  `cEndTm` TIME NOT NULL,"+
+                        "  `cDescription` VARCHAR(255) NOT NULL," +
+                        "  `profLName` VARCHAR(45) NOT NULL," +
+                        "  `profEmail` VARCHAR(45) NOT NULL," +
+                        "  PRIMARY KEY (`cID`)," +
+                        "  UNIQUE INDEX `cID_UNIQUE` (`cID` ASC)," +
+                        "  UNIQUE INDEX `className_UNIQUE` (`cName` ASC))" +
+                        "ENGINE = InnoDB;";
+                       
+        try {
+            this.callable = db_con.prepareCall(this.sql);
+        } catch (SQLException ex) {
+            System.out.println("Could not create classes table statement");
+            System.out.println(ex);
+           
+            return success;}
+        
+        try {
+            this.callable.execute();
+        } catch (SQLException ex) {
+            System.out.println("Could not execute create classes table");
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            return success;}
+        
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`enrolled` (" +
+                "  `sID` INT(12) NOT NULL," +
+                "  `cID` INT(12) NOT NULL," +
+                "  PRIMARY KEY (`sID`, `cID`)," +
+                "  INDEX `classID_idx` (`cID` ASC)," +
+                "  CONSTRAINT `studentID`" +
+                "    FOREIGN KEY (`sID`)" +
+                "    REFERENCES `studybuddy`.`students` (`sID`)" +
+                "    ON DELETE NO ACTION" +
+                "    ON UPDATE NO ACTION," +
+                "  CONSTRAINT `classID`" +
+                "    FOREIGN KEY (`cID`)" +
+                "    REFERENCES `studybuddy`.`classes` (`cID`)" +
+                "    ON DELETE NO ACTION" +
+                "    ON UPDATE NO ACTION)" +
+                "ENGINE = InnoDB;";
+
+        try {
+            this.callable = db_con.prepareCall(this.sql);
+        } catch (SQLException ex) {
+            System.out.println("Could not create enrolled table statement");
+            System.out.println(ex);
+          
+            return success;}
+
+        try {
+            this.callable.execute();
+        } catch (SQLException ex) {
+            System.out.println("Could not execute create enrolled table");
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            return success;}
+              
+         /*
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`attendance` (" +
+                "  `profName` VARCHAR(45) NOT NULL," +
+                "  `cID` INT(12) NOT NULL," +
+                "  `sID` INT(12) NOT NULL," +
+                "  `sAtt` BINARY(1) NOT NULL," +
+                "  `timestmp` TIMESTAMP(6) NOT NULL," +
+                "  INDEX `cID_idx` (`cID` ASC)," +
+                "  INDEX `sID_idx` (`sID` ASC)," +
+                "  CONSTRAINT `cID`" +
+                "    FOREIGN KEY (`cID`)" +
+                "    REFERENCES `studybuddy`.`enrolled` (`cID`)" +
+                "    ON DELETE NO ACTION" +
+                "    ON UPDATE NO ACTION," +
+                "  CONSTRAINT `sID`" +
+                "    FOREIGN KEY (`sID`)" +
+                "    REFERENCES `studybuddy`.`enrolled` (`sID`)" +
+                "    ON DELETE NO ACTION" +
+                "    ON UPDATE NO ACTION);";
+                       
+        try {
+            this.callable = db_con.prepareCall(this.sql);
+        } catch (SQLException ex) {
+            System.out.println("Could not create attendance prepared statement");
+            System.out.println(ex);
+            
+            return success;}
+        
+        try {
+            this.callable.execute();
+        } catch (SQLException ex) {
+            System.out.println("Could not execute create attendance table");
+            System.out.println(ex);            
+            return success;}
+        
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` (" +
+                "  `RsID` INT(12) NOT NULL," +
+                "  `SsID` INT(12) NOT NULL," +
+                "  `message` VARCHAR(255) NOT NULL," +
+                "  `time` TIMESTAMP(6) NOT NULL);";
+
+        try {
+            this.callable = db_con.prepareCall(this.sql);
+        } catch (SQLException ex) {
+            System.out.println("Could not create offlinemessages table statement");
+            System.out.println(ex);           
+            return success;}
+        
+        try {
+            this.callable.execute();
+        } catch (SQLException ex) {
+            System.out.println("Could not execute create offlinemessages table");
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            return success;}
+        */
+        
         this.sql = "use studybuddy;";
         try {
             this.callable = db_con.prepareCall(sql);
@@ -151,8 +273,12 @@ public class Database{
                     // Add new user to database.
                     
                     // the mysql insert statement
-                    this.sql = " insert into members (email, pass_word, first_name, last_name, user_status, date_joined, last_login, logged_in)"
+                    this.sql = " insert into students (sEmail, sPass, sFName, sLName, user_status, date_joined, last_login, logged_in)"
                             + " values (?, ?, ?, ?, ?, ?, ?, ?)";
+                    
+                    this.sql = " insert into enrolled (sID, cID)"
+                            + " values (?, ?)";
+                    
                     
                     // Read the current date and time.
                     Date curDate = new Date();
@@ -193,7 +319,7 @@ public class Database{
     
     public ResultSet returnUserInfo(String username) {
         ResultSet result = null;
-        this.sql = "SELECT * FROM members WHERE email= ?";
+        this.sql = "SELECT * FROM students WHERE sEmail= ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
         } catch (SQLException ex) {
@@ -217,7 +343,7 @@ public class Database{
         if (this.getUserID(username) != 0) {
             Date curDate = new Date();
             SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            this.sql = "UPDATE members SET last_login= ? WHERE email= ?";
+            this.sql = "UPDATE students SET last_login= ? WHERE sEmail= ?";
             try {
                 statement = db_con.prepareStatement(sql);
                 statement.setString(1, ft.format(curDate));
@@ -237,7 +363,7 @@ public class Database{
         boolean success = false;
         if (this.getUserID(username) != 0) {
             try {
-                this.sql = "UPDATE members SET pass_word= ? WHERE email= ?";
+                this.sql = "UPDATE students SET sPass= ? WHERE sEmail= ?";
                 statement = db_con.prepareStatement(this.sql);
                 statement.setString(1, pass);
                 statement.setString(2, username);
@@ -260,7 +386,7 @@ public class Database{
                 stat = 0;
             }
             try {
-                this.sql = "UPDATE members SET logged_in= ? WHERE email= ?";
+                this.sql = "UPDATE students SET logged_in= ? WHERE sEmail= ?";
                 statement = db_con.prepareStatement(this.sql);
                 statement.setInt(1, stat);
                 statement.setString(2, username);
@@ -275,13 +401,13 @@ public class Database{
     
     public int getUserID(String username) {
         int id = 0;
-        this.sql = "SELECT user_id_number FROM members WHERE email= ?";
+        this.sql = "SELECT sID FROM students WHERE sEmail= ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, username);
             ResultSet result = statement.executeQuery();
             while (result.next()) {
-                id = result.getInt("user_id_number");
+                id = result.getInt("sID");
             }
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
@@ -300,7 +426,7 @@ public class Database{
      */
     public int getUserStatus(String username) {
         int stat = 9;
-        this.sql = "SELECT user_status FROM members WHERE email= ?";
+        this.sql = "SELECT user_status FROM students WHERE sEmail= ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, username);
@@ -328,7 +454,7 @@ public class Database{
 
     public ResultSet returnAllClasses() {
         ResultSet result = null;
-        this.sql = "SELECT * FROM classes";
+        this.sql = "SELECT * FROM classes;";
         try {
             this.statement = db_con.prepareStatement(this.sql);
         } catch (SQLException ex) {
@@ -344,7 +470,7 @@ public class Database{
     
     public ResultSet returnAllClassesByStudent(String email){
         ResultSet temp = null;
-        this.sql = "select name, section, profName, profEmail from classes natural join classestaken natural join members where members.email = ?";
+        this.sql = "select cName, cSection, cDescription, profLName, profEmail from classes natural join enrolled natural join students where students.sEmail = ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, email);
@@ -357,7 +483,7 @@ public class Database{
 
     public ResultSet returnAllStudents(String className, String section) {
         ResultSet temp = null;
-        this.sql = "SELECT email, first_name, last_name, user_status, logged_in from members natural join classestaken natural join classes where classes.name = ? and classes.section = ?";
+        this.sql = "SELECT sEmail, sFName, sLName, user_status, logged_in from students natural join enrolled natural join classes where classes.cName = ? and classes.cSection = ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, className);

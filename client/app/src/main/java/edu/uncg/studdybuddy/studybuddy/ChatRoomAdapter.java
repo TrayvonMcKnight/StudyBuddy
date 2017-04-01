@@ -1,5 +1,4 @@
 /**
-
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import edu.uncg.studdybuddy.studybuddy.Message;
+import com.sinch.android.rtc.messaging.Message;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
