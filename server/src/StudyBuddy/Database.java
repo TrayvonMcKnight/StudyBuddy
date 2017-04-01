@@ -53,7 +53,11 @@ public class Database{
             ResultSet resultSet = statement.executeQuery();
         } catch (SQLException ex) {
             System.out.println("First run detected.  Attempting to create the database tables.");
-            this.createDatabaseSchema();
+            if (!this.createDatabaseSchema()){
+                System.out.println("Database Error:  Cannot create all the tables.  Could be a syntax error.");
+                System.out.println("The Database does not appear to exist.  Can not continue without this major component.");
+                System.exit(1);
+            }
         }
         System.out.println("Connected to Database");
         this.connected = true;
@@ -111,7 +115,7 @@ public class Database{
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;}
         
-       this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`classes` (\n" +
+       this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`classes` (" +
                         "  `cID` INT(12) NOT NULL," +
                         "  `cName` VARCHAR(45) NOT NULL,"+
                         "  `cSection` VARCHAR(3) NOT NULL,"+
@@ -141,7 +145,7 @@ public class Database{
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;}
         
-        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`enrolled` (\n" +
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`enrolled` (" +
                 "  `sID` INT(12) NOT NULL," +
                 "  `cID` INT(12) NOT NULL," +
                 "  PRIMARY KEY (`sID`, `cID`)," +
@@ -173,8 +177,8 @@ public class Database{
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;}
               
-         
-        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`attendance` (\n" +
+         /*
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`attendance` (" +
                 "  `profName` VARCHAR(45) NOT NULL," +
                 "  `cID` INT(12) NOT NULL," +
                 "  `sID` INT(12) NOT NULL," +
@@ -196,7 +200,7 @@ public class Database{
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
-            System.out.println("Could not create attendance table statement");
+            System.out.println("Could not create attendance prepared statement");
             System.out.println(ex);
             
             return success;}
@@ -204,10 +208,11 @@ public class Database{
         try {
             this.callable.execute();
         } catch (SQLException ex) {
-            System.out.println("Could not execute create attendance table");            
+            System.out.println("Could not execute create attendance table");
+            System.out.println(ex);            
             return success;}
         
-        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` (\n" +
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` (" +
                 "  `RsID` INT(12) NOT NULL," +
                 "  `SsID` INT(12) NOT NULL," +
                 "  `message` VARCHAR(255) NOT NULL," +
@@ -226,6 +231,7 @@ public class Database{
             System.out.println("Could not execute create offlinemessages table");
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return success;}
+        */
         
         this.sql = "use studybuddy;";
         try {
