@@ -1,6 +1,7 @@
 package StudyBuddy;
 
 import java.io.Serializable;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -51,9 +52,9 @@ public class Chatrooms implements Serializable {
         return this.rooms[this.getIndex(className, section)].returnNumberOfStudents();
     }
     
-    public void addChatroom(String chatName, String section, String profName, String email){
+    public void addChatroom(String chatName, String section, String profName, String email, String day, Time start, Time end, String descrip){
         this.ensureCapacity();
-        this.rooms[this.numElements++] = new Chatroom(chatName, profName, section, email);
+        this.rooms[this.numElements++] = new Chatroom(chatName, profName, section, email, day, start, end, descrip);
     }
     
     public void addChatroom(Chatroom room){
@@ -112,17 +113,25 @@ public class Chatrooms implements Serializable {
         private final String section;
         private final String professorName;
         private final String professorEmail;
+        private final String days;
+        private final String description;
+        private final Time start;
+        private final Time end;
         private Student[] students;
         private String[][] messages;
         private int studentElements;
         private int messageElements;
         
         // Class constructor
-        private Chatroom(String classname, String profname, String section, String email){
+        private Chatroom(String classname, String profname, String section, String email, String day, Time start, Time end, String descrip){
             this.className = classname;
             this.section = section;
             this.professorName = profname;
             this.professorEmail = email;
+            this.days = day;
+            this.start = start;
+            this.end = end;
+            this.description = descrip;
             this.students = new Student[10];
             this.messages = new String[10][3];
             this.studentElements = 0;

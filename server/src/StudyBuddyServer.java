@@ -81,7 +81,7 @@ public class StudyBuddyServer extends Thread {
         try {
             while (allClasses.next()) {
                 // Fix this is add new information retrieved from the database.
-                this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(8), allClasses.getString(9));
+                this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(8), allClasses.getString(9), allClasses.getString(4), allClasses.getTime(5), allClasses.getTime(6), allClasses.getString(7));
                 students = this.database.returnAllStudents(allClasses.getString(2), allClasses.getString(3));
                 Boolean online;
                 int status;
@@ -106,7 +106,7 @@ public class StudyBuddyServer extends Thread {
     }
 
     public static void main(String[] args) {
-        int port = 6000;
+        int port = 8008;
         Thread t = new StudyBuddyServer(port);
         t.start();
     }
