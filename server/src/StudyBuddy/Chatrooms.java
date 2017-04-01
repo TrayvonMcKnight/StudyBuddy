@@ -210,7 +210,6 @@ public class Chatrooms implements Serializable {
             this.messageEnsureCapacity();
             Date curDate = new Date();
             String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(curDate);
-            System.out.println(time);
             this.messages[this.messageElements][0] = sender;
             this.messages[this.messageElements][1] = time;
             this.messages[this.messageElements++][2] = message;
