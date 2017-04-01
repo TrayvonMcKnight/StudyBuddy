@@ -284,7 +284,11 @@ import java.util.logging.Logger;
                             case "String": {
                                 String message = (String) object;
                                 String[] pieces = message.split(":");
+<<<<<<< HEAD
                                 //System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
+=======
+                                System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
+>>>>>>> 44edc5a89bba3448cdc4c8966e116724db66f9d1
                                 if (pieces[6].equals("01")) {
                                     switch (pieces[0]) {
                                         // Disconnect from the server.

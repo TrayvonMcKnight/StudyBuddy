@@ -1,7 +1,10 @@
 package StudyBuddy;
 
 import java.io.Serializable;
+<<<<<<< HEAD
 import java.sql.Time;
+=======
+>>>>>>> 44edc5a89bba3448cdc4c8966e116724db66f9d1
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -219,6 +222,10 @@ public class Chatrooms implements Serializable {
             this.messageEnsureCapacity();
             Date curDate = new Date();
             String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(curDate);
+<<<<<<< HEAD
+=======
+            System.out.println(time);
+>>>>>>> 44edc5a89bba3448cdc4c8966e116724db66f9d1
             this.messages[this.messageElements][0] = sender;
             this.messages[this.messageElements][1] = time;
             this.messages[this.messageElements++][2] = message;

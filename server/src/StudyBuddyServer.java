@@ -264,7 +264,11 @@ public class StudyBuddyServer extends Thread {
                                 Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
                                 stud.setOnlineStatus(true);
                             }
+<<<<<<< HEAD
                             Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms);
+=======
+                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("email"), database, chatrooms, this.buildUserChatrooms(result.getString("email")));
+>>>>>>> 44edc5a89bba3448cdc4c8966e116724db66f9d1
                             Thread session = new Thread(sess);
                             String first = result.getString("sFName");
                             String last = result.getString("sLName");
