@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.content.Intent;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import StudyBuddy.Chatrooms;
@@ -18,8 +19,6 @@ import StudyBuddy.Student;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
-import edu.uncg.studdybuddy.events.Event;
-import edu.uncg.studdybuddy.events.IEventHandler;
 
 public class MainMenu extends AppCompatActivity {
     public static final String TAG = "MainMenu";
@@ -29,34 +28,33 @@ public class MainMenu extends AppCompatActivity {
     @InjectView(R.id.profileButton) Button profileButton;
     @InjectView(R.id.settingsButton) Button settingsButton;
     @InjectView(R.id.logOut) Button logOutButton;
+    @InjectView(R.id.txtWelcome) TextView welcome;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mainmenu);
         ButterKnife.inject(this);
-        StudyBuddyConnector ourConnector = StartActivity.server.getInstance();
-        ourConnector.addEventListener(Event.CHATROOMS, new IEventHandler() {
+        final StudyBuddyConnector ourConnector = StartActivity.server.getInstance();
+
+        ourConnector.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
+            @Override
+            public void onObjectReady(String title) {
+                // Code to handle if object ready.
+                if (title.equalsIgnoreCase("Chatrooms")) {
+                    chatrooms = (Chatrooms) ourConnector.getChatrooms();
+                    setWelcomeMessage(ourConnector.getUserName());
+                }
+            }
 
             @Override
-            public void callback(Event event) {
-                //Toast.makeText(getBaseContext(), "Incoming message: ", Toast.LENGTH_LONG).show();
-                //logOutButton.setText("Chatrooms Here");
-                chatrooms = event.getChatrooms();
-                logOutButton.setText("There are " + chatrooms.getNumberOfClasses());
-
-                /*
-                String[] classSections = chatrooms.getClassNamesAndSection();
-                for(int i = 0; i < classSections.length; i++){
-                    String[] pieces = classSections[i].split(":");
-                }
-
-                String[] pieces = classSections[0].split(":");
-                //Access students
-                Student[] students = chatrooms.getStudents(pieces[0], pieces[1]);
-                */
+            public void onDataLoaded(String data) {
+                // Code to handle data loaded from network.
             }
         });
+
+
+        welcome.setText("");
 
         profileButton.setOnClickListener(new View.OnClickListener(){
 
@@ -97,5 +95,13 @@ public class MainMenu extends AppCompatActivity {
 
         //StartActivity.server.changePassword("test1234", "test4321");
 
+    }
+    private void setWelcomeMessage(final String userName){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                welcome.setText("Logged in as: " + userName);
+            }
+        });
     }
 }

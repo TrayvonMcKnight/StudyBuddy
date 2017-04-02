@@ -14,21 +14,15 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.EventListener;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
-import edu.uncg.studdybuddy.events.Event;
-import edu.uncg.studdybuddy.events.EventDispatcher;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
  */
 
-public class StudyBuddyConnector extends EventDispatcher {
+public class StudyBuddyConnector {
     // Private class fields
     private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
@@ -51,6 +45,7 @@ public class StudyBuddyConnector extends EventDispatcher {
     private int passwordError;
     private int chatError;
     private Chatrooms chatrooms;
+    private MyCustomObjectListener listener;
 
     // Class constructor
     public StudyBuddyConnector(){
@@ -59,6 +54,7 @@ public class StudyBuddyConnector extends EventDispatcher {
         this.connected = false;
         this.messageHandler = null;
         this.messageQueue = null;
+        this.listener = null;
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         try {
@@ -70,16 +66,15 @@ public class StudyBuddyConnector extends EventDispatcher {
 
     // Public class methods
 
+    // Assign the listener implementing events interface that will receive the events
+    public void setCustomObjectListener(MyCustomObjectListener listener) {
+        this.listener = listener;
+    }
+
     public StudyBuddyConnector getInstance(){
         return this;
     }
 
-    public void myCallback(){
-        Event event = new Event(Event.CHATROOMS);
-        event.setMessage("The Chat rooms are here.");
-        event.setChatrooms(this.chatrooms);
-        dispatchEvent(event);
-    }
 
     public boolean isLoggedIn() {
         return this.loggedIn;
@@ -400,6 +395,7 @@ public class StudyBuddyConnector extends EventDispatcher {
             while (iterate) {
                 try {
                     Object object = (Object) messages.take();
+                    //Log.d("Name", object.getClass().getSimpleName());
                     //System.out.println(object.getClass().getSimpleName());
                     switch (object.getClass().getSimpleName()) {
                         case "String": {
@@ -527,8 +523,8 @@ public class StudyBuddyConnector extends EventDispatcher {
                         case "Chatrooms": {
                             chatrooms = (Chatrooms) object;
                             System.out.println("List Received.");
-                            //myCallback();
-                            //alertClient(new ActionEvent(this, 1, "INCOMING:BUDDYLIST"));
+                            Thread.sleep(500);
+                            listener.onObjectReady("Chatrooms");
                             break;
                         }
                         default: {
@@ -541,5 +537,13 @@ public class StudyBuddyConnector extends EventDispatcher {
                 }
             }
         }
+    }
+
+    public interface MyCustomObjectListener {
+        // These methods are the different events and
+        // need to pass relevant arguments related to the event triggered
+        public void onObjectReady(String title);
+        // or when data has been loaded
+        public void onDataLoaded(String data);
     }
 }
