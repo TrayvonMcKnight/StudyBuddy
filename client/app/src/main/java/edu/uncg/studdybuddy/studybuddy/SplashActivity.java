@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
+
 /**
  * Created by Metalaxe on 3/5/2017.
  */
@@ -19,10 +21,12 @@ public class SplashActivity extends ActionBarActivity {
     TextView statusText;
     private Handler Handler1 = new Handler();
     private Handler Handler2 = new Handler();
+    private StudyBuddyConnector connector;
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        this.connector = StartActivity.server.getInstance();
 
         this.versionText = (TextView) findViewById(R.id.versionText);
         this.statusText = (TextView) findViewById(R.id.statusText);
@@ -36,15 +40,16 @@ public class SplashActivity extends ActionBarActivity {
                         public void run() {
                             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                             startActivity(intent);
+                            finish();
                         }
-                    }, 2000);
+                    }, 1000);
 
 
                 } else {
                     statusText.setText("Server Not Found! Try Again Later.");
                 }
             }
-        }, 2000);
+        }, 1000);
         this.versionText.setText("Study Buddy Version: " + VERSION);
         this.statusText.setText("Looking For Server...");
 
@@ -63,24 +68,8 @@ public class SplashActivity extends ActionBarActivity {
                     success = true;
                     break;
                 }
-                case 1: {
-                    Toast.makeText(getBaseContext(), "Case 1 Fired", Toast.LENGTH_LONG).show();
-                    break;
-                }
-                case 2:{
-                    Toast.makeText(getBaseContext(), "Case 2 Fired", Toast.LENGTH_LONG).show();
-                    break;
-                }
-                case 3: {
-                    Toast.makeText(getBaseContext(), "Case 3 Fired", Toast.LENGTH_LONG).show();
-                    break;
-                }
-                case 4: {
-                    Toast.makeText(getBaseContext(), "Case 4 Fired", Toast.LENGTH_LONG).show();
-                    break;
-                }
                 default: {
-                    Toast.makeText(getBaseContext(), "Default Fired", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), "Server Unavailable", Toast.LENGTH_LONG).show();
                 }
             }
         }
