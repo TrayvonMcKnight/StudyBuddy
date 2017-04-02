@@ -23,6 +23,7 @@ import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 public class MainMenu extends AppCompatActivity {
     public static final String TAG = "MainMenu";
     protected static Chatrooms chatrooms;
+    private StudyBuddyConnector ourConnector;
 
     @InjectView(R.id.classesButton) Button classesButton;
     @InjectView(R.id.profileButton) Button profileButton;
@@ -35,7 +36,7 @@ public class MainMenu extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mainmenu);
         ButterKnife.inject(this);
-        final StudyBuddyConnector ourConnector = StartActivity.server.getInstance();
+        ourConnector = StartActivity.server.getInstance();
 
         ourConnector.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
             @Override
@@ -43,7 +44,7 @@ public class MainMenu extends AppCompatActivity {
                 // Code to handle if object ready.
                 if (title.equalsIgnoreCase("Chatrooms")) {
                     chatrooms = (Chatrooms) ourConnector.getChatrooms();
-                    setWelcomeMessage(ourConnector.getUserName());
+                    setWelcomeMessage(returnUserName(ourConnector.getUserName()));
                 }
             }
 
@@ -103,5 +104,12 @@ public class MainMenu extends AppCompatActivity {
                 welcome.setText("Logged in as: " + userName);
             }
         });
+    }
+
+    private String returnUserName(String email){
+        String[] allClasses = chatrooms.getClassNamesAndSection();
+        String[] pieces = allClasses[0].split(":");
+        Student student = chatrooms.getStudent(pieces[0], pieces[1], email);
+        return student.getStudentName();
     }
 }
