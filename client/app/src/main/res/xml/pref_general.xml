@@ -36,11 +36,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:capitalize="words"
-        android:defaultValue="@string/pref_default_display_name"
+        android:defaultValue="@string/pref_current_password"
         android:inputType="textCapWords"
         android:key="edit_text_preference_1"
         android:maxLines="1"
         android:selectAllOnFocus="true"
+        android:password="true"
         android:singleLine="true"
         android:title="@string/change_password"/>
 
