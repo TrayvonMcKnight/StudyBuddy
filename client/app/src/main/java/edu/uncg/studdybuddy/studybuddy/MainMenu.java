@@ -86,11 +86,13 @@ public class MainMenu extends AppCompatActivity {
         logOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                StartActivity.server.logout();
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(intent);
+                ourConnector.logout();
+                Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+                homeIntent.addCategory( Intent.CATEGORY_HOME );
+                homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(homeIntent);
                 finish();
-
+                System.exit(0);
             }
         });
 
@@ -108,8 +110,11 @@ public class MainMenu extends AppCompatActivity {
 
     private String returnUserName(String email){
         String[] allClasses = chatrooms.getClassNamesAndSection();
-        String[] pieces = allClasses[0].split(":");
-        Student student = chatrooms.getStudent(pieces[0], pieces[1], email);
-        return student.getStudentName();
+        if (allClasses.length != 0) {
+            String[] pieces = allClasses[0].split(":");
+            Student student = chatrooms.getStudent(pieces[0], pieces[1], email);
+            return student.getStudentName();
+        }
+        else return "No Classes";
     }
 }
