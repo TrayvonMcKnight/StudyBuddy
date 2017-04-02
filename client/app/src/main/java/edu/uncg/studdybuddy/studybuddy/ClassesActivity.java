@@ -25,11 +25,9 @@ public class ClassesActivity extends AppCompatActivity {
         String[] classArray = classes.getClassNamesAndSection();
 
         List<String> arrayList = new ArrayList<String>();
-        List<String> arrayList2 = new ArrayList<String>();
         for (int c = 0;c < classArray.length;c++) {
             String[] pieces = classArray[c].split(":");
-            arrayList.add(pieces[0] + "-" + pieces[1]);
-            arrayList2.add(classes.getProfessorName(pieces[0], pieces[1]));
+            arrayList.add(pieces[0] + "-" + pieces[1] + " Professor: " + classes.getProfessorName(pieces[0], pieces[1]));
         }
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, arrayList );
