@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.content.Intent;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import StudyBuddy.Chatrooms;
@@ -18,45 +19,43 @@ import StudyBuddy.Student;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
-import edu.uncg.studdybuddy.events.Event;
-import edu.uncg.studdybuddy.events.IEventHandler;
 
 public class MainMenu extends AppCompatActivity {
     public static final String TAG = "MainMenu";
-    private Chatrooms chatrooms;
+    protected static Chatrooms chatrooms;
+    private StudyBuddyConnector ourConnector;
 
     @InjectView(R.id.classesButton) Button classesButton;
     @InjectView(R.id.profileButton) Button profileButton;
     @InjectView(R.id.settingsButton) Button settingsButton;
     @InjectView(R.id.logOut) Button logOutButton;
+    @InjectView(R.id.txtWelcome) TextView welcome;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mainmenu);
         ButterKnife.inject(this);
-        StudyBuddyConnector ourConnector = StartActivity.server.getInstance();
-        ourConnector.addEventListener(Event.CHATROOMS, new IEventHandler() {
+        ourConnector = StartActivity.server.getInstance();
+
+        ourConnector.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
+            @Override
+            public void onObjectReady(String title) {
+                // Code to handle if object ready.
+                if (title.equalsIgnoreCase("Chatrooms")) {
+                    chatrooms = (Chatrooms) ourConnector.getChatrooms();
+                    setWelcomeMessage(returnUserName(ourConnector.getUserName()));
+                }
+            }
 
             @Override
-            public void callback(Event event) {
-                //Toast.makeText(getBaseContext(), "Incoming message: ", Toast.LENGTH_LONG).show();
-                //logOutButton.setText("Chatrooms Here");
-                chatrooms = event.getChatrooms();
-                logOutButton.setText("There are " + chatrooms.getNumberOfClasses());
-
-                /*
-                String[] classSections = chatrooms.getClassNamesAndSection();
-                for(int i = 0; i < classSections.length; i++){
-                    String[] pieces = classSections[i].split(":");
-                }
-
-                String[] pieces = classSections[0].split(":");
-                //Access students
-                Student[] students = chatrooms.getStudents(pieces[0], pieces[1]);
-                */
+            public void onDataLoaded(String data) {
+                // Code to handle data loaded from network.
             }
         });
+
+
+        welcome.setText("");
 
         profileButton.setOnClickListener(new View.OnClickListener(){
 
@@ -87,15 +86,35 @@ public class MainMenu extends AppCompatActivity {
         logOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                StartActivity.server.logout();
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(intent);
+                ourConnector.logout();
+                Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+                homeIntent.addCategory( Intent.CATEGORY_HOME );
+                homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(homeIntent);
                 finish();
-
+                System.exit(0);
             }
         });
 
         //StartActivity.server.changePassword("test1234", "test4321");
 
+    }
+    private void setWelcomeMessage(final String userName){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                welcome.setText("Logged in as: " + userName);
+            }
+        });
+    }
+
+    private String returnUserName(String email){
+        String[] allClasses = chatrooms.getClassNamesAndSection();
+        if (allClasses.length != 0) {
+            String[] pieces = allClasses[0].split(":");
+            Student student = chatrooms.getStudent(pieces[0], pieces[1], email);
+            return student.getStudentName();
+        }
+        else return "No Classes";
     }
 }

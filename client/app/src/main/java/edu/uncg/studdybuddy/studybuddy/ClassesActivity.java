@@ -7,6 +7,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 import StudyBuddy.Chatrooms;
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class ClassesActivity extends AppCompatActivity {
     Chatrooms classes;
@@ -19,28 +20,19 @@ public class ClassesActivity extends AppCompatActivity {
 
         classList = (ListView) findViewById(R.id.list_classes);
 
-        Bundle bundle = getIntent().getExtras();
-        classes = (Chatrooms) bundle.getSerializable("classes");
+        StudyBuddyConnector connector = StartActivity.server.getInstance();
+        classes = connector.getChatrooms();
+        String[] classArray = classes.getClassNamesAndSection();
 
-        List<String> arrayClass = new ArrayList<>();
-        List<String> arraySections = new ArrayList<>();
-
-        String[] classSections = classes.getClassNamesAndSection();
-        for (String classSection : classSections) {
-            String[] pieces = classSection.split(":");
-            arrayClass.add(pieces[0] + "-" + pieces[1]);
-
-            arraySections.add(classes.getProfessorName(pieces[0], pieces[1]));
+        List<String> arrayList = new ArrayList<String>();
+        for (int c = 0;c < classArray.length;c++) {
+            String[] pieces = classArray[c].split(":");
+            arrayList.add(pieces[0] + "-" + pieces[1] + " Professor: " + classes.getProfessorName(pieces[0], pieces[1]));
         }
-
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, arrayClass);
-
-        ArrayAdapter<String> arrAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_2, arraySections);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, arrayList );
 
         classList.setAdapter(arrayAdapter);
-        classList.setAdapter(arrAdapter);
         //ListView listView = (ListView) findViewById()
     }
 }

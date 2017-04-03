@@ -1,5 +1,6 @@
 package StudyBuddy;
 
+
 import java.io.Serializable;
 
 public class Student implements Serializable {
@@ -25,9 +26,8 @@ public class Student implements Serializable {
         this.online = online;
     }
 
-    public String getOnlineStatus(){
-        if (this.online) return "Online";
-        return "Offline";
+    public boolean getOnlineStatus(){
+        return this.online;
     }
 
     public void setAvailability(int status){
