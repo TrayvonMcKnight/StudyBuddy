@@ -409,8 +409,8 @@ public class StudyBuddyConnector {
                                             iterate = false;
                                             loggedIn = false;
                                             connected = false;
-                                            messageHandler.stop();
-                                            messageQueue.stop();
+                                            messageHandler.interrupt();
+                                            messageQueue.interrupt();
                                             client.close();
                                         }
                                         break;
@@ -443,9 +443,9 @@ public class StudyBuddyConnector {
                                     case "06": {
                                         if (pieces[1].equals("BUDDYONLINE")) {
                                             // set buddy online for the chatroom passed in.
-                                            System.out.println("Buddy " + pieces[2] + " comes online for " + userName);
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
                                             stud.setOnlineStatus(true);
+                                            listener.onDataLoaded(message);
                                             //System.out.println("User " + stud.getStudentName() + " is now online.");
                                             //buddies.setOnlineStatus(pieces[2], true);
                                             //alertClient(new ActionEvent(this, 1, pieces[1] + ":" + pieces[2]));
@@ -454,6 +454,7 @@ public class StudyBuddyConnector {
                                             // set buddy offline for the chatroom passed in.
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
                                             stud.setOnlineStatus(false);
+                                            listener.onDataLoaded(message);
                                             //System.out.println("User " + stud.getStudentName() + " is now offline.");
                                             //buddies.setOnlineStatus(pieces[2], false);
                                             //alertClient(new ActionEvent(this, 1, pieces[1] + ":" + pieces[2]));
