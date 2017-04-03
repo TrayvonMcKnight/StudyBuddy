@@ -28,7 +28,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
                 if(newPass.getText().toString() == confirmPass.getText().toString()) {
                     StartActivity.server.changePassword(currPass.getText().toString(),
                             newPass.getText().toString());
-                    
+
                 }
             }
         });
