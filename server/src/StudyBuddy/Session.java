@@ -171,7 +171,7 @@ public class Session extends Thread {
         try {
             ResultSet result = database.returnUserInfo(userName);
             result.next();
-            if (!result.getString("pass_word").equals(oldPass)) {
+            if (!result.getString("sPass").equals(oldPass)) {
                 String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":01:BADPASS:00";
                 this.messages.put(error);
                 Date curDate = new Date();
