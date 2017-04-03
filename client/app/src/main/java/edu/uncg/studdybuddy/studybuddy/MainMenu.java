@@ -3,6 +3,7 @@ package edu.uncg.studdybuddy.studybuddy;
 import android.media.Image;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -51,6 +52,16 @@ public class MainMenu extends AppCompatActivity {
             @Override
             public void onDataLoaded(String data) {
                 // Code to handle data loaded from network.
+                String[] pieces = data.split(":");
+                switch(pieces[0]){
+                    case "06": {
+                        if (pieces[1].equalsIgnoreCase("BUDDYONLINE")){
+                            System.out.println("User " + pieces[2] + " just came online.");
+                        } else if (pieces[1].equalsIgnoreCase("BUDDYOFFLINE")){
+                            System.out.println("User " + pieces[2] + " just went offline.");
+                        }
+                    }
+                }
             }
         });
 
@@ -95,8 +106,6 @@ public class MainMenu extends AppCompatActivity {
                 System.exit(0);
             }
         });
-
-        //StartActivity.server.changePassword("test1234", "test4321");
 
     }
     private void setWelcomeMessage(final String userName){
