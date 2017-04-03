@@ -124,7 +124,6 @@ public class Session extends Thread {
         Date curDate = new Date();
         System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Disconnect: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Disconnected.");
         // Notify other online users that a buddy is logging off the network.
-        this.broadcastOnlineBuddies(false);
         // Check to see if the user has actually logged out or has just vanished and close.
         if (messageHandling.getState().toString().equals("WAITING")) {
             try {
@@ -213,13 +212,14 @@ public class Session extends Thread {
                 if (students[d].getStudentEmail().equalsIgnoreCase(userName)) {
                 } else {
                     if (students[d].getOnlineStatus()) {
-                        System.out.println("Only " + students[d].getStudentEmail() + " is online for user " + userName);
                         Session tempSess = (Session) onlineList.returnUserSession(students[d].getStudentEmail());
                         String newBuddy;
                         if (online) {
                             newBuddy = "06:BUDDYONLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + "::00";
+                            System.out.println("User " + userName + " is online for user " + students[d].getStudentEmail());
                         } else {
                             newBuddy = "06:BUDDYOFFLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + "::00";
+                            System.out.println("User " + userName + " went offline for user " + students[d].getStudentEmail());
                         }
                         tempSess.sendMessage(newBuddy);
                     }
@@ -291,6 +291,7 @@ public class Session extends Thread {
                                         if (pieces[1].equals("DISCONNECT")) {
                                             message = pieces[0] + ":" + pieces[1] + ":" + pieces[2] + ":" + pieces[3] + ":00:GOODBYE:00";
                                             messages.put(message);
+                                            broadcastOnlineBuddies(false);
                                             break;
                                         } else {
                                             invalid();
