@@ -81,7 +81,7 @@ public class StudyBuddyServer extends Thread {
         try {
             while (allClasses.next()) {
                 // Fix this is add new information retrieved from the database.
-                this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(8), allClasses.getString(9));
+                this.chatrooms.addChatroom(allClasses.getString(2), allClasses.getString(3), allClasses.getString(8), allClasses.getString(9), allClasses.getString(4), allClasses.getTime(5), allClasses.getTime(6), allClasses.getString(7));
                 students = this.database.returnAllStudents(allClasses.getString(2), allClasses.getString(3));
                 Boolean online;
                 int status;
@@ -91,7 +91,7 @@ public class StudyBuddyServer extends Thread {
                     } else {
                         online = false;
                     }
-                    if (students.getString(4).equalsIgnoreCase("Available")){
+                    if (students.getString(4).equalsIgnoreCase("Available")) {
                         status = 0;
                     } else {
                         status = 1;
@@ -106,7 +106,7 @@ public class StudyBuddyServer extends Thread {
     }
 
     public static void main(String[] args) {
-        int port = 6000;
+        int port = 8008;
         Thread t = new StudyBuddyServer(port);
         t.start();
     }
@@ -185,6 +185,7 @@ public class StudyBuddyServer extends Thread {
                     Date curDate = new Date();
                     switch (database.registerUser(pieces[2], pieces[3], pieces[5], pieces[6])) {
                         case 0: {
+                            this.assignClasses(pieces[2]);
                             outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":ACCEPTED:00::00");
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Accepted - New user added.");
                             break;
@@ -221,6 +222,26 @@ public class StudyBuddyServer extends Thread {
                     Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
+            }
+        }
+        
+        private void assignClasses(String studentEmail){
+            ResultSet student = database.returnUserInfo(studentEmail);
+            ResultSet allClasses = database.returnAllClassesByStudent(studentEmail);
+            try {
+                if (student.next()){
+                        String studentName = student.getString(4) + " " + student.getString(5);
+                        int available = database.getUserStatus(studentEmail);
+                        int loggedIn = student.getInt(9);
+                        boolean online;
+                        if (loggedIn == 0){
+                            online = true;
+                        } else online = false;
+                        while (allClasses.next()){
+                            chatrooms.addStudent(allClasses.getString(1), allClasses.getString(2), studentName, studentEmail, online, available);
+                        }
+                }   } catch (SQLException ex) {
+                Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -260,7 +281,7 @@ public class StudyBuddyServer extends Thread {
                             outStream.writeUTF(reply);
                             // Update chat rooms.
                             ResultSet rooms = database.returnAllClassesByStudent(userName);
-                            while (rooms.next()){
+                            while (rooms.next()) {
                                 Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
                                 stud.setOnlineStatus(true);
                             }
@@ -276,7 +297,7 @@ public class StudyBuddyServer extends Thread {
                             session.start();
                             this.loggedIn = true;
                             break;
-                        } else if (!result.getString("pass_word").equals(passWord)) {
+                        } else if (!result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - Incorrect password.");
                             attempts++;

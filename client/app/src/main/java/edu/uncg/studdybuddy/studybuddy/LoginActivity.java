@@ -102,7 +102,6 @@ public class LoginActivity extends AppCompatActivity {
                             switch (StartActivity.server.login(email, password)) {
                                 case 0: {
                                     //Login Successful
-                                    Toast.makeText(getBaseContext(), "Login Successful.", Toast.LENGTH_LONG).show();
                                     onLoginSuccess();
                                     break;
                                 }

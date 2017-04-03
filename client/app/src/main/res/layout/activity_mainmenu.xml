@@ -13,6 +13,16 @@
     tools:layout_editor_absoluteX="0dp"
     android:orientation="vertical">
 
+    <TextView
+        android:id="@+id/txtWelcome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:text="TextView"
+        android:textAlignment="center"
+        android:textSize="24sp" />
+
     <Button
         android:id="@+id/profileButton"
         android:layout_width="match_parent"
