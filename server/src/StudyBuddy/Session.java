@@ -123,7 +123,6 @@ public class Session extends Thread {
         // Notify the server log that a user is logging out.
         Date curDate = new Date();
         System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Disconnect: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Disconnected.");
-        // Notify other online users that a buddy is logging off the network.
         // Check to see if the user has actually logged out or has just vanished and close.
         if (messageHandling.getState().toString().equals("WAITING")) {
             try {
