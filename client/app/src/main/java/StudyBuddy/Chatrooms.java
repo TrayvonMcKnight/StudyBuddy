@@ -83,6 +83,12 @@ public class Chatrooms implements Serializable {
         return this.rooms[this.getIndex(chatName, section)].getStudent(email);
     }
 
+    public Student getStudent(String email){
+        if (this.rooms[0] != null){
+            return this.rooms[0].getStudent(email);
+        } else return null;
+    }
+
     public String[][] getMessages(String chatName, String section) {
         return this.rooms[this.getIndex(chatName, section)].getMessages();
     }
