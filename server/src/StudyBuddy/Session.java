@@ -384,7 +384,16 @@ public class Session extends Thread {
 
                                     case "10": {
                                         if (pieces[1].equals("CHATMESS")) {
-                                            sendChatMessage(pieces[2], pieces[3], pieces[4], pieces[7]);
+                                             String chatMessage = "";
+                                            if (pieces.length > 8){
+                                                for (int c = 7; c < pieces.length;c++){
+                                                    chatMessage = pieces[c] + ":";
+                                                }
+                                                chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                                            } else {
+                                                chatMessage = pieces[7];
+                                            }
+                                            sendChatMessage(pieces[2], pieces[3], pieces[4], chatMessage);
                                             break;
                                         } else {
                                             invalid();
