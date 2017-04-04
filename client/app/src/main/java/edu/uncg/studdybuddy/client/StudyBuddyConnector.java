@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
@@ -24,7 +25,7 @@ import StudyBuddy.Student;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -45,8 +46,8 @@ public class StudyBuddyConnector {
     private int passwordError;
     private int chatError;
     private Chatrooms chatrooms;
-    private MyCustomObjectListener listener;
-
+    //private MyCustomObjectListener listener;
+    private ArrayList<MyCustomObjectListener> listeners;
     // Class constructor
     public StudyBuddyConnector(){
 
@@ -54,7 +55,8 @@ public class StudyBuddyConnector {
         this.connected = false;
         this.messageHandler = null;
         this.messageQueue = null;
-        this.listener = null;
+        //this.listener = null;
+        this.listeners = new ArrayList<>();
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         try {
@@ -68,8 +70,10 @@ public class StudyBuddyConnector {
 
     // Assign the listener implementing events interface that will receive the events
     public void setCustomObjectListener(MyCustomObjectListener listener) {
-        this.listener = listener;
+        //this.listener = listener;
+        this.listeners.add(listener);
     }
+
 
     public StudyBuddyConnector getInstance(){
         return this;
@@ -316,7 +320,7 @@ public class StudyBuddyConnector {
             return false;
         }
     }
-
+    // Private thread which listens for incoming messages from the server.
     private class MessageListener extends Thread {
         // private class fields
 
@@ -361,23 +365,7 @@ public class StudyBuddyConnector {
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // Private thread which handles all incoming and outgoing messages.
     private class MessageQueue extends Thread {
 
         // class fields
@@ -395,8 +383,6 @@ public class StudyBuddyConnector {
             while (iterate) {
                 try {
                     Object object = (Object) messages.take();
-                    //Log.d("Name", object.getClass().getSimpleName());
-                    //System.out.println(object.getClass().getSimpleName());
                     switch (object.getClass().getSimpleName()) {
                         case "String": {
                             String message = (String) object;
@@ -445,8 +431,9 @@ public class StudyBuddyConnector {
                                             // set buddy online for the chatroom passed in.
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
                                             stud.setOnlineStatus(true);
-                                            listener.onDataLoaded(message);
-                                            //System.out.println("User " + stud.getStudentName() + " is now online.");
+                                            for (int c = 0;c < listeners.size();c++){
+                                                listeners.get(c).onDataLoaded(message);
+                                            }
                                             //buddies.setOnlineStatus(pieces[2], true);
                                             //alertClient(new ActionEvent(this, 1, pieces[1] + ":" + pieces[2]));
 
@@ -454,10 +441,9 @@ public class StudyBuddyConnector {
                                             // set buddy offline for the chatroom passed in.
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
                                             stud.setOnlineStatus(false);
-                                            listener.onDataLoaded(message);
-                                            //System.out.println("User " + stud.getStudentName() + " is now offline.");
-                                            //buddies.setOnlineStatus(pieces[2], false);
-                                            //alertClient(new ActionEvent(this, 1, pieces[1] + ":" + pieces[2]));
+                                            for (int c = 0;c < listeners.size();c++){
+                                                listeners.get(c).onDataLoaded(message);
+                                            }
                                         }
                                         break;
                                     }
@@ -502,6 +488,20 @@ public class StudyBuddyConnector {
                                     case "11": {
                                         if (pieces[1].equals("CHATMESS")) {
                                             //System.out.println("INCOMING MESSAGE from " + pieces[4] +": " + pieces[7]);
+                                            // add to local copy of chatrooms and notify activity.
+                                            String chatMessage = "";
+                                            if (pieces.length > 8){
+                                                for (int c = 7; c < pieces.length;c++){
+                                                    chatMessage = pieces[c] + ":";
+                                                }
+                                                chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                                            } else {
+                                                chatMessage = pieces[7];
+                                            }
+                                            chatrooms.addMessage(pieces[2], pieces[3], pieces[4], chatMessage);
+                                            for (int c = 0;c < listeners.size();c++){
+                                                listeners.get(c).onDataLoaded(message);
+                                            }
                                         }
                                     }
                                     default: {
@@ -523,9 +523,9 @@ public class StudyBuddyConnector {
                         }
                         case "Chatrooms": {
                             chatrooms = (Chatrooms) object;
-                            System.out.println("List Received.");
                             Thread.sleep(500);
-                            listener.onObjectReady("Chatrooms");
+                            //listener.onObjectReady("Chatrooms");
+                            listeners.get(0).onObjectReady("Chatrooms");
                             break;
                         }
                         default: {
