@@ -1,6 +1,7 @@
 package edu.uncg.studdybuddy.studybuddy;
 
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -17,7 +18,13 @@ public class ChatRoomMessage {
         this.sender = sender;
         this.message = message;
         // Set time object to now.
-        this.time = new SimpleDateFormat("HH:mm:ss").format(new Date());
+        this.time = DateFormat.getInstance().format(new Date());
+    }
+
+    public ChatRoomMessage(String sender, String time, String message) {
+        this.sender = sender;
+        this.message = message;
+        this.time = time;
     }
 
     public String getSender() {
