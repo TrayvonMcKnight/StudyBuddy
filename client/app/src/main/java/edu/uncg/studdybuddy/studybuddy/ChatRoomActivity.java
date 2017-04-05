@@ -74,7 +74,8 @@ public class ChatRoomActivity extends AppCompatActivity {
         Chatrooms.Chatroom thisRoom = currentRooms.getChatroom(this.className, this.sec);
         String[][] roomMessages = thisRoom.getMessages();
         for (int c = 0; c < roomMessages.length;c++){
-            chatMessList.add(new ChatRoomMessage(roomMessages[c][0], roomMessages[c][1], roomMessages[c][2]));
+            String senderName = currentRooms.getStudent(className, sec, roomMessages[c][0]).getStudentName();
+            chatMessList.add(new ChatRoomMessage(senderName, roomMessages[c][1], roomMessages[c][2]));
         }
 
         // init adapter
