@@ -387,7 +387,7 @@ public class Session extends Thread {
                                              String chatMessage = "";
                                             if (pieces.length > 8){
                                                 for (int c = 7; c < pieces.length;c++){
-                                                    chatMessage = pieces[c] + ":";
+                                                    chatMessage += pieces[c] + ":";
                                                 }
                                                 chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
                                             } else {
