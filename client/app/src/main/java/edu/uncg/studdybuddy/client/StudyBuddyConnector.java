@@ -25,7 +25,7 @@ import StudyBuddy.Student;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -37,17 +37,19 @@ public class StudyBuddyConnector {
     private DataOutputStream out;   // TCP Output Data Stream.
     private InputStream inFromServer;   // TCP Input Stream.
     private DataInputStream in; // TCP Input Data Stream.
-    private boolean loggedIn;  // Boolean to hold connection status.
-    private boolean connected;
-    private String userName;    // String to represent the username.
-    private LinkedBlockingQueue<Object> messages;
-    private Thread messageHandler;
-    private Thread messageQueue;
-    private int passwordError;
+    private boolean loggedIn;  // Boolean to hold if the user has actually logged into the server.
+    private boolean connected;  // Boolean to hold the connection status.
+    private String userName;    // String to represent the user's real name.
+    private String userEmail;   // String to represent the user's email address.
+    private LinkedBlockingQueue<Object> messages;   // Queue for outgoing and incoming server messages.
+    private Thread messageHandler;  // Private thread which listens for incoming messages from the server.
+    private Thread messageQueue;     // Private thread which handles all incoming and outgoing messages.
+    private int passwordError;  // integer which returns the last error from login attempt.
     private int chatError;
-    private Chatrooms chatrooms;
-    //private MyCustomObjectListener listener;
-    private ArrayList<MyCustomObjectListener> listeners;
+    private Chatrooms chatrooms;    // The main chat rooms data structure which stores all data about all available chat rooms.
+    private ArrayList<MyCustomObjectListener> listeners;    // Array list which holds all available event listeners registered.
+
+
     // Class constructor
     public StudyBuddyConnector(){
 
@@ -55,7 +57,6 @@ public class StudyBuddyConnector {
         this.connected = false;
         this.messageHandler = null;
         this.messageQueue = null;
-        //this.listener = null;
         this.listeners = new ArrayList<>();
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -70,7 +71,6 @@ public class StudyBuddyConnector {
 
     // Assign the listener implementing events interface that will receive the events
     public void setCustomObjectListener(MyCustomObjectListener listener) {
-        //this.listener = listener;
         this.listeners.add(listener);
     }
 
@@ -90,6 +90,10 @@ public class StudyBuddyConnector {
 
     public String getUserName() {
         return this.userName;
+    }
+
+    public String getUserEmail(){
+        return this.userEmail;
     }
 
     public Chatrooms getChatrooms(){
@@ -169,11 +173,11 @@ public class StudyBuddyConnector {
      4 = Server timeout / server rejection - more than 3 failed attempts.
      5 = Server Rejected / Cannot create a new account while a user is logged in.
      */
-    public int login(String user, String pass) {
+    public int login(String email, String pass) {
         String answer = ""; // initialize the reply string so scope will fall outside of Try/Catch block.
         String[] pieces = {};
         try {
-            String login = "01:LOGIN:" + user + ":" + pass + ":::01";
+            String login = "01:LOGIN:" + email + ":" + pass + ":::01";
             this.out.writeUTF(login);
             String reply = (String) in.readUTF();
             pieces = reply.split(":");
@@ -188,7 +192,7 @@ public class StudyBuddyConnector {
             // If the login is accepted...
             case "ACCEPTED":
                 loggedIn = true;
-                this.userName = user;
+                this.userEmail = email;
                 this.messages = new LinkedBlockingQueue();
                 this.messageHandler = new Thread(new MessageListener());
                 this.messageQueue = new Thread(new MessageQueue());
@@ -276,7 +280,7 @@ public class StudyBuddyConnector {
     public boolean sendToChatroom(String name, String section, String message){
         if (this.loggedIn) {
             try {
-                String sendChatMess = "10:CHATMESS:" + name + ":" + section + ":" + this.userName +"::01:" + message;
+                String sendChatMess = "10:CHATMESS:" + name + ":" + section + ":" + this.userEmail +"::01:" + message;
                 messages.put(sendChatMess);
                 // possible semaphore
                 Thread.sleep(1000);
@@ -388,7 +392,7 @@ public class StudyBuddyConnector {
                             String message = (String) object;
                             String[] pieces = message.split(":");
                             //System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
-                            if (pieces[6].equals("00")) {
+                            if (pieces[6].equals("00")) {   // incoming messages from server.
                                 switch (pieces[0]) {
                                     case "00": {
                                         if (message.contains("GOODBYE")) {
@@ -492,7 +496,7 @@ public class StudyBuddyConnector {
                                             String chatMessage = "";
                                             if (pieces.length > 8){
                                                 for (int c = 7; c < pieces.length;c++){
-                                                    chatMessage = pieces[c] + ":";
+                                                    chatMessage += pieces[c] + ":";
                                                 }
                                                 chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
                                             } else {
@@ -508,7 +512,7 @@ public class StudyBuddyConnector {
                                     }
                                 }
                                 break;
-                            } else if (pieces[6].equals("01")) {
+                            } else if (pieces[6].equals("01")) {    // Outgoing messages from client.
                                 if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")){
                                     String textMessage = (String)messages.take();
                                     out.writeUTF(message);
@@ -523,8 +527,13 @@ public class StudyBuddyConnector {
                         }
                         case "Chatrooms": {
                             chatrooms = (Chatrooms) object;
+                            Student stud = chatrooms.getStudent(userEmail);
+                            if (stud.getStudentName() !=null){
+                                userName = stud.getStudentName();
+                            } else {
+                                userName = userEmail;
+                            }
                             Thread.sleep(500);
-                            //listener.onObjectReady("Chatrooms");
                             listeners.get(0).onObjectReady("Chatrooms");
                             break;
                         }
