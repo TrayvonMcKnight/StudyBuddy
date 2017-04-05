@@ -3,15 +3,11 @@ package edu.uncg.studdybuddy.studybuddy;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,11 +54,8 @@ public class ChatRoomActivity extends AppCompatActivity {
                                                 public void onDataLoaded(String data) {
                                                     String[] pieces = data.split(":");
                                                     if (pieces[0].equals("11") && pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
-                                                        if (myName.equals("No Classes")) {
-                                                            chatMessList.add(new ChatRoomMessage(pieces[4], pieces[7]));
-                                                        } else {
-                                                            chatMessList.add(new ChatRoomMessage(pieces[4], pieces[7]));
-                                                        }
+                                                        String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
+                                                        chatMessList.add(new ChatRoomMessage(senderName, pieces[7]));
                                                         updateAdapter();
                                                     }
                                                 }
@@ -76,9 +69,15 @@ public class ChatRoomActivity extends AppCompatActivity {
         messagesList = (ListView) findViewById(R.id.lstMessages);
         chatMessList = new ArrayList<>();
 
+        // Get all current messages and add them to the listview.
+        Chatrooms currentRooms = server.getChatrooms();
+        Chatrooms.Chatroom thisRoom = currentRooms.getChatroom(this.className, this.sec);
+        String[][] roomMessages = thisRoom.getMessages();
+        for (int c = 0; c < roomMessages.length;c++){
+            chatMessList.add(new ChatRoomMessage(roomMessages[c][0], roomMessages[c][1], roomMessages[c][2]));
+        }
+
         // init adapter
-
-
         adapter = new ChatAdapter(getApplicationContext(), chatMessList);
         messagesList.setAdapter(adapter);
 
@@ -93,7 +92,6 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
 
         private void sendMessage(){
-            //arrayList.add(mTxtTextBody.getText().toString());
             server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
             mTxtTextBody.setText("");
         }

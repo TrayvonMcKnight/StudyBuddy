@@ -47,7 +47,7 @@ public class MainMenu extends AppCompatActivity {
                 // Code to handle if object ready.
                 if (title.equalsIgnoreCase("Chatrooms")) {
                     chatrooms = (Chatrooms) ourConnector.getChatrooms();
-                    setWelcomeMessage(returnUserName(ourConnector.getUserName()));
+                    setWelcomeMessage(ourConnector.getUserName());
                 }
             }
 
@@ -83,7 +83,7 @@ public class MainMenu extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), ClassesActivity.class);
-                intent.putExtra("myName", returnUserName(ourConnector.getUserName()));
+                intent.putExtra("myName", ourConnector.getUserName());
                 startActivity(intent);
             }
         });
@@ -123,15 +123,5 @@ public class MainMenu extends AppCompatActivity {
                 welcome.setText("Logged in as: " + userName);
             }
         });
-    }
-
-    private String returnUserName(String email){
-        String[] allClasses = chatrooms.getClassNamesAndSection();
-        if (allClasses.length != 0) {
-            String[] pieces = allClasses[0].split(":");
-            Student student = chatrooms.getStudent(pieces[0], pieces[1], email);
-            return student.getStudentName();
-        }
-        else return "No Classes";
     }
 }
