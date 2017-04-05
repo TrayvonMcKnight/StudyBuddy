@@ -2,7 +2,7 @@ package StudyBuddy;
 
 import java.io.Serializable;
 import java.sql.Time;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 
 public class Chatrooms implements Serializable {
@@ -113,7 +113,7 @@ public class Chatrooms implements Serializable {
         return this.rooms[this.getIndex(chatName, section)].isStudent(email);
     }
 
-    private class Chatroom implements Serializable {
+    public class Chatroom implements Serializable {
 
         // Private class fields.
         private final String className;
@@ -163,23 +163,23 @@ public class Chatrooms implements Serializable {
             }
         }
 
-        private String getClassName() {
+        public String getClassName() {
             return this.className;
         }
 
-        private String getSection() {
+        public String getSection() {
             return this.section;
         }
 
-        private String getProfessorEmail() {
+        public String getProfessorEmail() {
             return this.professorEmail;
         }
 
-        private String getProfessorName() {
+        public String getProfessorName() {
             return this.professorName;
         }
 
-        private boolean isStudent(String email) {
+        public boolean isStudent(String email) {
             for (int c = 0; c < this.studentElements; c++) {
                 if (this.students[c].getStudentEmail().equalsIgnoreCase(email)) {
                     return true;
@@ -188,15 +188,15 @@ public class Chatrooms implements Serializable {
             return false;
         }
 
-        private int returnNumberOfStudents() {
+        public int returnNumberOfStudents() {
             return this.studentElements;
         }
 
-        private int returnNumberOfMessages() {
+        public int returnNumberOfMessages() {
             return this.messageElements;
         }
 
-        private Student[] getStudents() {
+        public Student[] getStudents() {
             Student[] temp = new Student[this.studentElements];
             for (int c = 0; c < this.studentElements; c++) {
                 temp[c] = this.students[c];
@@ -204,7 +204,7 @@ public class Chatrooms implements Serializable {
             return temp;
         }
 
-        private Student getStudent(String email) {
+        public Student getStudent(String email) {
             for (int c = 0; c < this.studentElements; c++) {
                 if (this.students[c].getStudentEmail().equalsIgnoreCase(email)) {
                     return this.students[c];
@@ -213,8 +213,14 @@ public class Chatrooms implements Serializable {
             return null;
         }
 
-        private String[][] getMessages() {
-            return this.messages;
+        public String[][] getMessages() {
+            String[][] temp = new String[this.messageElements][3];
+            for (int c = 0;c < this.messageElements;c++){
+                temp[c][0] = this.messages[c][0];
+                temp[c][1] = this.messages[c][1];
+                temp[c][2] = this.messages[c][2];
+            }
+            return temp;
         }
 
         private void addStudent(String name, String email, Boolean online, int status) {
@@ -225,7 +231,7 @@ public class Chatrooms implements Serializable {
         private void addMessage(String sender, String message) {
             this.messageEnsureCapacity();
             Date curDate = new Date();
-            String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(curDate);
+            String time = DateFormat.getInstance().format(curDate);
             this.messages[this.messageElements][0] = sender;
             this.messages[this.messageElements][1] = time;
             this.messages[this.messageElements++][2] = message;
