@@ -17,7 +17,7 @@
             android:hint="Recipient"
             android:textSize="28dp"
             android:background="@android:color/white"
-            android:textColor="@android:color/holo_purple"
+            android:textColor="@android:color/holo_red_dark"
             android:inputType="textPersonName">
 
 

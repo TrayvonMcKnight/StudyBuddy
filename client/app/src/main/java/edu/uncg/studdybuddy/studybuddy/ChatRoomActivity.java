@@ -1,55 +1,86 @@
-/**
+
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import com.sinch.android.rtc.messaging.Massage.PushPair;
-import com.sinch.android.rtc.messaging.Massage.Message;
-import com.sinch.android.rtc.messaging.Massage.MessageClient;
-import com.sinch.android.rtc.messaging.Massage.MessageClientListener;
-import com.sinch.android.rtc.messaging.Massage.MessageDeliveryInfo;
-import com.sinch.android.rtc.messaging.Massage.MessageFailureInfo;
-
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class ChatRoomActivity extends AppCompatActivity implements MessageClientListener {
+import StudyBuddy.Chatrooms;
+import StudyBuddy.Student;
+import edu.uncg.studdybuddy.client.StudyBuddyConnector;
+
+public class ChatRoomActivity extends AppCompatActivity {
 
     private static final String TAG = ChatRoomActivity.class.getSimpleName();
 
-    private MessageAdapter mMessageAdapter;
-    private TextView mTxtRecipient;
+    private TextView titleBanner;
     private EditText mTxtTextBody;
     private Button mBtnSend;
-    private String name;
+    private String className, sec, professor, professorEmail;
+    private StudyBuddyConnector server;
+    private ArrayList<Student> students;
+    private Chatrooms allChats;
+    private List<ChatRoomMessage> chatMessList = new ArrayList<>();
+    private ChatAdapter adapter;
+    private ListView messagesList;
+    private String myName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room);
-
+        this.server = StartActivity.server.getInstance();
         Bundle extras = getIntent().getExtras();
-        if(extras !=null) {
-            name = extras.getString("name");
-        }
+        this.className = extras.getString("className");
+        this.sec = extras.getString("section");
+        this.myName = extras.getString("studentName");
+        this.professor = MainMenu.chatrooms.getProfessorName(this.className, this.sec);
+        this.professorEmail = MainMenu.chatrooms.getProfessorEmail(this.className, this.sec);
+        server.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
 
-        mTxtRecipient = (TextView) findViewById(R.id.txtRecipient);
-        if(name != null)
-            mTxtRecipient.setText(name);
+                                                @Override
+                                                public void onObjectReady(String title) {
 
+                                                }
+
+                                                @Override
+                                                public void onDataLoaded(String data) {
+                                                    String[] pieces = data.split(":");
+                                                    if (pieces[0].equals("11") && pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
+                                                        String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
+                                                        chatMessList.add(new ChatRoomMessage(senderName, pieces[7]));
+                                                        updateAdapter();
+                                                    }
+                                                }
+                                            });
+
+        titleBanner = (TextView) findViewById(R.id.txtRecipient);
+        titleBanner.setText(this.className + "-" + this.sec + "    " + this.professor);
         mTxtTextBody = (EditText) findViewById(R.id.txtTextBody);
 
-        mMessageAdapter = new MessageAdapter(this);
-        ListView messagesList = (ListView) findViewById(R.id.lstMessages);
-        messagesList.setAdapter(mMessageAdapter);
+
+        messagesList = (ListView) findViewById(R.id.lstMessages);
+        chatMessList = new ArrayList<>();
+
+        // Get all current messages and add them to the listview.
+        Chatrooms currentRooms = server.getChatrooms();
+        Chatrooms.Chatroom thisRoom = currentRooms.getChatroom(this.className, this.sec);
+        String[][] roomMessages = thisRoom.getMessages();
+        for (int c = 0; c < roomMessages.length;c++){
+            String senderName = currentRooms.getStudent(className, sec, roomMessages[c][0]).getStudentName();
+            chatMessList.add(new ChatRoomMessage(senderName, roomMessages[c][1], roomMessages[c][2]));
+        }
+
+        // init adapter
+        adapter = new ChatAdapter(getApplicationContext(), chatMessList);
+        messagesList.setAdapter(adapter);
 
         mBtnSend = (Button) findViewById(R.id.btnSend);
         mBtnSend.setOnClickListener(new View.OnClickListener() {
@@ -61,7 +92,21 @@ public class ChatRoomActivity extends AppCompatActivity implements MessageClient
 
     }
 
+        private void sendMessage(){
+            server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
+            mTxtTextBody.setText("");
+        }
 
+        private void updateAdapter(){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.notifyDataSetChanged();
+                }
+            });
+
+        }
+/*
 
     @Override
     public void onDestroy() {
@@ -131,6 +176,6 @@ public class ChatRoomActivity extends AppCompatActivity implements MessageClient
     @Override
     public void onMessageDelivered(MessageClient client, MessageDeliveryInfo deliveryInfo) {
         Log.d(TAG, "onDelivered");
-    }
+    }*/
+
 }
-*/
