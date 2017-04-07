@@ -13,11 +13,11 @@
         <TextView
             android:id="@+id/txtRecipient"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:hint="Recipient"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
             android:textSize="28dp"
             android:background="@android:color/white"
-            android:textColor="@android:color/holo_red_dark"
+            android:textColor="@android:color/holo_blue_dark"
             android:inputType="textPersonName">
 
 
@@ -53,7 +53,7 @@
             android:layout_height="match_parent"
             android:hint="Message..."
             android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@android:color/background_dark"
             android:layout_marginRight="10dp"
             android:layout_alignTop="@+id/btnSend"
             android:background="@android:color/white"
