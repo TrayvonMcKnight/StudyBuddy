@@ -1,9 +1,18 @@
 
 package edu.uncg.studdybuddy.studybuddy;
 
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -16,7 +25,7 @@ import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
-public class ChatRoomActivity extends AppCompatActivity {
+public class ChatRoomActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private static final String TAG = ChatRoomActivity.class.getSimpleName();
 
@@ -25,17 +34,40 @@ public class ChatRoomActivity extends AppCompatActivity {
     private Button mBtnSend;
     private String className, sec, professor, professorEmail;
     private StudyBuddyConnector server;
-    private ArrayList<Student> students;
+    private Student[] students;
+    private ArrayList<String> studentList;
     private Chatrooms allChats;
     private List<ChatRoomMessage> chatMessList = new ArrayList<>();
     private ChatAdapter adapter;
     private ListView messagesList;
     private String myName;
+    private TextView txtClass;
+    private TextView txtProfessor;
+    private TextView txtDescript;
+    private ListView studentListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_room);
+        setContentView(R.layout.activity_drawer);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        if (drawer == null){
+            System.out.println("Drawer is null");
+        }
+        if (toggle == null){
+            System.out.println("toggle is null.");
+        }
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
         this.server = StartActivity.server.getInstance();
         Bundle extras = getIntent().getExtras();
         this.className = extras.getString("className");
@@ -62,7 +94,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                                             });
 
         titleBanner = (TextView) findViewById(R.id.txtRecipient);
-        titleBanner.setText(this.className + "-" + this.sec + "    " + this.professor);
+        titleBanner.setText(this.className + "-" + this.sec);
         mTxtTextBody = (EditText) findViewById(R.id.txtTextBody);
 
 
@@ -106,76 +138,43 @@ public class ChatRoomActivity extends AppCompatActivity {
             });
 
         }
-/*
 
     @Override
-    public void onDestroy() {
-        if (getSinchServiceInterface() != null) {
-            getSinchServiceInterface().removeMessageClientListener(this);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        txtClass = (TextView) findViewById(R.id.textView1);
+        txtProfessor = (TextView) findViewById(R.id.textView2);
+        txtDescript = (TextView) findViewById(R.id.textView3);
+        txtClass.setText(this.className + "-" + this.sec);
+        txtProfessor.setText(this.professor);
+        txtDescript.setText("This is just another damned class which is designed to test the shit out of you until you drop dead from a heartattack.");
+        studentList = new ArrayList<String>();
+        allChats = server.getChatrooms();
+        students = allChats.getStudents(className, sec);
+        for (int c = 0;c < students.length;c++){
+            studentList.add(students[c].getStudentName());
         }
-        super.onDestroy();
+        studentListView = (ListView) findViewById(R.id.list_classmates);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, studentList );
+        studentListView.setAdapter(arrayAdapter);
+        return true;
     }
+
 
     @Override
-    public void onServiceConnected() {
-        getSinchServiceInterface().addMessageClientListener(this);
-        setButtonEnabled(true);
-    }
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
 
-    @Override
-    public void onServiceDisconnected() {
-        setButtonEnabled(false);
-    }
-
-    private void sendMessage() {
-        String recipient = mTxtRecipient.getText().toString();
-        String textBody = mTxtTextBody.getText().toString();
-        if (recipient.isEmpty()) {
-            Toast.makeText(this, "No recipient added", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (textBody.isEmpty()) {
-            Toast.makeText(this, name, Toast.LENGTH_SHORT).show();
-            return;
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
         }
 
-        getSinchServiceInterface().sendMessage(recipient, textBody);
-        mTxtTextBody.setText("");
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
-
-    private void setButtonEnabled(boolean enabled) {
-        mBtnSend.setEnabled(enabled);
-    }
-
-    @Override
-    public void onIncomingMessage(MessageClient client, Message message) {
-        mMessageAdapter.addMessage(message, MessageAdapter.DIRECTION_INCOMING);
-    }
-
-    @Override
-    public void onMessageSent(MessageClient client, Message message, String recipientId) {
-        mMessageAdapter.addMessage(message, MessageAdapter.DIRECTION_OUTGOING);
-    }
-
-    @Override
-    public void onShouldSendPushData(MessageClient client, Message message, List<PushPair> pushPairs) {
-        // Left blank intentionally
-    }
-
-    @Override
-    public void onMessageFailed(MessageClient client, Message message,
-                                MessageFailureInfo failureInfo) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Sending failed: ")
-                .append(failureInfo.getSinchError().getMessage());
-
-        Toast.makeText(this, sb.toString(), Toast.LENGTH_LONG).show();
-        Log.d(TAG, sb.toString());
-    }
-
-    @Override
-    public void onMessageDelivered(MessageClient client, MessageDeliveryInfo deliveryInfo) {
-        Log.d(TAG, "onDelivered");
-    }*/
 
 }
