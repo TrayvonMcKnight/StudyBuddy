@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.uncg.studdybuddy.studybuddy">
 
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <!--
     Study Buddy Logo
         https://www.pinterest.com/pin/542261611366514326/
@@ -32,7 +36,7 @@
 
         <activity
             android:name=".RegistrationActivity"
-            android:label="Register" />
+            android:label="@string/register" />
 
         <activity
             android:name=".SettingsActivity"
@@ -40,21 +44,19 @@
 
         <activity
             android:name=".ClassesActivity"
-            android:label="Classes" />
+            android:label="@string/classes" />
 
         <activity
             android:name=".MainMenu"
-            android:label="Main Menu" />
+            android:label="@string/main_menu" />
 
         <activity
             android:name=".ChatRoomActivity"
-            android:label="Chat Room" />
+            android:label="@string/chat_room" />
 
         <activity
             android:name=".ChangePasswordActivity"
-            android:label="ChangePassword">
-
+            android:label="@string/change_password">
         </activity>
     </application>
-
 </manifest>

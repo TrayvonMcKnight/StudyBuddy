@@ -1,6 +1,8 @@
 
 package edu.uncg.studdybuddy.studybuddy;
 
+import android.content.Intent;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -45,13 +47,13 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     private TextView txtProfessor;
     private TextView txtDescript;
     private ListView studentListView;
+    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drawer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -105,9 +107,9 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         Chatrooms currentRooms = server.getChatrooms();
         Chatrooms.Chatroom thisRoom = currentRooms.getChatroom(this.className, this.sec);
         String[][] roomMessages = thisRoom.getMessages();
-        for (int c = 0; c < roomMessages.length;c++){
-            String senderName = currentRooms.getStudent(className, sec, roomMessages[c][0]).getStudentName();
-            chatMessList.add(new ChatRoomMessage(senderName, roomMessages[c][1], roomMessages[c][2]));
+        for (String[] roomMessage : roomMessages) {
+            String senderName = currentRooms.getStudent(className, sec, roomMessage[0]).getStudentName();
+            chatMessList.add(new ChatRoomMessage(senderName, roomMessage[1], roomMessage[2]));
         }
 
         // init adapter
@@ -149,15 +151,15 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         txtClass.setText(this.className + "-" + this.sec);
         txtProfessor.setText(this.professor);
         txtDescript.setText("This is just another damned class which is designed to test the shit out of you until you drop dead from a heartattack.");
-        studentList = new ArrayList<String>();
+        studentList = new ArrayList<>();
         allChats = server.getChatrooms();
         students = allChats.getStudents(className, sec);
-        for (int c = 0;c < students.length;c++){
-            studentList.add(students[c].getStudentName());
+        for (Student student : students) {
+            studentList.add(student.getStudentName());
         }
         studentListView = (ListView) findViewById(R.id.list_classmates);
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, studentList );
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, studentList);
         studentListView.setAdapter(arrayAdapter);
         return true;
     }
@@ -170,6 +172,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
+            dispatchTakePictureIntent();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -177,4 +180,10 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         return true;
     }
 
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
 }
