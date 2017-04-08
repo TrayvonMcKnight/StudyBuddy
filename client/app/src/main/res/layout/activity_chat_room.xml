@@ -1,28 +1,28 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    android:layout_height="match_parent">
 
     <RelativeLayout
         android:id="@+id/relRecipient"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:background="@android:color/white"
-        android:paddingLeft="10dp">
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
 
         <TextView
             android:id="@+id/txtRecipient"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
-            android:textSize="28dp"
+            android:textSize="28sp"
             android:background="@android:color/white"
             android:textColor="@android:color/holo_blue_dark"
             android:inputType="textPersonName">
         </TextView>
-
     </RelativeLayout>
+
     <ListView
         android:id="@+id/lstMessages"
         android:layout_width="match_parent"
@@ -33,7 +33,9 @@
         android:background="@drawable/bg_shadow"
         android:padding="0dip"
         android:divider="@null"
-        android:dividerHeight="0dp" android:stackFromBottom="true" tools:listitem="@layout/message_left"/>
+        android:dividerHeight="0dp"
+        android:stackFromBottom="true"
+        tools:listitem="@layout/message_left"/>
 
     <RelativeLayout
         android:id="@+id/relSendMessage"
@@ -41,6 +43,7 @@
         android:layout_height="48dp"
         android:background="@android:color/white"
         android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:layout_alignParentBottom="true">
 
         <EditText
@@ -48,14 +51,14 @@
             android:id="@+id/txtTextBody"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:hint="Message..."
+            android:hint="@string/message"
             android:textSize="14sp"
             android:textColor="@android:color/background_dark"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:layout_alignTop="@+id/btnSend"
             android:background="@android:color/white"
             android:layout_alignBottom="@+id/btnSend"
-            android:layout_toLeftOf="@+id/btnSend">
+            android:layout_toStartOf="@+id/btnSend">
             <requestFocus/>
         </EditText>
 
@@ -63,7 +66,7 @@
             android:id="@+id/btnSend"
             android:layout_width="72dp"
             android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_margin="4dp"
             android:background="@drawable/button_send" />
     </RelativeLayout>
