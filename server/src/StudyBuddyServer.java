@@ -1,5 +1,7 @@
 
+import StudyBuddy.ChatRoomBackups;
 import StudyBuddy.Chatrooms;
+import StudyBuddy.Chatrooms.Chatroom;
 import StudyBuddy.Database;
 import StudyBuddy.OnlineClientList;
 import StudyBuddy.Session;
@@ -25,6 +27,7 @@ public class StudyBuddyServer extends Thread {
     private Database database;
     private OnlineClientList onlineList;
     private Chatrooms chatrooms;
+    private ChatRoomBackups backups;
 
     // Server constructor
     public StudyBuddyServer(int port) {
@@ -37,10 +40,15 @@ public class StudyBuddyServer extends Thread {
             System.exit(1);
         }
         this.database = new Database(); // Start the database.
-        this.cleanDatabase();   // Logout all users left online due to server crash.
+        this.cleanDatabase();   // Logout all users left online due to server crash or maintainance.
         this.onlineList = new OnlineClientList();   // Create a linked list of all online clients.
-        this.chatrooms = new Chatrooms();   // Create and build the master list of chat rooms available.
-        this.buildChatrooms();
+        this.backups = new ChatRoomBackups();
+        if (backups.fileExists()){
+            this.chatrooms = backups.loadChatRoomStatus();  // If there is a backup, load it.
+            this.cleanChatrooms();  // Mark all users as offline when the server restarts from a crash or maintainance.
+        } else {
+            this.buildChatrooms();  // If there is not a backup, create the initial Chatrooms object and make backup.
+        }
     }
 
     @Override
@@ -85,9 +93,21 @@ public class StudyBuddyServer extends Thread {
             Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    private void cleanChatrooms(){
+        
+        for (int c = 0; c < this.chatrooms.getNumberOfClasses();c++){
+            Chatroom room = this.chatrooms.getChatroom(c);
+            for (int d = 0;d < room.returnNumberOfStudents();d++){
+                Student student = room.getStudent(d);
+                student.setOnlineStatus(Boolean.FALSE);
+            }
+        }
+    }
 
     private boolean buildChatrooms() {
         boolean success = false;
+        this.chatrooms = new Chatrooms();   // Create and build the master list of chat rooms available.
         ResultSet allClasses = this.database.returnAllClasses();
         ResultSet students;
         try {
@@ -111,6 +131,8 @@ public class StudyBuddyServer extends Thread {
                     this.chatrooms.addStudent(allClasses.getString(2), allClasses.getString(3), students.getString(2) + " " + students.getString(3), students.getString(1), online, status);
                 }
             }
+            backups.saveChatRoomStatus(this.chatrooms); // Save chat room status to file after building.
+            success = true;
         } catch (SQLException ex) {
             Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
         }
