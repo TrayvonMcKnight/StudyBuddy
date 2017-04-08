@@ -20,12 +20,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StudyBuddyServer extends Thread {
-
+    // private class fields.
     private ServerSocket serverSocket;
     private Database database;
     private OnlineClientList onlineList;
     private Chatrooms chatrooms;
 
+    // Server constructor
     public StudyBuddyServer(int port) {
         this.database = null;
         this.serverSocket = null;
@@ -35,11 +36,11 @@ public class StudyBuddyServer extends Thread {
             System.out.println("FATAL ERROR:  Unable to listen on port " + port + ".  May already be in use. Cannot start server without this required component.");
             System.exit(1);
         }
-        this.database = new Database();
-        this.onlineList = new OnlineClientList();
-        this.chatrooms = new Chatrooms();
+        this.database = new Database(); // Start the database.
+        this.cleanDatabase();   // Logout all users left online due to server crash.
+        this.onlineList = new OnlineClientList();   // Create a linked list of all online clients.
+        this.chatrooms = new Chatrooms();   // Create and build the master list of chat rooms available.
         this.buildChatrooms();
-        //serverSocket.setSoTimeout(10000);
     }
 
     @Override
@@ -71,6 +72,17 @@ public class StudyBuddyServer extends Thread {
             } catch (IOException e) {
                 break;
             }
+        }
+    }
+    
+    private void cleanDatabase(){
+        ResultSet temp = this.database.returnAllOnlineStudents();
+        try {
+            while (temp.next()){
+                this.database.updateUserLoggedIn(temp.getString(1), false);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

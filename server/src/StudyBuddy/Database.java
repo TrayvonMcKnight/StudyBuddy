@@ -555,7 +555,7 @@ public class Database {
         return temp;
     }
     
-    public ResultSet returnAllOnlineStudents(String email){
+    public ResultSet returnAllOnlineStudents(){
         ResultSet temp = null;
         this.sql = "Select sEmail from students where logged_in = ?";
         try {
