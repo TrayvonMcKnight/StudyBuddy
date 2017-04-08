@@ -14,9 +14,9 @@ import java.util.logging.Logger;
 public class Database {
     // Private class fields
 
-    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/";//?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
+    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
     private final String DB_USER = "studybuddy";
-    private final String DB_PASS = "TheStudyBuddyPassword";
+    private final String DB_PASS = "TheStudyBuddy";
     private Connection db_con;
     private PreparedStatement statement;
     private CallableStatement callable;
@@ -548,6 +548,19 @@ public class Database {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, className);
             this.statement.setString(2, section);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return temp;
+    }
+    
+    public ResultSet returnAllOnlineStudents(String email){
+        ResultSet temp = null;
+        this.sql = "Select sEmail from students where logged_in = ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setInt(1, 1);
             temp = statement.executeQuery();
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
