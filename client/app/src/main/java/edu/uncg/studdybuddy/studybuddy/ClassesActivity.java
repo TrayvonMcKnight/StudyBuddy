@@ -29,13 +29,13 @@ public class ClassesActivity extends AppCompatActivity {
         classes = connector.getChatrooms();
         final String[] classArray = classes.getClassNamesAndSection();
 
-        final List<String> arrayList = new ArrayList<String>();
-        for (int c = 0;c < classArray.length;c++) {
-            String[] pieces = classArray[c].split(":");
+        final List<String> arrayList = new ArrayList<>();
+        for (String aClassArray : classArray) {
+            String[] pieces = aClassArray.split(":");
             arrayList.add(pieces[0] + "-" + pieces[1] + " Professor: " + classes.getProfessorName(pieces[0], pieces[1]));
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, arrayList );
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, arrayList);
 
         classList.setAdapter(arrayAdapter);
         classList.setOnItemClickListener(new AdapterView.OnItemClickListener(){

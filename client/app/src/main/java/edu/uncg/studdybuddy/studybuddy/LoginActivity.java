@@ -88,9 +88,6 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButton.setEnabled(true);
 
-        // TODO: Implement authentication logic here.
-
-
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
@@ -160,8 +157,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_SIGNUP) {
             if (resultCode == RESULT_OK) {
-
-                // TODO: Implement successful signup logic here
                 this.finish();
             }
         }

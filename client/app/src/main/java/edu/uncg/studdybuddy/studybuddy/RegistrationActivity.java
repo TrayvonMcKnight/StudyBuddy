@@ -108,8 +108,6 @@ public class RegistrationActivity extends AppCompatActivity {
             }
         }
 
-        // TODO: Implement Registration logic here. SQL
-
         new Handler().postDelayed(
                 new Runnable() {
                     public void run() {

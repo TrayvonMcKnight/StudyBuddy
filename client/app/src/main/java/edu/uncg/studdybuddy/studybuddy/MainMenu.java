@@ -1,28 +1,18 @@
 package edu.uncg.studdybuddy.studybuddy;
 
-import android.media.Image;
-import android.os.Bundle;
-import android.app.Activity;
-import android.os.Looper;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.content.Intent;
-import android.widget.ImageButton;
-import android.widget.ListView;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import StudyBuddy.Chatrooms;
-import StudyBuddy.Student;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class MainMenu extends AppCompatActivity {
-    public static final String TAG = "MainMenu";
     protected static Chatrooms chatrooms;
     private StudyBuddyConnector ourConnector;
     private StudyBuddyConnector.MyCustomObjectListener listener;
@@ -46,7 +36,7 @@ public class MainMenu extends AppCompatActivity {
             public void onObjectReady(String title) {
                 // Code to handle if object ready.
                 if (title.equalsIgnoreCase("Chatrooms")) {
-                    chatrooms = (Chatrooms) ourConnector.getChatrooms();
+                    chatrooms = ourConnector.getChatrooms();
                     setWelcomeMessage(ourConnector.getUserName());
                 }
             }
