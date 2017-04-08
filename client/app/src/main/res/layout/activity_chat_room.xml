@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
 
@@ -19,11 +20,9 @@
             android:background="@android:color/white"
             android:textColor="@android:color/holo_blue_dark"
             android:inputType="textPersonName">
-
-
         </TextView>
-    </RelativeLayout>
 
+    </RelativeLayout>
     <ListView
         android:id="@+id/lstMessages"
         android:layout_width="match_parent"
@@ -36,7 +35,6 @@
         android:divider="@null"
         android:dividerHeight="0dp" android:stackFromBottom="true" tools:listitem="@layout/message_left"/>
 
-
     <RelativeLayout
         android:id="@+id/relSendMessage"
         android:layout_width="wrap_content"
@@ -44,7 +42,6 @@
         android:background="@android:color/white"
         android:paddingLeft="10dp"
         android:layout_alignParentBottom="true">
-
 
         <EditText
             android:layout_marginBottom="-4dp"
@@ -70,5 +67,4 @@
             android:layout_margin="4dp"
             android:background="@drawable/button_send" />
     </RelativeLayout>
-
 </RelativeLayout>
