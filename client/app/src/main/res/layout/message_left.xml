@@ -5,51 +5,52 @@
     android:layout_height="wrap_content"
     android:padding="10dp">
 
-    <RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent"
-        android:layout_marginRight="10dp">
 
         <TextView
             android:id="@+id/txtSender"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:text="Sender Ipsum"
+            android:text="@string/sender_ipsum"
             android:textSize="16sp"
-            android:layout_alignParentLeft="true"
-            android:paddingLeft="10dp"
+            android:layout_alignParentStart="true"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:paddingBottom="6dp"
-            android:textColor="@android:color/black" android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
             android:maxLines="1" />
 
         <TextView
             android:id="@+id/txtDate"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:textColor="@android:color/holo_red_dark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingRight="2dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
             android:paddingBottom="6dp"
             android:textSize="14sp"
-            android:text="14:54"
+            android:text="@string/_14_54"
             android:layout_alignBottom="@+id/txtSender"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/txtSender"
-            android:layout_alignParentLeft="true"
+            android:layout_alignParentEnd="true"
             android:padding="12dp"
             android:background="@drawable/grey_bubble" >
 
             <TextView
                 android:id="@+id/txtMessage"
-                android:paddingLeft="12dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/black"
                 android:textSize="14sp"
-                android:text="Hello" />
-
+                android:text="@string/hello" />
         </RelativeLayout>
-    </RelativeLayout>
 </RelativeLayout>
+

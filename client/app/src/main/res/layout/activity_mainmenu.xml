@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/MainMenu"
     android:layout_width="match_parent"
@@ -19,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:text="TextView"
+        android:text="@string/textview"
         android:textAlignment="center"
         android:textSize="24sp" />
 
@@ -28,7 +27,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clickable="true"
-        android:text="Profile"
+        android:text="@string/profile"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
         android:visibility="visible"
         tools:layout_editor_absoluteX="8dp"
@@ -40,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:clickable="true"
-        android:text="Settings"
+        android:text="@string/settings"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
         android:visibility="visible"
         tools:layout_editor_absoluteX="8dp" />
@@ -51,7 +50,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:clickable="true"
-        android:text="Classes"
+        android:text="@string/classes"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
         android:visibility="visible"
         tools:layout_editor_absoluteX="132dp"
@@ -79,16 +78,16 @@
         android:paddingRight="24dp"
         android:orientation="vertical">
 
-    <Button
+        <Button
         android:id="@+id/logOut"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clickable="true"
-        android:text="Log Out"
+        android:text="@string/log_out"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
         android:visibility="visible"
         tools:layout_editor_absoluteX="132dp"
         tools:layout_editor_absoluteY="356dp" />
-        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
