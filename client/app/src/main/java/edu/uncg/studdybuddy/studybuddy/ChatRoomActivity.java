@@ -2,7 +2,6 @@
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -15,21 +14,17 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.List;
 
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
-import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class ChatRoomActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
@@ -53,8 +48,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     private TextView txtDescript;
     private ListView studentListView;
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    private ImageView mImageView;
-    @InjectView(R.id.drawer_group) Menu drawer_group;
+    private BuddyListAdapter buddyAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +65,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         if (toggle == null){
             System.out.println("toggle is null.");
         }
-        drawer.addDrawerListener(toggle);
+        drawer.setDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -95,19 +89,45 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                 @Override
                                                 public void onDataLoaded(String data) {
                                                     String[] pieces = data.split(":");
-                                                    if (pieces[0].equals("11") && pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
-                                                        String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
-                                                        String chatMessage = "";
-                                                        if (pieces.length > 8){
-                                                            for (int c = 7; c < pieces.length;c++){
-                                                                chatMessage += pieces[c] + ":";
+                                                    switch (pieces[0]){
+                                                        case "06": {
+                                                            if (pieces[1].equalsIgnoreCase("BUDDYONLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
+                                                                System.out.println("User " + pieces[2] + " just came online.");
+                                                                for (int c = 0;c < studentList.size();c++){
+                                                                    Student stud = studentList.get(c);
+                                                                    if (stud.getStudentName().equals(pieces[5])){
+                                                                        stud.setOnlineStatus(true);
+                                                                    }
+                                                                }
+                                                                updateBuddyAdapter();
+                                                            } else if (pieces[1].equalsIgnoreCase("BUDDYOFFLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
+                                                                System.out.println("User " + pieces[2] + " just went offline.");
+                                                                for (int c = 0;c < studentList.size();c++){
+                                                                    Student stud = studentList.get(c);
+                                                                    if (stud.getStudentName().equals(pieces[5])){
+                                                                        stud.setOnlineStatus(false);
+                                                                    }
+                                                                }
+                                                                updateBuddyAdapter();
                                                             }
-                                                            chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
-                                                        } else {
-                                                            chatMessage = pieces[7];
                                                         }
-                                                        chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
-                                                        updateAdapter();
+
+                                                        case "11": {
+                                                            if (pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
+                                                                String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
+                                                                String chatMessage = "";
+                                                                if (pieces.length > 8){
+                                                                    for (int c = 7; c < pieces.length;c++){
+                                                                        chatMessage += pieces[c] + ":";
+                                                                    }
+                                                                    chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                                                                } else {
+                                                                    chatMessage = pieces[7];
+                                                                }
+                                                                chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
+                                                                updateAdapter();
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             });
@@ -140,21 +160,30 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                 sendMessage();
             }
         });
+
     }
 
-    private void sendMessage(){
-        server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
-        mTxtTextBody.setText("");
-    }
+        private void sendMessage(){
+            server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
+            mTxtTextBody.setText("");
+        }
 
-    private void updateAdapter(){
-        runOnUiThread(new Runnable() {
+        private void updateAdapter(){
+            runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     adapter.notifyDataSetChanged();
                 }
             });
+        }
 
+    private void updateBuddyAdapter(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                buddyAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
@@ -167,17 +196,20 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         txtClass.setText(this.className + "-" + this.sec);
         txtProfessor.setText(this.professor);
         txtDescript.setText(this.classDescription);
+        updateList();
+        return true;
+    }
+
+    public void updateList(){
         studentList = new ArrayList<>();
         allChats = server.getChatrooms();
         students = allChats.getStudents(className, sec);
-
         for (Student student : students) {
             studentList.add(student);
         }
         studentListView = (ListView) findViewById(R.id.list_classmates);
-        BuddyListAdapter adapter  = new BuddyListAdapter(this, studentList);
-        studentListView.setAdapter(adapter);
-        return true;
+        buddyAdapter  = new BuddyListAdapter(this, studentList);
+        studentListView.setAdapter(buddyAdapter);
     }
 
 
@@ -188,7 +220,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-
+            dispatchTakePictureIntent();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -196,20 +228,10 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         return true;
     }
 
-    /*
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
     }
-    @Override
-protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-        Bundle extras = data.getExtras();
-        Bitmap imageBitmap = (Bitmap) extras.get("data");
-        mImageView.setImageBitmap(imageBitmap);
-    }
-}
-    */
 }
