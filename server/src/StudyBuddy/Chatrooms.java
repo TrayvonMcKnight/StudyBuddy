@@ -186,6 +186,22 @@ public class Chatrooms implements Serializable {
         public String getProfessorName() {
             return this.professorName;
         }
+        
+        public String getDays(){
+            return this.days;
+        }
+        
+        public String getDescription(){
+            return this.description;
+        }
+        
+        public Time getStartTime(){
+            return this.start;
+        }
+        
+        public Time getEndTime(){
+            return this.end;
+        }
 
         public boolean isStudent(String email) {
             for (int c = 0; c < this.studentElements; c++) {

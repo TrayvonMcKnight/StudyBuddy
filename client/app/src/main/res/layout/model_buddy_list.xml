@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="10dp"
+    card_view:cardCornerRadius="5dp"
+    card_view:cardElevation="5dp"
+    android:layout_height="80dp">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/smileyImg"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:text="Name"
+                        android:id="@+id/nameTxt"
+                        android:padding="2sp"
+                        android:textColor="@android:color/holo_blue_bright"
+                        android:textStyle="bold"
+                        android:layout_alignParentLeft="true"
+                        />
+
+                    <TextView
+                                       android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                      android:textAppearance="?android:attr/textAppearanceMedium"
+                                       android:text="Status"
+                                        android:lines="1"
+                                        android:id="@+id/statusTxt"
+                                        android:paddingLeft="20sp"
+                                        android:layout_alignParentLeft="true"
+                                      />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+    </android.support.v7.widget.CardView>
