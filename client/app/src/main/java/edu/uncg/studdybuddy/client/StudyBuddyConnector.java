@@ -436,7 +436,6 @@ public class StudyBuddyConnector {
                                             // set buddy online for the chatroom passed in.
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
                                             if (stud !=null) {
-                                                // This is a bug that I cannot fix.  New person is not received from the server.
                                                 stud.setOnlineStatus(true);
                                             } else {
                                                 // add the person to the list.
@@ -445,8 +444,6 @@ public class StudyBuddyConnector {
                                             for (int c = 0;c < listeners.size();c++){
                                                 listeners.get(c).onDataLoaded(message);
                                             }
-                                            //buddies.setOnlineStatus(pieces[2], true);
-                                            //alertClient(new ActionEvent(this, 1, pieces[1] + ":" + pieces[2]));
 
                                         } else if (pieces[1].equals("BUDDYOFFLINE")) {
                                             // set buddy offline for the chatroom passed in.
@@ -498,7 +495,6 @@ public class StudyBuddyConnector {
 
                                     case "11": {
                                         if (pieces[1].equals("CHATMESS")) {
-                                            //System.out.println("INCOMING MESSAGE from " + pieces[4] +": " + pieces[7]);
                                             // add to local copy of chatrooms and notify activity.
                                             String chatMessage = "";
                                             if (pieces.length > 8){
