@@ -192,7 +192,7 @@ public class StudyBuddyConnector {
             // If the login is accepted...
             case "ACCEPTED":
                 loggedIn = true;
-                this.userEmail = email;
+                this.userEmail = pieces[2];
                 this.messages = new LinkedBlockingQueue();
                 this.messageHandler = new Thread(new MessageListener());
                 this.messageQueue = new Thread(new MessageQueue());
@@ -432,9 +432,16 @@ public class StudyBuddyConnector {
                                     }
                                     case "06": {
                                         if (pieces[1].equals("BUDDYONLINE")) {
+                                            System.out.println(pieces[3] + " " + pieces[4] + " " + pieces[2]);
                                             // set buddy online for the chatroom passed in.
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
-                                            stud.setOnlineStatus(true);
+                                            if (stud !=null) {
+                                                // This is a bug that I cannot fix.  New person is not received from the server.
+                                                stud.setOnlineStatus(true);
+                                            } else {
+                                                // add the person to the list.
+                                                chatrooms.addStudent(pieces[3], pieces[4], pieces[5], pieces[2], true, Integer.valueOf(pieces[7]));
+                                            }
                                             for (int c = 0;c < listeners.size();c++){
                                                 listeners.get(c).onDataLoaded(message);
                                             }
@@ -508,6 +515,13 @@ public class StudyBuddyConnector {
                                             }
                                         }
                                     }
+                                    case "12": {
+                                        if (pieces[1].equals("NEWSTUDENT")){
+                                            // pull new chat rooms from the server
+                                            getChatroomsFromServer();
+                                            System.out.println("New Chatrooms received.");
+                                        }
+                                    }
                                     default: {
                                     }
                                 }
@@ -526,6 +540,7 @@ public class StudyBuddyConnector {
                             break;
                         }
                         case "Chatrooms": {
+                            chatrooms = null;
                             chatrooms = (Chatrooms) object;
                             Student stud = chatrooms.getStudent(userEmail);
                             if (stud.getStudentName() !=null){
