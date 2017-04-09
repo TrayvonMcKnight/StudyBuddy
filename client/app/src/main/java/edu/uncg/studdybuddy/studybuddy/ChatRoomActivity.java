@@ -37,7 +37,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     private String className, sec, professor, professorEmail;
     private StudyBuddyConnector server;
     private Student[] students;
-    private ArrayList<String> studentList;
+    private ArrayList<Student> studentList;
     private Chatrooms allChats;
     private List<ChatRoomMessage> chatMessList = new ArrayList<>();
     private ChatAdapter adapter;
@@ -155,12 +155,11 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         allChats = server.getChatrooms();
         students = allChats.getStudents(className, sec);
         for (Student student : students) {
-            studentList.add(student.getStudentName());
+            studentList.add(student);
         }
         studentListView = (ListView) findViewById(R.id.list_classmates);
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, studentList);
-        studentListView.setAdapter(arrayAdapter);
+        BuddyListAdapter adapter  = new BuddyListAdapter(this, studentList);
+        studentListView.setAdapter(adapter);
         return true;
     }
 
