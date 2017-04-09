@@ -14,24 +14,24 @@ import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 /**
- * Created by Metalaxe on 3/5/2017.
+ * Created by Anthony Ratliff on 3/5/2017.
  */
 
 public class SplashActivity extends AppCompatActivity {
-    private final String VERSION = "1.00";
-    TextView versionText;
-    TextView statusText;
+    private final String VERSION = "1.10";
+    private TextView versionText;
+    private TextView statusText;
+    private Button try_again;
     private Handler Handler1 = new Handler();
     private Handler Handler2 = new Handler();
     private StudyBuddyConnector connector;
-    @InjectView(R.id.tryAgainbtn) Button try_again;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         this.connector = StartActivity.server.getInstance();
-
+        this.try_again = (Button) findViewById(R.id.tryAgainbtn);
         this.versionText = (TextView) findViewById(R.id.versionText);
         this.statusText = (TextView) findViewById(R.id.statusText);
         Handler1.postDelayed(new Runnable() {
@@ -55,6 +55,7 @@ public class SplashActivity extends AppCompatActivity {
                         public void onClick(View v) {
                             Intent intent = new Intent(getApplicationContext(), StartActivity.class);
                             startActivity(intent);
+                            finish();
                         }
                     });
                 }
@@ -81,12 +82,15 @@ public class SplashActivity extends AppCompatActivity {
                     break;
                 }
                 default: {
-                    Toast.makeText(getBaseContext(), "Server Unavailable", Toast.LENGTH_LONG).show();
                     try_again.setVisibility(View.VISIBLE);
 
                 }
             }
         }
         return success;
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 }
