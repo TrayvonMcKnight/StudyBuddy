@@ -390,7 +390,12 @@ public class Session extends Thread {
                                                     chatMessage += pieces[c] + ":";
                                                 }
                                                 chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
-                                            } else {
+                                            }
+                                                else if(pieces.length < 8){
+                                                    System.out.println(pieces.length);
+                                                        chatMessage = "Invalid Message!!!";
+                                                        }
+                                             else {
                                                 chatMessage = pieces[7];
                                             }
                                             sendChatMessage(pieces[2], pieces[3], pieces[4], chatMessage);
