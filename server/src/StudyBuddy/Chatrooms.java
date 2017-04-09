@@ -66,6 +66,14 @@ public class Chatrooms implements Serializable {
     public Chatroom getChatroom(String chatName, String section) {
         return this.rooms[this.getIndex(chatName, section)];
     }
+    
+    public Chatroom getChatroom(int index){
+        Chatroom temp = null;
+        if (index < this.numElements && index >= 0) {
+            return this.rooms[index];
+        }
+        return temp;
+    }
 
     public void addStudent(String chatName, String section, String studName, String email, Boolean online, int status) {
         this.rooms[getIndex(chatName, section)].addStudent(studName, email, online, status);
@@ -211,6 +219,14 @@ public class Chatrooms implements Serializable {
                 }
             }
             return null;
+        }
+        
+        public Student getStudent(int index){
+            Student student = null;
+            if (index < this.returnNumberOfStudents() && index >= 0) {
+            student = this.students[index];
+            }
+        return student;
         }
 
         public String[][] getMessages() {

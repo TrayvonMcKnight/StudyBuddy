@@ -1,5 +1,7 @@
 
+import StudyBuddy.ChatRoomBackups;
 import StudyBuddy.Chatrooms;
+import StudyBuddy.Chatrooms.Chatroom;
 import StudyBuddy.Database;
 import StudyBuddy.OnlineClientList;
 import StudyBuddy.Session;
@@ -15,17 +17,20 @@ import java.net.SocketTimeoutException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StudyBuddyServer extends Thread {
-
+    // private class fields.
     private ServerSocket serverSocket;
     private Database database;
     private OnlineClientList onlineList;
     private Chatrooms chatrooms;
+    private ChatRoomBackups backups;
 
+    // Server constructor
     public StudyBuddyServer(int port) {
         this.database = null;
         this.serverSocket = null;
@@ -35,11 +40,16 @@ public class StudyBuddyServer extends Thread {
             System.out.println("FATAL ERROR:  Unable to listen on port " + port + ".  May already be in use. Cannot start server without this required component.");
             System.exit(1);
         }
-        this.database = new Database();
-        this.onlineList = new OnlineClientList();
-        this.chatrooms = new Chatrooms();
-        this.buildChatrooms();
-        //serverSocket.setSoTimeout(10000);
+        this.database = new Database(); // Start the database.
+        this.cleanDatabase();   // Logout all users left online due to server crash or maintainance.
+        this.onlineList = new OnlineClientList();   // Create a linked list of all online clients.
+        this.backups = new ChatRoomBackups();
+        if (backups.fileExists()){
+            this.chatrooms = backups.loadChatRoomStatus();  // If there is a backup, load it.
+            this.cleanChatrooms();  // Mark all users as offline when the server restarts from a crash or maintainance.
+        } else {
+            this.buildChatrooms();  // If there is not a backup, create the initial Chatrooms object and make backup.
+        }
     }
 
     @Override
@@ -73,9 +83,33 @@ public class StudyBuddyServer extends Thread {
             }
         }
     }
+    
+    private void cleanDatabase(){
+        ResultSet temp = this.database.returnAllOnlineStudents();
+        try {
+            while (temp.next()){
+                this.database.updateUserLoggedIn(temp.getString(1), false);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void cleanChatrooms(){
+        
+        for (int c = 0; c < this.chatrooms.getNumberOfClasses();c++){
+            Chatroom room = this.chatrooms.getChatroom(c);
+            int numStudents = room.returnNumberOfStudents();
+            for (int d = 0;d < numStudents;d++){
+                Student student = room.getStudent(d);
+                student.setOnlineStatus(Boolean.FALSE);
+            }
+        }
+    }
 
     private boolean buildChatrooms() {
         boolean success = false;
+        this.chatrooms = new Chatrooms();   // Create and build the master list of chat rooms available.
         ResultSet allClasses = this.database.returnAllClasses();
         ResultSet students;
         try {
@@ -99,6 +133,8 @@ public class StudyBuddyServer extends Thread {
                     this.chatrooms.addStudent(allClasses.getString(2), allClasses.getString(3), students.getString(2) + " " + students.getString(3), students.getString(1), online, status);
                 }
             }
+            backups.saveChatRoomStatus(this.chatrooms); // Save chat room status to file after building.
+            success = true;
         } catch (SQLException ex) {
             Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -169,13 +205,6 @@ public class StudyBuddyServer extends Thread {
                     System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::INVALID:::: Packet from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Session Terminated.");
                     this.authenticationThread.stop();
                 }
-            } finally {
-                // try {
-                //inStream.close();
-                //outStream.close();
-                // } catch (IOException ex) {
-                //Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
-                //}
             }
         }
 
@@ -185,9 +214,11 @@ public class StudyBuddyServer extends Thread {
                     Date curDate = new Date();
                     switch (database.registerUser(pieces[2], pieces[3], pieces[5], pieces[6])) {
                         case 0: {
-                            this.assignClasses(pieces[2]);
                             outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":ACCEPTED:00::00");
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Accepted - New user added.");
+                            this.assignClasses(pieces[2]);
+                            // Need to notify all other students who are online, that someone has been added.
+                            //this.notifyOfNewStudent(pieces[2]);
                             break;
                         }
                         case 1: {
@@ -235,11 +266,12 @@ public class StudyBuddyServer extends Thread {
                         int loggedIn = student.getInt(9);
                         boolean online;
                         if (loggedIn == 0){
-                            online = true;
-                        } else online = false;
+                            online = false;
+                        } else online = true;
                         while (allClasses.next()){
                             chatrooms.addStudent(allClasses.getString(1), allClasses.getString(2), studentName, studentEmail, online, available);
                         }
+                        backups.saveChatRoomStatus(chatrooms);  // Update the Chatrooms object file with a new student change.
                 }   } catch (SQLException ex) {
                 Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -274,15 +306,15 @@ public class StudyBuddyServer extends Thread {
                             }
                         } else if (result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
-                            database.updateLastLoginTime(userName);
-                            database.updateUserLoggedIn(userName, true);
+                            database.updateLastLoginTime(result.getString("sEmail"));
+                            database.updateUserLoggedIn(result.getString("sEmail"), true);
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("sEmail") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
-                            String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
+                            String reply = "01:LOGIN:" + result.getString("sEmail") + ":" + pieces[3] + ":00:ACCEPTED:00";
                             outStream.writeUTF(reply);
                             // Update chat rooms.
                             ResultSet rooms = database.returnAllClassesByStudent(userName);
                             while (rooms.next()) {
-                                Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
+                                Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), result.getString("sEmail"));
                                 stud.setOnlineStatus(true);
                             }
                             Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms);

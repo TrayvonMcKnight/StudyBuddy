@@ -25,13 +25,13 @@ public class Session extends Thread {
     private final String clientIP;
     private final String userName;
     private final OnlineClientList onlineList;
-    //private BuddyList buddies;
     private final LinkedBlockingQueue<Object> messages;
     private Thread messageHandling;
     private Thread objectMessageListener;
     private final Database database;
     private Chatrooms mainChatrooms;
     private Chatrooms userChatrooms;
+    private ChatRoomBackups backup;
 
     // Public constructor.
     public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats) {
@@ -47,13 +47,16 @@ public class Session extends Thread {
         this.database = database;
         this.mainChatrooms = mainChats;
         this.userChatrooms = null;
+        this.backup = new ChatRoomBackups();
     }
 
     @Override
     public void run() {
+        // Build the user's copy of the Chatrooms class when a new session is created for a user.
         this.userChatrooms = this.buildUserChatrooms(this.userName);
-        //this.populateBuddyList();
+        // Notify all of the user's classmates that the user has logged in.
         this.broadcastOnlineBuddies(true);
+        // Create the user's message listener and handler threads.
         this.messageHandling = new Thread(new MessageQueue());
         this.messageHandling.start();
         this.objectMessageListener = new Thread(new ObjectMessageHandler());
@@ -62,8 +65,10 @@ public class Session extends Thread {
 
     private void sendChatMessage(String name, String section, String sender, String message) {
         if (this.onlineList.contains(sender) && this.mainChatrooms.classContainsStudent(name, section, sender)) {
-            this.mainChatrooms.addMessage(name, section, sender, message);
+            this.mainChatrooms.addMessage(name, section, sender, message);  // Add the new message to the main chat rooms list.
+            this.backup.saveChatRoomStatus(this.mainChatrooms); // Save the change to hard drive.
             Student[] students = this.mainChatrooms.getStudents(name, section);
+            // Send the message out to all students who are online.
             for (int c = 0; c < students.length; c++) {
                 if (students[c].getOnlineStatus()) {
                     Session theirSession = (Session) this.onlineList.returnUserSession(students[c].getStudentEmail());
@@ -78,6 +83,7 @@ public class Session extends Thread {
                 }
             }
         } else {
+            // If there is an attempt to send to a student who is not in this particular class, notify of failure.
             String error = "10:CHATMESS:" + name + ":" + section + ":01:FAILURE:00";
             try {
                 this.messages.put(error);
@@ -89,12 +95,16 @@ public class Session extends Thread {
         }
     }
 
-    private void sendMessage(String mess) {
+    public void sendMessage(String mess) {
         try {
             messages.put(mess);
         } catch (InterruptedException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private String getClientIP(){
+        return this.clientIP;
     }
 
     private void sendData(String mess) {
@@ -195,6 +205,7 @@ public class Session extends Thread {
         Date curDate = new Date();
         System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Chatrooms:: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Sending Chatrooms.");
         try {
+            // Need to create a new chatrooms.
             this.messages.put(this.userChatrooms);
         } catch (InterruptedException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
@@ -203,6 +214,18 @@ public class Session extends Thread {
 
     private void broadcastOnlineBuddies(boolean online) {
         //this.userChatrooms = this.buildUserChatrooms(userName);
+        String realName = "";
+        int availability = 0;
+        // Pull the user's information from the database.
+        ResultSet studentInfo = this.database.returnUserInfo(this.userName);
+        try {
+            while (studentInfo.next()){
+                realName = studentInfo.getString(4) + " " + studentInfo.getString(5);
+                availability = this.database.getUserStatus(studentInfo.getString(2));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+        }
         for (int c = 0; c < this.userChatrooms.getNumberOfClasses(); c++) {
             String[] roomList = this.userChatrooms.getClassNamesAndSection();
             String[] pieces = roomList[c].split(":");
@@ -214,7 +237,7 @@ public class Session extends Thread {
                         Session tempSess = (Session) onlineList.returnUserSession(students[d].getStudentEmail());
                         String newBuddy;
                         if (online) {
-                            newBuddy = "06:BUDDYONLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + "::00";
+                            newBuddy = "06:BUDDYONLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + ":" + realName + ":00:" + availability;
                             System.out.println("User " + userName + " is online for user " + students[d].getStudentEmail());
                         } else {
                             newBuddy = "06:BUDDYOFFLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + "::00";
@@ -422,9 +445,8 @@ public class Session extends Thread {
                                 } else if (pieces[0].equals("08") && pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                     System.out.println("We are sending a message out to: " + message);
 
-                                } else if (pieces[0].equals("06")) {
-                                    dataOut.writeUTF(message);
-                                } // If none of the above conditions are met, just send the message back to client.
+                                } 
+                                // If none of the above conditions are met, just send the message back to client.
                                 else {
                                     dataOut.writeUTF(message);
                                 }
@@ -436,6 +458,7 @@ public class Session extends Thread {
                         }
                         // If object placed on message queue is of type Chatrooms, then send as object.
                         case "Chatrooms":
+                            objectOut.flush();
                             objectOut.writeObject((Chatrooms) object);
                             break;
                         // If any of type of object, then an invalid response is received and the session is terminated.
