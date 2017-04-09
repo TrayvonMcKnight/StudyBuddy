@@ -90,7 +90,16 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                     String[] pieces = data.split(":");
                                                     if (pieces[0].equals("11") && pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
                                                         String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
-                                                        chatMessList.add(new ChatRoomMessage(senderName, pieces[7]));
+                                                        String chatMessage = "";
+                                                        if (pieces.length > 8){
+                                                            for (int c = 7; c < pieces.length;c++){
+                                                                chatMessage += pieces[c] + ":";
+                                                            }
+                                                            chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                                                        } else {
+                                                            chatMessage = pieces[7];
+                                                        }
+                                                        chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
                                                         updateAdapter();
                                                     }
                                                 }
