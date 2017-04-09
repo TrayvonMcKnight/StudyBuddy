@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class Database {
     // Private class fields
 
-    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/";//?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
+    private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
     private final String DB_USER = "studybuddy";
     private final String DB_PASS = "TheStudyBuddyPassword";
     private Connection db_con;
@@ -540,7 +540,7 @@ public class Database {
         }
         return temp;
     }
-
+    
     public ResultSet returnAllStudents(String className, String section) {
         ResultSet temp = null;
         this.sql = "SELECT sEmail, sFName, sLName, user_status, logged_in from students natural join enrolled natural join classes where classes.cName = ? and classes.cSection = ?";
@@ -548,6 +548,19 @@ public class Database {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, className);
             this.statement.setString(2, section);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return temp;
+    }
+    
+    public ResultSet returnAllOnlineStudents(){
+        ResultSet temp = null;
+        this.sql = "Select sEmail from students where logged_in = ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setInt(1, 1);
             temp = statement.executeQuery();
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
