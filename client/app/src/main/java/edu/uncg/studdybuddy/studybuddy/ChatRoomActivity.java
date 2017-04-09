@@ -48,6 +48,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     private TextView txtDescript;
     private ListView studentListView;
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    private BuddyListAdapter buddyAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,19 +89,45 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                 @Override
                                                 public void onDataLoaded(String data) {
                                                     String[] pieces = data.split(":");
-                                                    if (pieces[0].equals("11") && pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
-                                                        String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
-                                                        String chatMessage = "";
-                                                        if (pieces.length > 8){
-                                                            for (int c = 7; c < pieces.length;c++){
-                                                                chatMessage += pieces[c] + ":";
+                                                    switch (pieces[0]){
+                                                        case "06": {
+                                                            if (pieces[1].equalsIgnoreCase("BUDDYONLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
+                                                                System.out.println("User " + pieces[2] + " just came online.");
+                                                                for (int c = 0;c < studentList.size();c++){
+                                                                    Student stud = studentList.get(c);
+                                                                    if (stud.getStudentName().equals(pieces[5])){
+                                                                        stud.setOnlineStatus(true);
+                                                                    }
+                                                                }
+                                                                updateBuddyAdapter();
+                                                            } else if (pieces[1].equalsIgnoreCase("BUDDYOFFLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
+                                                                System.out.println("User " + pieces[2] + " just went offline.");
+                                                                for (int c = 0;c < studentList.size();c++){
+                                                                    Student stud = studentList.get(c);
+                                                                    if (stud.getStudentName().equals(pieces[5])){
+                                                                        stud.setOnlineStatus(false);
+                                                                    }
+                                                                }
+                                                                updateBuddyAdapter();
                                                             }
-                                                            chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
-                                                        } else {
-                                                            chatMessage = pieces[7];
                                                         }
-                                                        chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
-                                                        updateAdapter();
+
+                                                        case "11": {
+                                                            if (pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
+                                                                String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
+                                                                String chatMessage = "";
+                                                                if (pieces.length > 8){
+                                                                    for (int c = 7; c < pieces.length;c++){
+                                                                        chatMessage += pieces[c] + ":";
+                                                                    }
+                                                                    chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                                                                } else {
+                                                                    chatMessage = pieces[7];
+                                                                }
+                                                                chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
+                                                                updateAdapter();
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             });
@@ -148,8 +175,16 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                     adapter.notifyDataSetChanged();
                 }
             });
-
         }
+
+    private void updateBuddyAdapter(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                buddyAdapter.notifyDataSetChanged();
+            }
+        });
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -161,6 +196,11 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         txtClass.setText(this.className + "-" + this.sec);
         txtProfessor.setText(this.professor);
         txtDescript.setText(this.classDescription);
+        updateList();
+        return true;
+    }
+
+    public void updateList(){
         studentList = new ArrayList<>();
         allChats = server.getChatrooms();
         students = allChats.getStudents(className, sec);
@@ -168,9 +208,8 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
             studentList.add(student);
         }
         studentListView = (ListView) findViewById(R.id.list_classmates);
-        BuddyListAdapter adapter  = new BuddyListAdapter(this, studentList);
-        studentListView.setAdapter(adapter);
-        return true;
+        buddyAdapter  = new BuddyListAdapter(this, studentList);
+        studentListView.setAdapter(buddyAdapter);
     }
 
 
