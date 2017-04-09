@@ -17,6 +17,7 @@ import java.net.SocketTimeoutException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -98,7 +99,8 @@ public class StudyBuddyServer extends Thread {
         
         for (int c = 0; c < this.chatrooms.getNumberOfClasses();c++){
             Chatroom room = this.chatrooms.getChatroom(c);
-            for (int d = 0;d < room.returnNumberOfStudents();d++){
+            int numStudents = room.returnNumberOfStudents();
+            for (int d = 0;d < numStudents;d++){
                 Student student = room.getStudent(d);
                 student.setOnlineStatus(Boolean.FALSE);
             }
@@ -203,13 +205,6 @@ public class StudyBuddyServer extends Thread {
                     System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::INVALID:::: Packet from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Session Terminated.");
                     this.authenticationThread.stop();
                 }
-            } finally {
-                // try {
-                //inStream.close();
-                //outStream.close();
-                // } catch (IOException ex) {
-                //Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
-                //}
             }
         }
 
@@ -219,9 +214,11 @@ public class StudyBuddyServer extends Thread {
                     Date curDate = new Date();
                     switch (database.registerUser(pieces[2], pieces[3], pieces[5], pieces[6])) {
                         case 0: {
-                            this.assignClasses(pieces[2]);
                             outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":ACCEPTED:00::00");
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Accepted - New user added.");
+                            this.assignClasses(pieces[2]);
+                            // Need to notify all other students who are online, that someone has been added.
+                            //this.notifyOfNewStudent(pieces[2]);
                             break;
                         }
                         case 1: {
@@ -269,11 +266,12 @@ public class StudyBuddyServer extends Thread {
                         int loggedIn = student.getInt(9);
                         boolean online;
                         if (loggedIn == 0){
-                            online = true;
-                        } else online = false;
+                            online = false;
+                        } else online = true;
                         while (allClasses.next()){
                             chatrooms.addStudent(allClasses.getString(1), allClasses.getString(2), studentName, studentEmail, online, available);
                         }
+                        backups.saveChatRoomStatus(chatrooms);  // Update the Chatrooms object file with a new student change.
                 }   } catch (SQLException ex) {
                 Logger.getLogger(StudyBuddyServer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -308,15 +306,15 @@ public class StudyBuddyServer extends Thread {
                             }
                         } else if (result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
-                            database.updateLastLoginTime(userName);
-                            database.updateUserLoggedIn(userName, true);
+                            database.updateLastLoginTime(result.getString("sEmail"));
+                            database.updateUserLoggedIn(result.getString("sEmail"), true);
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("sEmail") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
-                            String reply = "01:LOGIN:" + database.getUserStatus(userName) + ":" + pieces[3] + ":00:ACCEPTED:00";
+                            String reply = "01:LOGIN:" + result.getString("sEmail") + ":" + pieces[3] + ":00:ACCEPTED:00";
                             outStream.writeUTF(reply);
                             // Update chat rooms.
                             ResultSet rooms = database.returnAllClassesByStudent(userName);
                             while (rooms.next()) {
-                                Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), userName);
+                                Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), result.getString("sEmail"));
                                 stud.setOnlineStatus(true);
                             }
                             Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms);

@@ -16,7 +16,7 @@ public class Database {
 
     private final String DB_URL = "jdbc:mysql://127.0.0.1:3306/?autoReconnect=true&useSSL=false"; //javachat?zeroDateTimeBehavior=convertToNull";
     private final String DB_USER = "studybuddy";
-    private final String DB_PASS = "TheStudyBuddy";
+    private final String DB_PASS = "TheStudyBuddyPassword";
     private Connection db_con;
     private PreparedStatement statement;
     private CallableStatement callable;
@@ -540,7 +540,7 @@ public class Database {
         }
         return temp;
     }
-
+    
     public ResultSet returnAllStudents(String className, String section) {
         ResultSet temp = null;
         this.sql = "SELECT sEmail, sFName, sLName, user_status, logged_in from students natural join enrolled natural join classes where classes.cName = ? and classes.cSection = ?";
