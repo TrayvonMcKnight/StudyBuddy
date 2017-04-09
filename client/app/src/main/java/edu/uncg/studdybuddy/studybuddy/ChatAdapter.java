@@ -12,11 +12,11 @@ import java.util.List;
  * Created by Metalaxe on 4/4/2017.
  */
 
-public class ChatAdapter extends BaseAdapter{
+class ChatAdapter extends BaseAdapter{
     private Context mContext;
     private List<ChatRoomMessage> mMessageList;
 
-    public ChatAdapter(Context mContext, List<ChatRoomMessage> mMessageList) {
+    ChatAdapter(Context mContext, List<ChatRoomMessage> mMessageList) {
         this.mContext = mContext;
         this.mMessageList = mMessageList;
     }
