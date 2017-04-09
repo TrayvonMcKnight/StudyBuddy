@@ -46,13 +46,7 @@ public class MainMenu extends AppCompatActivity {
                 // Code to handle data loaded from network.
                 String[] pieces = data.split(":");
                 switch(pieces[0]){
-                    case "06": {
-                        if (pieces[1].equalsIgnoreCase("BUDDYONLINE")){
-                            System.out.println("User " + pieces[2] + " just came online.");
-                        } else if (pieces[1].equalsIgnoreCase("BUDDYOFFLINE")){
-                            System.out.println("User " + pieces[2] + " just went offline.");
-                        }
-                    }
+
                 }
             }
         });
