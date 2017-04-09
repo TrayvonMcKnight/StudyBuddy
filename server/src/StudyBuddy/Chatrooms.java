@@ -69,7 +69,7 @@ public class Chatrooms implements Serializable {
     
     public Chatroom getChatroom(int index){
         Chatroom temp = null;
-        if (index < this.numElements && index > 0) {
+        if (index < this.numElements && index >= 0) {
             return this.rooms[index];
         }
         return temp;
@@ -223,9 +223,9 @@ public class Chatrooms implements Serializable {
         
         public Student getStudent(int index){
             Student student = null;
-            if (index < this.returnNumberOfStudents() && index > 0) {
-            return this.getStudent(index);
-        }
+            if (index < this.returnNumberOfStudents() && index >= 0) {
+            student = this.students[index];
+            }
         return student;
         }
 
