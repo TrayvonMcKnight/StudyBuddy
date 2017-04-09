@@ -9,25 +9,25 @@ import java.util.Date;
  * Created by Anthony Ratliff on 4/4/2017.
  */
 
-public class ChatRoomMessage {
+class ChatRoomMessage {
     private String sender;
     private String message;
     private String time;
 
-    public ChatRoomMessage(String sender, String message) {
+    ChatRoomMessage(String sender, String message) {
         this.sender = sender;
         this.message = message;
         // Set time object to now.
         this.time = DateFormat.getInstance().format(new Date());
     }
 
-    public ChatRoomMessage(String sender, String time, String message) {
+    ChatRoomMessage(String sender, String time, String message) {
         this.sender = sender;
         this.message = message;
         this.time = time;
     }
 
-    public String getSender() {
+    String getSender() {
         return sender;
     }
 
@@ -35,7 +35,7 @@ public class ChatRoomMessage {
         this.sender = sender;
     }
 
-    public String getMessage() {
+    String getMessage() {
         return message;
     }
 
@@ -43,7 +43,7 @@ public class ChatRoomMessage {
         this.message = message;
     }
 
-    public String getTime() {
+    String getTime() {
         return time;
     }
 
