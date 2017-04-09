@@ -102,6 +102,10 @@ public class MainMenu extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed() {
+    }
+
     public void setCustomObjectListener(StudyBuddyConnector.MyCustomObjectListener listener) {
         this.listener = listener;
     }
