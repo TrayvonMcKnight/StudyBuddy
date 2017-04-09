@@ -2,6 +2,7 @@
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -14,17 +15,21 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.List;
 
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
+import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class ChatRoomActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
@@ -48,6 +53,8 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     private TextView txtDescript;
     private ListView studentListView;
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    private ImageView mImageView;
+    @InjectView(R.id.drawer_group) Menu drawer_group;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +71,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         if (toggle == null){
             System.out.println("toggle is null.");
         }
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -123,23 +130,22 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                 sendMessage();
             }
         });
-
     }
 
-        private void sendMessage(){
-            server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
-            mTxtTextBody.setText("");
-        }
+    private void sendMessage(){
+        server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
+        mTxtTextBody.setText("");
+    }
 
-        private void updateAdapter(){
-            runOnUiThread(new Runnable() {
+    private void updateAdapter(){
+        runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     adapter.notifyDataSetChanged();
                 }
             });
 
-        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -154,6 +160,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         studentList = new ArrayList<>();
         allChats = server.getChatrooms();
         students = allChats.getStudents(className, sec);
+
         for (Student student : students) {
             studentList.add(student.getStudentName());
         }
@@ -172,7 +179,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-            dispatchTakePictureIntent();
+
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -180,10 +187,21 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         return true;
     }
 
+    /*
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
     }
+
+    @Override
+protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+        Bundle extras = data.getExtras();
+        Bitmap imageBitmap = (Bitmap) extras.get("data");
+        mImageView.setImageBitmap(imageBitmap);
+    }
+}
+    */
 }

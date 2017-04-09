@@ -40,4 +40,6 @@
     <string name="main_menu">Main Menu</string>
     <string name="chat_room">Chat Room</string>
     <string name="change_password">ChangePassword</string>
+    <string name="send_image_to_chat_room">Send Image to Chat Room</string>
+    <string name="classmates">Classmates</string>
 </resources>
