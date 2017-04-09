@@ -34,7 +34,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     private TextView titleBanner;
     private EditText mTxtTextBody;
     private Button mBtnSend;
-    private String className, sec, professor, professorEmail;
+    private String className, sec, professor, professorEmail, classDescription;
     private StudyBuddyConnector server;
     private Student[] students;
     private ArrayList<Student> studentList;
@@ -77,6 +77,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         this.myName = extras.getString("studentName");
         this.professor = MainMenu.chatrooms.getProfessorName(this.className, this.sec);
         this.professorEmail = MainMenu.chatrooms.getProfessorEmail(this.className, this.sec);
+        this.classDescription = MainMenu.chatrooms.getChatroom(this.className, this.sec).getDescription();
         server.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
 
                                                 @Override
@@ -150,7 +151,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         txtDescript = (TextView) findViewById(R.id.textView3);
         txtClass.setText(this.className + "-" + this.sec);
         txtProfessor.setText(this.professor);
-        txtDescript.setText("This is just another damned class which is designed to test the shit out of you until you drop dead from a heartattack.");
+        txtDescript.setText(this.classDescription);
         studentList = new ArrayList<>();
         allChats = server.getChatrooms();
         students = allChats.getStudents(className, sec);
