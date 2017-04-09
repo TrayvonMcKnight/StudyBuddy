@@ -37,8 +37,6 @@ public class SplashActivity extends AppCompatActivity {
         Handler1.postDelayed(new Runnable() {
             public void run() {
                 if (performHandshake()) {
-
-
                     statusText.setText("Server Found! Authenticating..");
                     Handler2.postDelayed(new Runnable() {
                         public void run() {
@@ -48,22 +46,24 @@ public class SplashActivity extends AppCompatActivity {
                         }
                     }, 1000);
 
-
                 } else {
                     statusText.setText("Server Not Found! Try Again Later.");
+                    try_again.setVisibility(View.VISIBLE);
+
+                    try_again.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(getApplicationContext(), StartActivity.class);
+                            startActivity(intent);
+                        }
+                    });
                 }
             }
         }, 1000);
         this.versionText.setText("Study Buddy Version: " + VERSION);
         this.statusText.setText("Looking For Server...");
 
-        try_again.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), StartActivity.class);
-                startActivity(intent);
-            }
-        });
+
 
     }
 
