@@ -25,7 +25,7 @@ import StudyBuddy.Student;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -487,13 +487,29 @@ public class StudyBuddyConnector {
                                         if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[4].equals("00") && pieces[5].equals("INCOMING")){
                                             String mess = (String) messages.take();
                                             if (mess.substring(mess.length() - 3, mess.length()).equals(":08")){
-                                                String sender = "08:" + pieces[3] + ":" + mess.substring(0, mess.length() - 3);
+                                                String sender = "08:" + pieces[3] + ":" + pieces[5] + ":" + mess.substring(0, mess.length() - 3);
                                                 for (int c = 0;c < listeners.size();c++){
                                                     listeners.get(c).onDataLoaded(sender);
                                                 }
-                                                //alertClient(new ActionEvent(this, 1, sender));
                                             }
-
+                                        }
+                                        else if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[4].equals("00")) {
+                                            String chatMessage="";
+                                            if (pieces.length > 8) {
+                                                for (int c = 7; c < pieces.length; c++) {
+                                                    chatMessage += pieces[c] + ":";
+                                                }
+                                                chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                                            } else if (pieces.length < 8) {
+                                                System.out.println(pieces.length);
+                                                chatMessage = "Invalid Message!!!";
+                                            } else {
+                                                chatMessage = pieces[7];
+                                            }
+                                            String sender = "08:" + pieces[3] + ":" + pieces[5] + ":" + chatMessage;
+                                            for (int c = 0;c < listeners.size();c++){
+                                                listeners.get(c).onDataLoaded(sender);
+                                            }
                                         }
                                         break;
                                     }
