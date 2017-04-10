@@ -61,6 +61,7 @@ public class Database {
         }
         System.out.println("Connected to Database");
         this.connected = true;
+        this.addOfflineMessage("you@uncg.edu", "me@uncg.edu", "Hello there.  it was really nice seeing you the other day and I hope we can hang out again sometime real soon.");
     }
 
     // Public getters and setters
@@ -217,27 +218,28 @@ public class Database {
             System.out.println("Could not execute create attendance table");
             System.out.println(ex);            
             return success;}
-        
-        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` (" +
-                "  `RsID` INT(12) NOT NULL," +
-                "  `SsID` INT(12) NOT NULL," +
-                "  `message` VARCHAR(255) NOT NULL," +
-                "  `time` TIMESTAMP(6) NOT NULL);";
+         */
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` ("
+                + "  `RsID` INT(12) NOT NULL,"
+                + "  `SsID` INT(12) NOT NULL,"
+                + "  `message` VARCHAR(255) NOT NULL,"
+                + "  `time` BIGINT NOT NULL);";
 
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
             System.out.println("Could not create offlinemessages table statement");
-            System.out.println(ex);           
-            return success;}
-        
+            System.out.println(ex);
+            return success;
+        }
+
         try {
             this.callable.execute();
         } catch (SQLException ex) {
             System.out.println("Could not execute create offlinemessages table");
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            return success;}
-         */
+            return success;
+        }
         this.sql = "use studybuddy;";
         try {
             this.callable = db_con.prepareCall(sql);
@@ -540,7 +542,7 @@ public class Database {
         }
         return temp;
     }
-    
+
     public ResultSet returnAllStudents(String className, String section) {
         ResultSet temp = null;
         this.sql = "SELECT sEmail, sFName, sLName, user_status, logged_in from students natural join enrolled natural join classes where classes.cName = ? and classes.cSection = ?";
@@ -554,8 +556,8 @@ public class Database {
         }
         return temp;
     }
-    
-    public ResultSet returnAllOnlineStudents(){
+
+    public ResultSet returnAllOnlineStudents() {
         ResultSet temp = null;
         this.sql = "Select sEmail from students where logged_in = ?";
         try {
@@ -568,4 +570,40 @@ public class Database {
         return temp;
     }
 
+    public boolean addOfflineMessage(String to, String from, String mess) {
+        boolean success = false;
+        if (!to.isEmpty() && !from.isEmpty() && !mess.isEmpty()) {
+            int pieces = (mess.length() / 255) + 1;
+            int mod = (mess.length() % 255);
+            int token = 255;
+            String[] array = new String[pieces];
+            Date curDate = new Date();
+            long secs = curDate.getTime();
+            SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            int stat1 = this.getUserID(to);
+            int stat2 = this.getUserID(from);
+            for (int counter = 0; counter <= pieces - 1; counter++) {
+                if (counter == pieces - 1) {
+                    token = mod;
+                }
+                array[counter] = mess.substring(counter * 255, counter * 255 + token);
+            }
+            for (int counter = 0; counter <= pieces - 1; counter++) {
+                try {
+                    this.sql = "insert into offlinemessages values (?,?,?,?)";
+                    this.statement = db_con.prepareStatement(sql);
+                    this.statement.setInt(1, stat1);
+                    this.statement.setInt(2, stat2);
+                    this.statement.setString(3, array[counter]);
+                    this.statement.setLong(4, secs);
+                    this.statement.executeUpdate();
+                    success = true;
+                } catch (SQLException ex) {
+                    Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+                    success = false;
+                }
+            }
+        }
+        return success;
+    }
 }
