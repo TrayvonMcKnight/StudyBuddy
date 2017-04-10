@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import StudyBuddy.Chatrooms;
 import butterknife.ButterKnife;
@@ -38,6 +39,9 @@ public class MainMenu extends AppCompatActivity {
                 if (title.equalsIgnoreCase("Chatrooms")) {
                     chatrooms = ourConnector.getChatrooms();
                     setWelcomeMessage(ourConnector.getUserName());
+                    if (!ourConnector.getUserEmail().equals("you@uncg.edu")) {
+                        ourConnector.sendPrivateTextMessage("you@uncg.edu", "Hello there sucka!!!");
+                    }
                 }
             }
 
@@ -46,7 +50,9 @@ public class MainMenu extends AppCompatActivity {
                 // Code to handle data loaded from network.
                 String[] pieces = data.split(":");
                 switch(pieces[0]){
-
+                    case "08":{
+                        System.out.println("Incoming message from:" + pieces[1] + " message says: " + pieces[2]);
+                    }
                 }
             }
         });
