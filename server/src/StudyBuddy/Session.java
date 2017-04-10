@@ -114,6 +114,81 @@ public class Session extends Thread {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    private boolean sharesClassWith(String otherEmail){
+        boolean success = false;
+        // Loop through all the classes.
+        for (int c = 0;c < this.userChatrooms.getNumberOfClasses();c++){
+            // Get all the students from a particular class.
+            Student[] students = this.userChatrooms.getChatroom(c).getStudents();
+            // loop through all of the students.
+            for (int d = 0;d < students.length;d++){
+                // if any match is found, return true.
+                if (students[d].getStudentEmail().equalsIgnoreCase(otherEmail)) return true;
+            }
+        }
+        // otherwise return false.
+        return success;
+    }
+    
+    private void sendTextMessage(String to, String from, String message) { 
+             // If 'to' and 'from' are actually members 
+             if (database.getUserID(to) != 0 && database.getUserID(from) != 0) { 
+                 // If 'to' is currently online and not unavailable, then attempt to send message directly. 
+                 if (onlineList.contains(to) && onlineList.getClientStatus(to) != 2) { 
+                     // Create a temp session reference from 'to's currrent session. 
+                     Session toSession = (Session) onlineList.returnUserSession(to); 
+                     // Check 'to's buddy list to verify 'to' and 'from' are actually buddies. 
+                     
+                     if (toSession.sharesClassWith(from)) { 
+                         // At this point, 'to' is online and ready to receive a message. 
+                         String mess = "08:TEXTMESSAGE:" + to + ":" + from + ":00:INCOMING:00"; 
+                         String mess2 = message + ":08"; 
+                         String mess3 = "08:TEXTMESSAGE:" + to + ":" + from + ":00:SENT:00"; 
+                         try { 
+                             toSession.sendData(mess); 
+                             toSession.sendData(mess2); 
+                             messages.put(mess3); 
+                             Date curDate = new Date(); 
+                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Message:::: Request from: " + from + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " to "  + to + " @ " + toSession.con.getRemoteSocketAddress().toString().substring(1) + " - Message Sent - Message sent directly."); 
+                         } catch (InterruptedException ex) { 
+                             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex); 
+                         } 
+                     } else { 
+                         // Reply to sender the buddy 'to' is not in their list. 
+                         String mess = "08:TEXTMESSAGE:" + to + ":" + from + ":01:NONBUDDY:01"; 
+                         try { 
+                             messages.put(mess); 
+                         } catch (InterruptedException ex) { 
+                             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex); 
+                         } 
+                     } 
+                 } 
+                 // If 'to' is not online, then process the message with the database. 
+                 else { 
+                     // This is where to add code to store message in the database for later sending. 
+                      
+                     if (database.addOfflineMessage(to, from, message)){ 
+                         Date curDate = new Date(); 
+                         System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Message:::: Request from: " + from + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " to "  + to + " - Message Stored - Stored in Database."); 
+                     } 
+                     else { 
+                         Session toSession = (Session) onlineList.returnUserSession(to); 
+                         Date curDate = new Date(); 
+                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Message:::: Request from: " + from + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " to "  + to + " - Message Rejected - Message was disreguared."); 
+                     } 
+                 } 
+             } else { 
+                 // Reply to sender the 'to' and 'from' fields were populated with non-members. 
+                 String mess = "08:TEXTMESSAGE:" + to + ":" + from + ":01:NONMEMBER:01"; 
+                 try { 
+                     messages.put(mess); 
+                 } catch (InterruptedException ex) { 
+                     Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex); 
+                 } 
+             } 
+         } 
+
 
     private void userLogout() {
         // Remove user from the online list.
@@ -383,8 +458,7 @@ public class Session extends Thread {
                                     // Broadcast when buddies change their status.
                                     case "07":
                                         break;
-                                    case "08":
-                                        /*{
+                                    case "08":{
                                             if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[5].equals("INCOMING")) {
                                                 String inText = (String) messages.take();
                                                 if (inText.substring(inText.length() - 3, inText.length()).equals(":08")) {
@@ -393,12 +467,10 @@ public class Session extends Thread {
                                                 } else {
                                                     invalid();
                                                 }
-                                                break;
                                             } else {
                                                 invalid();
-                                                break;
                                             }
-                                        }*/
+                                        }
                                         break;
 
                                     case "09": {
@@ -468,6 +540,7 @@ public class Session extends Thread {
 
                     }
                 } catch (InterruptedException | IOException e) {
+                    System.out.println("The catch method is firing.");
                     this.stop();
                     iterate = false;
                 }
