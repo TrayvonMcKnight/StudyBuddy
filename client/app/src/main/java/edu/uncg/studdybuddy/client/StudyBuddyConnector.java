@@ -262,6 +262,21 @@ public class StudyBuddyConnector {
         return temp;
     }
 
+    public void sendPrivateTextMessage(String to, String message) {
+                 if (loggedIn && to.length() > 0 && message.length() > 0){
+                         try {
+                             String serverMessage = "08:TEXTMESSAGE:" + to + ":" + this.userEmail + ":00:INCOMING:01";
+                             String mess = message + ":08";
+                             messages.put(serverMessage);
+                             messages.put(mess);
+                             } catch (InterruptedException ex) {
+                             System.out.println(ex);
+                             }
+
+                     }
+            }
+
+
     public int changePassword(String oldPass, String newPass) {
         if (this.loggedIn) {
             try {
@@ -278,7 +293,7 @@ public class StudyBuddyConnector {
     }
 
     public boolean sendToChatroom(String name, String section, String message){
-        if (this.loggedIn) {
+        if (this.loggedIn && section != null & message != null && message.length() > 0) {
             try {
                 String sendChatMess = "10:CHATMESS:" + name + ":" + section + ":" + this.userEmail +"::01:" + message;
                 messages.put(sendChatMess);
@@ -473,6 +488,9 @@ public class StudyBuddyConnector {
                                             String mess = (String) messages.take();
                                             if (mess.substring(mess.length() - 3, mess.length()).equals(":08")){
                                                 String sender = "08:" + pieces[3] + ":" + mess.substring(0, mess.length() - 3);
+                                                for (int c = 0;c < listeners.size();c++){
+                                                    listeners.get(c).onDataLoaded(sender);
+                                                }
                                                 //alertClient(new ActionEvent(this, 1, sender));
                                             }
 
