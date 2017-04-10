@@ -1,7 +1,9 @@
 package edu.uncg.studdybuddy.studybuddy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,7 @@ import StudyBuddy.Student;
 public class BuddyListAdapter extends BaseAdapter {
     private Context c;
     private ArrayList<Student> students;
+    private AppCompatActivity newActivity;
 
     public BuddyListAdapter(Context c, ArrayList<Student> studentList) {
         this.c = c;
@@ -71,6 +74,10 @@ public class BuddyListAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 Toast.makeText(c, s.getStudentName(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(c, PrivateChatActivity.class);
+                intent.putExtra("otherEmail", s.getStudentEmail());
+                intent.putExtra("otherName", s.getStudentName());
+                c.startActivity(intent);
             }
         });
 
