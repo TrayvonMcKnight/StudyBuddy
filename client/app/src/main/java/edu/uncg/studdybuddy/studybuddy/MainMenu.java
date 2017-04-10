@@ -39,9 +39,6 @@ public class MainMenu extends AppCompatActivity {
                 if (title.equalsIgnoreCase("Chatrooms")) {
                     chatrooms = ourConnector.getChatrooms();
                     setWelcomeMessage(ourConnector.getUserName());
-                    if (!ourConnector.getUserEmail().equals("you@uncg.edu")) {
-                        ourConnector.sendPrivateTextMessage("you@uncg.edu", "Hello there sucka!!!");
-                    }
                 }
             }
 
