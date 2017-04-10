@@ -57,14 +57,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        if (drawer == null){
-            System.out.println("Drawer is null");
-        }
-        if (toggle == null){
-            System.out.println("toggle is null.");
-        }
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
@@ -92,7 +85,6 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                     switch (pieces[0]){
                                                         case "06": {
                                                             if (pieces[1].equalsIgnoreCase("BUDDYONLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
-                                                                System.out.println("User " + pieces[2] + " just came online.");
                                                                 for (int c = 0;c < studentList.size();c++){
                                                                     Student stud = studentList.get(c);
                                                                     if (stud.getStudentName().equals(pieces[5])){
@@ -101,7 +93,6 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                                 }
                                                                 updateBuddyAdapter();
                                                             } else if (pieces[1].equalsIgnoreCase("BUDDYOFFLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
-                                                                System.out.println("User " + pieces[2] + " just went offline.");
                                                                 for (int c = 0;c < studentList.size();c++){
                                                                     Student stud = studentList.get(c);
                                                                     if (stud.getStudentName().equals(pieces[5])){

@@ -9,7 +9,7 @@ import android.widget.TextView;
 import java.util.List;
 
 /**
- * Created by Metalaxe on 4/4/2017.
+ * Created by Anthony Ratliff on 4/4/2017.
  */
 
 class ChatAdapter extends BaseAdapter{
