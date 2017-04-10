@@ -144,7 +144,7 @@ public class Session extends Thread {
                          // At this point, 'to' is online and ready to receive a message. 
                          String mess = "08:TEXTMESSAGE:" + to + ":" + from + ":00:INCOMING:00"; 
                          String mess2 = message + ":08"; 
-                         String mess3 = "08:TEXTMESSAGE:" + to + ":" + from + ":00:SENT:00"; 
+                         String mess3 = "08:TEXTMESSAGE:" + to + ":" + from + ":00:SENT:00:" + message; 
                          try { 
                              toSession.sendData(mess); 
                              toSession.sendData(mess2); 
@@ -169,6 +169,12 @@ public class Session extends Thread {
                      // This is where to add code to store message in the database for later sending. 
                       
                      if (database.addOfflineMessage(to, from, message)){ 
+                         String mess3 = "08:TEXTMESSAGE:" + to + ":" + from + ":00:STORED:00:" + message;
+                         try {
+                             messages.put(mess3);
+                         } catch (InterruptedException ex) {
+                             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+                         }
                          Date curDate = new Date(); 
                          System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Message:::: Request from: " + from + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " to "  + to + " - Message Stored - Stored in Database."); 
                      } 
@@ -236,12 +242,7 @@ public class Session extends Thread {
 
     private void invalid() {
         String reply = "09:INVALIDINPUT:::01:INVALID:00";
-        try {
-            this.dataOut.writeUTF(reply);
-        } catch (IOException ex) {
-            System.out.println("Invalid packet send exception.");
-            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
-        }
+            sendData(reply);
         onlineList.removeClient(userName);
         Date curDate = new Date();
         System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::INVALID:::: Packet from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Session Terminated.");
@@ -508,19 +509,20 @@ public class Session extends Thread {
                             } else if (pieces[6].equals("00")) {
                                 // If the user wishes to log out of the server, then call logout.
                                 if (pieces[0].equals("00") && pieces[1].equals("DISCONNECT") && pieces[4].equals("00")) {
-                                    dataOut.writeUTF(message);
+                                    sendData(message);
                                     userLogout();
                                     // If the user requests their buddy list, then send the list.
                                 } else if (pieces[0].equals("02") && pieces[1].equals("GETLIST") && pieces[4].equals("00")) {
-                                    dataOut.writeUTF(message);
+                                    sendData(message);
                                     sendChatrooms();
                                 } else if (pieces[0].equals("08") && pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                     System.out.println("We are sending a message out to: " + message);
+                                    sendData(message);
 
                                 } 
                                 // If none of the above conditions are met, just send the message back to client.
                                 else {
-                                    dataOut.writeUTF(message);
+                                    sendData(message);
                                 }
                                 // If message does not end in either 00 or 01, then an invalid response is received and the session is terminated.
                             } else {
@@ -540,7 +542,6 @@ public class Session extends Thread {
 
                     }
                 } catch (InterruptedException | IOException e) {
-                    System.out.println("The catch method is firing.");
                     this.stop();
                     iterate = false;
                 }
