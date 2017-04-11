@@ -52,7 +52,12 @@
 
         <activity
             android:name=".ChatRoomActivity"
+            android:launchMode="singleTop"
             android:label="@string/chat_room" />
+
+        <activity android:name=".PrivateChatActivity"
+            android:launchMode="singleTop"
+            android:label="Private Chat" />
 
         <activity
             android:name=".ChangePasswordActivity"
