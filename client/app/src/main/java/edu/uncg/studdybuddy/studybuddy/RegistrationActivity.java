@@ -62,7 +62,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 R.style.AppTheme);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Creating Account...");
-        progressDialog.show();
+        //progressDialog.show();
 
         String fname = _fnameText.getText().toString();
         String lname = _lnameText.getText().toString();
@@ -115,9 +115,9 @@ public class RegistrationActivity extends AppCompatActivity {
                         // depending on success
                         //onSignupSuccess();
                         // onSignupFailed();
-                        progressDialog.dismiss();
+                        //progressDialog.dismiss();
                     }
-                }, 3000);
+                }, 5000);
     }
 
 
