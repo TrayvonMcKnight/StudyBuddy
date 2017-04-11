@@ -314,10 +314,8 @@ public class Session extends Thread {
                         String newBuddy;
                         if (online) {
                             newBuddy = "06:BUDDYONLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + ":" + realName + ":00:" + availability;
-                            System.out.println("User " + userName + " is online for user " + students[d].getStudentEmail());
                         } else {
                             newBuddy = "06:BUDDYOFFLINE:" + userName + ":" + pieces[0] + ":" + pieces[1] + "::00";
-                            System.out.println("User " + userName + " went offline for user " + students[d].getStudentEmail());
                         }
                         tempSess.sendMessage(newBuddy);
                     }
