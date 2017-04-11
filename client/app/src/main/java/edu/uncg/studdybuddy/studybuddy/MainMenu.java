@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 import StudyBuddy.Chatrooms;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -17,6 +19,7 @@ public class MainMenu extends AppCompatActivity {
     protected static Chatrooms chatrooms;
     private StudyBuddyConnector ourConnector;
     private StudyBuddyConnector.MyCustomObjectListener listener;
+    protected static ArrayList<String> privateChats;
 
     @InjectView(R.id.classesButton) Button classesButton;
     @InjectView(R.id.profileButton) Button profileButton;
@@ -31,6 +34,7 @@ public class MainMenu extends AppCompatActivity {
         ButterKnife.inject(this);
         this.listener = null;
         ourConnector = StartActivity.server.getInstance();
+        privateChats = new ArrayList<>();
 
         ourConnector.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
             @Override
@@ -48,8 +52,46 @@ public class MainMenu extends AppCompatActivity {
                 String[] pieces = data.split(":");
                 switch(pieces[0]){
                     case "08":{
-                        System.out.println("Incoming message from:" + pieces[1] + " message says: " + pieces[2]);
+
+
+                        String temp;
+                        String[] listChatpieces;
+                        for (int c = 0;c < privateChats.size();c++){
+                            temp = privateChats.get(c);
+                            listChatpieces = temp.split(":");
+                            // If there is any combination of the users between the two strings that are equal, then remove this from the list.
+                            if((pieces[1].equals(listChatpieces[0]) || pieces[1].equals(listChatpieces[1])) && (pieces[2].equals(listChatpieces[0]) || pieces[2].equals(listChatpieces[1]))){
+                                return; // If chat is open, do nothing.
+                            }
+
+                        }
+                        // Else, open a new chat.
+                        // Strip out the message.
+                        String chatMessage="";
+                        if (pieces.length > 5) {
+                            for (int c = 4; c < pieces.length; c++) {
+                                chatMessage += pieces[c] + ":";
+                            }
+                            chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                        } else if (pieces.length < 5) {
+                            System.out.println(pieces.length);
+                            chatMessage = "Invalid Message!!!";
+                        } else {
+                            chatMessage = pieces[4];
+                        }
+                        // Add to the list of open chats.
+                        privateChats.add(pieces[1]+":"+pieces[2]);
+                        // Create the intent, pass in fields, and start new activity.
+                        Intent intent = new Intent(MainMenu.this, PrivateChatActivity.class);
+                        intent.putExtra("SENDER_CLASS_NAME", "MAINMENU");
+                        intent.putExtra("otherEmail", pieces[2]);
+                        intent.putExtra("myEmail", pieces[3]);
+                        intent.putExtra("MESSAGE", chatMessage);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                        startActivity(intent);
                     }
+
+
                 }
             }
         });
@@ -97,6 +139,25 @@ public class MainMenu extends AppCompatActivity {
             }
         });
 
+    }
+
+    public static void removePrivateChat(String chat){
+        String[] querryChatPieces = chat.split(":");
+        String temp;
+        String[] listChatpieces;
+        for (int c = 0;c < privateChats.size();c++){
+            temp = privateChats.get(c);
+            listChatpieces = temp.split(":");
+            // If there is any combination of the users between the two strings that are equal, then remove this from the list.
+            if((querryChatPieces[0].equals(listChatpieces[0]) || querryChatPieces[0].equals(listChatpieces[1])) && (querryChatPieces[1].equals(listChatpieces[0]) || querryChatPieces[1].equals(listChatpieces[1]))){
+                privateChats.remove(c);
+                break;
+            }
+        }
+    }
+
+    public static void addPrivateChat(String chat){
+        privateChats.add(chat);
     }
 
     @Override
