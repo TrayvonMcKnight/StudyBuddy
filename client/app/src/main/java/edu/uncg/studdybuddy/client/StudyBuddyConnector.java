@@ -487,7 +487,7 @@ public class StudyBuddyConnector {
                                         if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[4].equals("00") && pieces[5].equals("INCOMING")){
                                             String mess = (String) messages.take();
                                             if (mess.substring(mess.length() - 3, mess.length()).equals(":08")){
-                                                String sender = "08:" + pieces[3] + ":" + pieces[5] + ":" + mess.substring(0, mess.length() - 3);
+                                                String sender = "08:" + pieces[2] + ":" + pieces[3] + ":" + pieces[5] + ":" + mess.substring(0, mess.length() - 3);
                                                 for (int c = 0;c < listeners.size();c++){
                                                     listeners.get(c).onDataLoaded(sender);
                                                 }
@@ -506,7 +506,7 @@ public class StudyBuddyConnector {
                                             } else {
                                                 chatMessage = pieces[7];
                                             }
-                                            String sender = "08:" + pieces[3] + ":" + pieces[5] + ":" + chatMessage;
+                                            String sender = "08:" + pieces[2] + ":" + pieces[3] + ":" + pieces[5] + ":" + chatMessage;
                                             for (int c = 0;c < listeners.size();c++){
                                                 listeners.get(c).onDataLoaded(sender);
                                             }
