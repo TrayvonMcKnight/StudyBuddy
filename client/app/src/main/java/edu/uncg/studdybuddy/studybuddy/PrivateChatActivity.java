@@ -59,8 +59,8 @@ public class PrivateChatActivity extends AppCompatActivity {
             MainMenu.addPrivateChat(server.getUserEmail()+":"+this.otherEmail);
         } else {
             this.otherEmail = extras.getString("otherEmail");
-            this.otherName = extras.getString("otherName");
-            chatMessList.add(new ChatRoomMessage(otherEmail, extras.getString("MESSAGE")));
+            this.otherName = MainMenu.getRealName(this.otherEmail);
+            chatMessList.add(new ChatRoomMessage(otherName, extras.getString("MESSAGE")));
         }
 
         this.myName = server.getUserName();
@@ -96,7 +96,12 @@ public class PrivateChatActivity extends AppCompatActivity {
                             } else {
                                 chatMessage = pieces[4];
                             }
-                            chatMessList.add(new ChatRoomMessage(pieces[1], chatMessage));
+                            if (pieces[1].equalsIgnoreCase(myEmail)){
+                                chatMessList.add(new ChatRoomMessage(otherName, chatMessage));
+                            } else {
+                                chatMessList.add(new ChatRoomMessage(myName, chatMessage));
+                            }
+
                             updateAdapter();
                         }
                         // Message is coming in.  Check to see if it belongs in this activity

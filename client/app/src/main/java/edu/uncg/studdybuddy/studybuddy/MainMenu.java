@@ -11,6 +11,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import StudyBuddy.Chatrooms;
+import StudyBuddy.Student;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
@@ -158,6 +159,21 @@ public class MainMenu extends AppCompatActivity {
 
     public static void addPrivateChat(String chat){
         privateChats.add(chat);
+    }
+
+    public static String getRealName(String email){
+        String realName = "";
+        Chatrooms currentRooms = StartActivity.server.getChatrooms();
+        for (int c =0;c < currentRooms.getNumberOfClasses();c++){
+            Chatrooms.Chatroom room = currentRooms.getChatroom(c);
+            Student[] students = room.getStudents();
+            for (int d=0;d < students.length;d++){
+                if (students[d].getStudentEmail().equalsIgnoreCase(email)){
+                    return students[d].getStudentName();
+                }
+            }
+        }
+        return realName;
     }
 
     @Override
