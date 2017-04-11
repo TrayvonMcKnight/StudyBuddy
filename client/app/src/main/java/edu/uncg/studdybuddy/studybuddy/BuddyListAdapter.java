@@ -73,10 +73,11 @@ public class BuddyListAdapter extends BaseAdapter {
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(c, s.getStudentName(), Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(c, PrivateChatActivity.class);
                 intent.putExtra("otherEmail", s.getStudentEmail());
                 intent.putExtra("otherName", s.getStudentName());
+                intent.putExtra("SENDER_CLASS_NAME", "DRAWER");
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 c.startActivity(intent);
             }
         });
