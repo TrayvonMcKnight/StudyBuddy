@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 
 public class StudyBuddyServer extends Thread {
     // private class fields.
+    private final String version = "1.20";
     private ServerSocket serverSocket;
     private Database database;
     private OnlineClientList onlineList;
@@ -54,6 +55,7 @@ public class StudyBuddyServer extends Thread {
 
     @Override
     public void run() {
+        System.out.println("Starting the Study Buddy server v." + this.version);
         System.out.println("Listening on TCP port " + serverSocket.getLocalPort() + "...");
 
         while (true) {
