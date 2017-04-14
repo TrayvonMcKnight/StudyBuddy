@@ -1,10 +1,14 @@
 package edu.uncg.studdybuddy.client;
 
+import android.content.Context;
 import android.os.StrictMode;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -12,6 +16,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -25,7 +30,7 @@ import StudyBuddy.Student;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -48,6 +53,7 @@ public class StudyBuddyConnector {
     private int chatError;
     private Chatrooms chatrooms;    // The main chat rooms data structure which stores all data about all available chat rooms.
     private ArrayList<MyCustomObjectListener> listeners;    // Array list which holds all available event listeners registered.
+    private ArrayList<File> files;
 
 
     // Class constructor
@@ -58,6 +64,7 @@ public class StudyBuddyConnector {
         this.messageHandler = null;
         this.messageQueue = null;
         this.listeners = new ArrayList<>();
+        this.files = new ArrayList<>();
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         try {
@@ -217,6 +224,17 @@ public class StudyBuddyConnector {
         return 1;
     }
 
+    private void getChatroomsFromServer() {
+        if (this.loggedIn) {
+            try {
+                String requestList = "02:GETLIST:::::01";
+                this.messages.put(requestList);
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+            }
+        }
+    }
+
     public int createNewUser(String email, String pass1, String pass2, String fName, String lName){
         int temp = 5;
         if (!this.loggedIn){
@@ -262,21 +280,6 @@ public class StudyBuddyConnector {
         return temp;
     }
 
-    public void sendPrivateTextMessage(String to, String message) {
-                 if (loggedIn && to.length() > 0 && message.length() > 0){
-                         try {
-                             String serverMessage = "08:TEXTMESSAGE:" + to + ":" + this.userEmail + ":00:INCOMING:01";
-                             String mess = message + ":08";
-                             messages.put(serverMessage);
-                             messages.put(mess);
-                             } catch (InterruptedException ex) {
-                             System.out.println(ex);
-                             }
-
-                     }
-            }
-
-
     public int changePassword(String oldPass, String newPass) {
         if (this.loggedIn) {
             try {
@@ -307,18 +310,42 @@ public class StudyBuddyConnector {
         return false;
     }
 
-    private void getChatroomsFromServer() {
-        if (this.loggedIn) {
+    public boolean sendFileToChatroom(Context context, String cName, String cSection, File file){
+        boolean success = false;
+        if (loggedIn) {
+            //String yourFilePath = context.getFilesDir() + "/" + fileName;
+            //File file = new File(yourFilePath);
+            if (file.exists()) {
+                long fileLength = file.length();
+                files.add(file);
+                String serverMessage = "13:SENDFILE:" + file.getName() + ":" + cName + ":" + cSection + ":INCOMING:01:" + fileLength;
+                try {
+                    messages.put(serverMessage);
+                    success = true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+        return success;
+    }
+
+    public void sendPrivateTextMessage(String to, String message) {
+        if (loggedIn && to.length() > 0 && message.length() > 0){
             try {
-                String requestList = "02:GETLIST:::::01";
-                this.messages.put(requestList);
+                String serverMessage = "08:TEXTMESSAGE:" + to + ":" + this.userEmail + ":00:INCOMING:01";
+                String mess = message + ":08";
+                messages.put(serverMessage);
+                messages.put(mess);
             } catch (InterruptedException ex) {
                 System.out.println(ex);
             }
+
         }
     }
 
-
+    // public method which sends a logout request to the server.  Response is handled in the reply.
     public boolean logout() {
         if (loggedIn) {
             String logoutMess = "00:DISCONNECT:::::01";
@@ -552,6 +579,34 @@ public class StudyBuddyConnector {
                                             System.out.println("New Chatrooms received.");
                                         }
                                     }
+                                    case "13": {
+                                        if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("ACCEPTED")){
+                                            // Create a new thread here that listens for an incoming connection from server.
+                                            Thread thread = new Thread() {
+                                                @Override
+                                                public void run() {
+                                                    Socket clientSocket;
+                                                    try {
+                                                        clientSocket = new Socket(IP, 8009);
+                                                        DataOutputStream sendFileOut = new DataOutputStream(clientSocket.getOutputStream());
+                                                        DataInputStream acceptFileIn = new DataInputStream(clientSocket.getInputStream());
+                                                        File file = files.get(0);
+                                                        byte[] mybytearray = new byte[(int) file.length()];
+                                                        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+                                                        bis.read(mybytearray, 0, mybytearray.length);
+                                                        sendFileOut.write(mybytearray, 0, mybytearray.length);
+                                                    } catch (IOException ex) {
+                                                        System.out.println(ex);
+                                                    }
+
+
+                                                }
+                                            };
+
+                                            thread.start();
+                                        }
+                                    }
+
                                     default: {
                                     }
                                 }
@@ -595,7 +650,6 @@ public class StudyBuddyConnector {
     }
 
     public interface MyCustomObjectListener {
-        // These methods are the different events and
         // need to pass relevant arguments related to the event triggered
         public void onObjectReady(String title);
         // or when data has been loaded
