@@ -8,6 +8,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+
     <!--
     Study Buddy Logo
         https://www.pinterest.com/pin/542261611366514326/
@@ -58,6 +59,9 @@
             android:launchMode="singleTop" />
         <activity
             android:name=".ChangePasswordActivity"
+            android:label="@string/change_password" />
+        <activity android:name=".TeacherMenu" />
+        <activity android:name=".Attendance"></activity>
             android:label="@string/change_password"></activity>
         <activity android:name=".TeacherMenu"></activity>
             android:label="@string/change_password">
