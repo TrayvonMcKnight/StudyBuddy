@@ -12,5 +12,4 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="edu.uncg.studdybuddy.studybuddy.Attendance">
 
-
 </android.support.v7.widget.ListViewCompat>
