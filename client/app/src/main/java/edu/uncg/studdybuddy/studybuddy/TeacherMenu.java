@@ -22,6 +22,7 @@ public class TeacherMenu extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teacher_menu);
 
+        //This should bring up all of the clases the professor teaches
         attendanceBtn.setOnClickListener(new View.OnClickListener(){
 
             @Override
