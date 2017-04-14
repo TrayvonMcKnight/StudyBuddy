@@ -535,10 +535,7 @@ public class Session extends Thread {
                                                         fileSocket = new ServerSocket(8009);
                                                         Socket server = fileSocket.accept();
                                                         DataInputStream filein = new DataInputStream(server.getInputStream());
-                                                        DataOutputStream fileout = new DataOutputStream(server.getOutputStream());
                                                         
-                                                        int fileLength = Integer.parseInt(pieces[7]);
-                                                        byte[] mybytearray = new byte[fileLength];
                                                         String AbsolutePath = System.getProperty("user.dir");
                                                         File directory = new File(AbsolutePath + "/" + pieces[3]);
                                                         directory.mkdirs();
@@ -546,13 +543,13 @@ public class Session extends Thread {
                                                         tempFile.createNewFile();
                                                         FileOutputStream fos = new FileOutputStream(tempFile, false);
                                                         BufferedOutputStream bos = new BufferedOutputStream(fos);
-                                                        int bytesRead = filein.read(mybytearray, 0, mybytearray.length);
-                                                        bos.write(mybytearray, 0, bytesRead);
+                                                        int length = filein.readInt();
+                                                        byte[] fileArray = new byte[length];
+                                                        filein.readFully(fileArray, 0, fileArray.length);
+                                                        bos.write(fileArray, 0, fileArray.length);
                                                         bos.close();
-                                                        System.out.println("RECEIVED a DaMn FiLe!!!");
-                                                        
-                                                        
-                                                        
+                                                        Date curDate = new Date();
+                                                        System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::SendFile::: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - File Received.");                                                    
                                                         fileSocket.close();
                                                         
                                                     } catch (IOException e) {
