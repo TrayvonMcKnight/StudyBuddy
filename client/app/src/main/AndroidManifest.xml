@@ -6,6 +6,7 @@
         android:required="true" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"  />
 
     <!--
     Study Buddy Logo
@@ -66,5 +67,11 @@
             android:name=".ChangePasswordActivity"
             android:label="@string/change_password">
         </activity>
+
+        <provider
+            android:name=".MyFileContentProvider"
+            android:authorities="edu.uncg.studdybuddy.studybuddy"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 </manifest>
