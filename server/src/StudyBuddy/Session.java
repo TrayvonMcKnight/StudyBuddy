@@ -1,16 +1,21 @@
 package StudyBuddy;
 
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,6 +37,7 @@ public class Session extends Thread {
     private Chatrooms mainChatrooms;
     private Chatrooms userChatrooms;
     private ChatRoomBackups backup;
+    private AtomicBoolean waiting = new AtomicBoolean(false);
 
     // Public constructor.
     public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats) {
@@ -348,7 +354,25 @@ public class Session extends Thread {
             while (iterate) {
                 try {
                     String message = (String) dataIn.readUTF();
+                    String[] pieces = message.split(":");
                     messages.put(message);
+                    /*
+                    if (pieces[0].equalsIgnoreCase("13")){
+                        int fileLength = Integer.parseInt(pieces[7]);
+                        byte[] mybytearray = new byte[fileLength];
+                        String AbsolutePath = System.getProperty("user.dir");
+                        File directory = new File(AbsolutePath + "/" + pieces[3]);
+                        directory.mkdirs();
+                        File tempFile = new File(AbsolutePath + "/" + pieces[3] + "/" + pieces[2]);
+                        tempFile.createNewFile();
+                        FileOutputStream fos = new FileOutputStream(tempFile, false);
+                        BufferedOutputStream bos = new BufferedOutputStream(fos);
+                        int bytesRead = dataIn.read(mybytearray, 0, mybytearray.length);
+                        bos.write(mybytearray, 0, bytesRead);
+                        bos.close();
+                        System.out.println("RECEIVED a DaMn FiLe!!!"); 
+                    
+                    }*/
                 } catch (IOException ex) {
                     //System.out.println(ex);
                     //System.out.println("Client Vanished");
@@ -498,6 +522,53 @@ public class Session extends Thread {
                                             invalid();
                                             break;
                                         }
+                                    }
+                                    case "13": {
+                                        if(pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")){
+                                            String clientMessage = "13:SENDFILE:" + pieces[2] + ":" + pieces[3] + ":" + pieces[4] + ":ACCEPTED:00";
+                                            sendData(clientMessage);
+                                            Thread thread = new Thread() {
+                                            @Override
+                                            public void run() {
+                                                ServerSocket fileSocket;
+                                                    try {
+                                                        fileSocket = new ServerSocket(8009);
+                                                        Socket server = fileSocket.accept();
+                                                        DataInputStream filein = new DataInputStream(server.getInputStream());
+                                                        DataOutputStream fileout = new DataOutputStream(server.getOutputStream());
+                                                        
+                                                        int fileLength = Integer.parseInt(pieces[7]);
+                                                        byte[] mybytearray = new byte[fileLength];
+                                                        String AbsolutePath = System.getProperty("user.dir");
+                                                        File directory = new File(AbsolutePath + "/" + pieces[3]);
+                                                        directory.mkdirs();
+                                                        File tempFile = new File(AbsolutePath + "/" + pieces[3] + "/" + pieces[2]);
+                                                        tempFile.createNewFile();
+                                                        FileOutputStream fos = new FileOutputStream(tempFile, false);
+                                                        BufferedOutputStream bos = new BufferedOutputStream(fos);
+                                                        int bytesRead = filein.read(mybytearray, 0, mybytearray.length);
+                                                        bos.write(mybytearray, 0, bytesRead);
+                                                        bos.close();
+                                                        System.out.println("RECEIVED a DaMn FiLe!!!");
+                                                        
+                                                        
+                                                        
+                                                        fileSocket.close();
+                                                        
+                                                    } catch (IOException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                
+                                            }
+                                        };
+
+                                        thread.start();
+                                           
+                                            //waiting.set(false);
+                                            // At this point, we have read an incoming file and saved it to a folder.
+                                            // We should next add this file to the master chatrooms list and send the file to all online clients.
+                                        }
+                                        break;
                                     }
                                     default:
                                         invalid();
