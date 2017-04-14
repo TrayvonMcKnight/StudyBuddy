@@ -1,10 +1,13 @@
 package edu.uncg.studdybuddy.client;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.StrictMode;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -589,17 +592,24 @@ public class StudyBuddyConnector {
                                                     try {
                                                         clientSocket = new Socket(IP, 8009);
                                                         DataOutputStream sendFileOut = new DataOutputStream(clientSocket.getOutputStream());
-                                                        DataInputStream acceptFileIn = new DataInputStream(clientSocket.getInputStream());
                                                         File file = files.get(0);
-                                                        byte[] mybytearray = new byte[(int) file.length()];
-                                                        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-                                                        bis.read(mybytearray, 0, mybytearray.length);
-                                                        sendFileOut.write(mybytearray, 0, mybytearray.length);
+                                                        files.remove(file);
+                                                        files.trimToSize();
+                                                        FileInputStream fis = new FileInputStream (file);
+                                                        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                                                        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(),bmOptions);
+                                                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                                                        bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+                                                        byte[] array = bos.toByteArray();
+
+                                                        sendFileOut.writeInt(array.length);
+                                                        sendFileOut.write(array, 0, array.length);
+                                                        sendFileOut.flush();
+                                                        fis.close();
+                                                        sendFileOut.close();
                                                     } catch (IOException ex) {
                                                         System.out.println(ex);
                                                     }
-
-
                                                 }
                                             };
 
