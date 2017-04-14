@@ -1,7 +1,17 @@
 
 package edu.uncg.studdybuddy.studybuddy;
 
+import android.app.Activity;
+import android.content.ContentProvider;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -11,6 +21,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,7 +31,17 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import StudyBuddy.Chatrooms;
@@ -49,6 +70,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     private ListView studentListView;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private BuddyListAdapter buddyAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -212,6 +234,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         if (id == R.id.nav_camera) {
             // Handle the camera action
             dispatchTakePictureIntent();
+            //takePicture();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -219,10 +242,95 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         return true;
     }
 
+    private void takePicture(){
+        Intent cameraIntent=new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, MyFileContentProvider.CONTENT_URI);
+        startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
+    }
+
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT,MyFileContentProvider.CONTENT_URI);
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (resultCode == Activity.RESULT_OK) {
+                File out = new File(getFilesDir(), "newImage.jpg");
+
+                if(!out.exists()) {
+                    System.out.println("There is no damned file.");
+                    return;
+                }
+                File finalFile = createFile(out);
+                String mCurrentPhotoPath = finalFile.getAbsolutePath();
+
+                //Bitmap photo = (Bitmap) data.getExtras().get("data");
+                //System.out.println("We have a bitmap");
+                server.sendFileToChatroom(getApplicationContext(), this.className, this.sec, createFile(out));
+
+            }
+        }
+    }
+    private File createFile(File source) {
+        PackageManager m = getPackageManager();
+        String s = getPackageName();
+        PackageInfo p = null;
+        try {
+            p = m.getPackageInfo(s, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        s = p.applicationInfo.dataDir;
+        File directory = new File(s + "/" + this.className);
+
+        //if it doesn't exist the folder will be created
+        if(!directory.exists())
+        {directory.mkdirs();}
+
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_"+ timeStamp + "_";
+        File image_file = null;
+
+        try {
+            image_file = File.createTempFile(imageFileName,".jpg",directory);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = new FileInputStream(source);
+            out = new FileOutputStream(image_file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        long sourceLength = source.length();
+        // Transfer bytes from in to out
+        byte[] buf = new byte[(int)sourceLength];
+        int len;
+        try {
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+                in.close();
+                out.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        //mCurrentPhotoPath = image_file.getAbsolutePath();
+        return image_file;
+    }
+
 }
+
+
