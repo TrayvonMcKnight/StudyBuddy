@@ -1,15 +1,20 @@
 package StudyBuddy;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -18,6 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 
 public class Session extends Thread {
 
@@ -69,6 +75,16 @@ public class Session extends Thread {
         this.objectMessageListener.start();
     }
 
+    
+    private void sendFile(byte[] file){
+        try {
+            dataOut.writeInt(file.length);
+            dataOut.write(file);
+        } catch (IOException ex) {
+            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     private void sendChatMessage(String name, String section, String sender, String message) {
         if (this.onlineList.contains(sender) && this.mainChatrooms.classContainsStudent(name, section, sender)) {
             this.mainChatrooms.addMessage(name, section, sender, message);  // Add the new message to the main chat rooms list.
@@ -100,6 +116,52 @@ public class Session extends Thread {
             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChatMess::: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Send message FAILED");
         }
     }
+    
+    private void sendChatFile(String name, String section, String sender, File file){
+        if (this.onlineList.contains(sender) && this.mainChatrooms.classContainsStudent(name, section, sender)) {
+            Student[] students = this.mainChatrooms.getStudents(name, section);
+            byte[] buffer = getBytes(file);
+            for (int c = 0; c < students.length; c++) {
+                if (students[c].getOnlineStatus()) {
+                    Session theirSession = (Session) this.onlineList.returnUserSession(students[c].getStudentEmail());
+                    String serverMessage = "13:SENDFILE:" + file.getName() + ":" + name + ":" + section + ":INCOMING:00:" + file.length()+ ":" + sender;
+                    if (!students[c].getStudentEmail().equalsIgnoreCase(userName)){
+                        theirSession.sendData(serverMessage);
+                        theirSession.sendFile(buffer);
+                    }
+                    
+                    
+                }
+            }
+        }
+    }
+    
+private byte[] getBytes (File file) {
+    FileInputStream input = null;
+    if (file.exists()) try
+    {
+        input = new FileInputStream (file);
+        int len = (int) file.length();
+        byte[] data = new byte[len];
+        int count, total = 0;
+        while ((count = input.read (data, total, len - total)) > 0) total += count;
+        return data;
+    }
+    catch (IOException ex)
+    {
+    }
+    finally
+    {
+        if (input != null) try
+        {
+            input.close();
+        }
+        catch (IOException ex)
+        {
+        }
+    }
+    return null;
+}
 
     public void sendMessage(String mess) {
         try {
@@ -116,6 +178,14 @@ public class Session extends Thread {
     private void sendData(String mess) {
         try {
             dataOut.writeUTF(mess);
+        } catch (IOException ex) {
+            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void sendInteger(int input) {
+        try {
+            dataOut.writeInt(input);
         } catch (IOException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -356,23 +426,6 @@ public class Session extends Thread {
                     String message = (String) dataIn.readUTF();
                     String[] pieces = message.split(":");
                     messages.put(message);
-                    /*
-                    if (pieces[0].equalsIgnoreCase("13")){
-                        int fileLength = Integer.parseInt(pieces[7]);
-                        byte[] mybytearray = new byte[fileLength];
-                        String AbsolutePath = System.getProperty("user.dir");
-                        File directory = new File(AbsolutePath + "/" + pieces[3]);
-                        directory.mkdirs();
-                        File tempFile = new File(AbsolutePath + "/" + pieces[3] + "/" + pieces[2]);
-                        tempFile.createNewFile();
-                        FileOutputStream fos = new FileOutputStream(tempFile, false);
-                        BufferedOutputStream bos = new BufferedOutputStream(fos);
-                        int bytesRead = dataIn.read(mybytearray, 0, mybytearray.length);
-                        bos.write(mybytearray, 0, bytesRead);
-                        bos.close();
-                        System.out.println("RECEIVED a DaMn FiLe!!!"); 
-                    
-                    }*/
                 } catch (IOException ex) {
                     //System.out.println(ex);
                     //System.out.println("Client Vanished");
@@ -551,6 +604,12 @@ public class Session extends Thread {
                                                         Date curDate = new Date();
                                                         System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::SendFile::: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - File Received.");                                                    
                                                         fileSocket.close();
+                                                        
+                                                        // Update main chat list with new image.
+                                                        // Send image back to every one online in this room.
+                                                        sendChatFile(pieces[3], pieces[4], pieces[8], tempFile);
+                                                        
+                                                        
                                                         
                                                     } catch (IOException e) {
                                                         e.printStackTrace();
