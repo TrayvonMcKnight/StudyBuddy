@@ -60,10 +60,11 @@
         <activity
             android:name=".ChangePasswordActivity"
             android:label="@string/change_password" />
-        <activity android:name=".TeacherMenu" />
-        <activity android:name=".Attendance"></activity>
-            android:label="@string/change_password"></activity>
-        <activity android:name=".TeacherMenu"></activity>
+        <activity android:name=".Attendance">
+            android:label="@string/change_password">
+        </activity>
+
+        <activity android:name=".TeacherMenu">
             android:label="@string/change_password">
         </activity>
 
