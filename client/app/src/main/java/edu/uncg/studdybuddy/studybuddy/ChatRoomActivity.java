@@ -123,6 +123,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                                 }
                                                                 updateBuddyAdapter();
                                                             }
+                                                            break;
                                                         }
 
                                                         case "11": {
@@ -140,6 +141,20 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                                 chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
                                                                 updateAdapter();
                                                             }
+                                                            break;
+                                                        }
+                                                        case "13": {
+                                                            if (pieces[5].equalsIgnoreCase("INCOMING") && pieces[1].equalsIgnoreCase("SENDFILE")){
+                                                                String senderName = MainMenu.chatrooms.getStudent(pieces[3], pieces[4], pieces[8]).getStudentName();
+                                                                String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
+                                                                chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
+                                                                updateAdapter();
+                                                            } else if (pieces[5].equalsIgnoreCase("ACCEPTED") && pieces[1].equalsIgnoreCase("SENDFILE")) {
+                                                                String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
+                                                                chatMessList.add(new ChatRoomMessage(myName, chatMessage));
+                                                                updateAdapter();
+                                                            }
+                                                            break;
                                                         }
                                                     }
                                                 }
