@@ -568,7 +568,7 @@ public class Session extends Thread {
                                     }
                                     case "13": {
                                         if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
-                                            String clientMessage = "13:SENDFILE:" + pieces[2] + ":" + pieces[3] + ":" + pieces[4] + ":ACCEPTED:00";
+                                            String clientMessage = "13:SENDFILE:" + pieces[2] + ":" + pieces[3] + ":" + pieces[4] + ":ACCEPTED:00:" + pieces[7];
                                             sendData(clientMessage);
                                             Thread thread = new Thread() {
                                                 @Override
