@@ -24,6 +24,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
 
@@ -57,6 +59,7 @@ public class StudyBuddyConnector {
     private Chatrooms chatrooms;    // The main chat rooms data structure which stores all data about all available chat rooms.
     private ArrayList<MyCustomObjectListener> listeners;    // Array list which holds all available event listeners registered.
     private ArrayList<File> files;
+    private AtomicBoolean waiter;
 
 
     // Class constructor
@@ -75,6 +78,7 @@ public class StudyBuddyConnector {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+        this.waiter = new AtomicBoolean(false);
     }
 
     // Public class methods
@@ -321,7 +325,7 @@ public class StudyBuddyConnector {
             if (file.exists()) {
                 long fileLength = file.length();
                 files.add(file);
-                String serverMessage = "13:SENDFILE:" + file.getName() + ":" + cName + ":" + cSection + ":INCOMING:01:" + fileLength;
+                String serverMessage = "13:SENDFILE:" + file.getName() + ":" + cName + ":" + cSection + ":INCOMING:01:" + fileLength + ":" + userEmail;
                 try {
                     messages.put(serverMessage);
                     success = true;
@@ -399,7 +403,18 @@ public class StudyBuddyConnector {
                         } catch (ClassNotFoundException ex) {
                             ex.printStackTrace();
                         }
-                    } else {
+                    } else if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")){
+                        messages.put(mess);
+                        waiter.set(true);
+                        System.out.println("This thread is waiting");
+                        while(waiter.get()){
+
+                        }
+                        System.out.println("This thread has started.");
+                    }
+
+
+                    else {
                         try {
                             messages.put(mess);
                         } catch (InterruptedException ex) {
@@ -410,6 +425,8 @@ public class StudyBuddyConnector {
                 } catch (IOException ex) {
                     ex.printStackTrace();
                     iterate = false;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -583,7 +600,18 @@ public class StudyBuddyConnector {
                                         }
                                     }
                                     case "13": {
-                                        if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("ACCEPTED")){
+                                        if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")){
+                                            System.out.println("Incoming file: " + pieces[3] + " " + pieces[4] + " " + pieces[8]);
+                                            //String test = in.readUTF();
+                                            //System.out.println(test);
+                                            int fileSize = in.readInt();
+                                            byte[] incomingFile = new byte[fileSize];
+                                            in.readFully(incomingFile, 0, incomingFile.length);
+                                            System.out.println("We Got a File!!!");
+                                            waiter.set(false);
+                                        }
+
+                                        else if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("ACCEPTED")){
                                             // Create a new thread here that listens for an incoming connection from server.
                                             Thread thread = new Thread() {
                                                 @Override
