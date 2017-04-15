@@ -35,7 +35,7 @@ import StudyBuddy.Student;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
+    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -63,7 +63,7 @@ public class StudyBuddyConnector {
 
 
     // Class constructor
-    public StudyBuddyConnector(){
+    public StudyBuddyConnector() {
 
         this.loggedIn = false;
         this.connected = false;
@@ -89,7 +89,7 @@ public class StudyBuddyConnector {
     }
 
 
-    public StudyBuddyConnector getInstance(){
+    public StudyBuddyConnector getInstance() {
         return this;
     }
 
@@ -98,7 +98,7 @@ public class StudyBuddyConnector {
         return this.loggedIn;
     }
 
-    public boolean hasConnection(){
+    public boolean hasConnection() {
         return this.connected;
     }
 
@@ -106,11 +106,11 @@ public class StudyBuddyConnector {
         return this.userName;
     }
 
-    public String getUserEmail(){
+    public String getUserEmail() {
         return this.userEmail;
     }
 
-    public Chatrooms getChatrooms(){
+    public Chatrooms getChatrooms() {
         return this.chatrooms;
     }
 
@@ -242,23 +242,23 @@ public class StudyBuddyConnector {
         }
     }
 
-    public int createNewUser(String email, String pass1, String pass2, String fName, String lName){
+    public int createNewUser(String email, String pass1, String pass2, String fName, String lName) {
         int temp = 5;
-        if (!this.loggedIn){
+        if (!this.loggedIn) {
             String answer = ""; // initialize the reply string so scope will fall outside of Try/Catch block.
             String[] pieces = {};
-            String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 +":"+ fName + ":" + lName;
+            String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 + ":" + fName + ":" + lName;
             try {
                 this.out.writeUTF(create);
                 String reply = (String) in.readUTF();
                 pieces = reply.split(":");
                 answer = pieces[4];
-                switch (answer){
-                    case "00":{
-                        temp =0;
+                switch (answer) {
+                    case "00": {
+                        temp = 0;
                         break;
                     }
-                    case "01":{
+                    case "01": {
                         temp = 1;
                         break;
                     }
@@ -302,10 +302,10 @@ public class StudyBuddyConnector {
         return 2;
     }
 
-    public boolean sendToChatroom(String name, String section, String message){
+    public boolean sendToChatroom(String name, String section, String message) {
         if (this.loggedIn && section != null & message != null && message.length() > 0) {
             try {
-                String sendChatMess = "10:CHATMESS:" + name + ":" + section + ":" + this.userEmail +"::01:" + message;
+                String sendChatMess = "10:CHATMESS:" + name + ":" + section + ":" + this.userEmail + "::01:" + message;
                 messages.put(sendChatMess);
                 // possible semaphore
                 Thread.sleep(1000);
@@ -317,11 +317,9 @@ public class StudyBuddyConnector {
         return false;
     }
 
-    public boolean sendFileToChatroom(Context context, String cName, String cSection, File file){
+    public boolean sendFileToChatroom(Context context, String cName, String cSection, File file) {
         boolean success = false;
         if (loggedIn) {
-            //String yourFilePath = context.getFilesDir() + "/" + fileName;
-            //File file = new File(yourFilePath);
             if (file.exists()) {
                 long fileLength = file.length();
                 files.add(file);
@@ -339,7 +337,7 @@ public class StudyBuddyConnector {
     }
 
     public void sendPrivateTextMessage(String to, String message) {
-        if (loggedIn && to.length() > 0 && message.length() > 0){
+        if (loggedIn && to.length() > 0 && message.length() > 0) {
             try {
                 String serverMessage = "08:TEXTMESSAGE:" + to + ":" + this.userEmail + ":00:INCOMING:01";
                 String mess = message + ":08";
@@ -373,6 +371,7 @@ public class StudyBuddyConnector {
             return false;
         }
     }
+
     // Private thread which listens for incoming messages from the server.
     private class MessageListener extends Thread {
         // private class fields
@@ -403,18 +402,13 @@ public class StudyBuddyConnector {
                         } catch (ClassNotFoundException ex) {
                             ex.printStackTrace();
                         }
-                    } else if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")){
+                    } else if (pieces[1].equalsIgnoreCase("SENDFILE")) {
                         messages.put(mess);
                         waiter.set(true);
-                        System.out.println("This thread is waiting");
-                        while(waiter.get()){
+                        while (waiter.get()) {
 
                         }
-                        System.out.println("This thread has started.");
-                    }
-
-
-                    else {
+                    } else {
                         try {
                             messages.put(mess);
                         } catch (InterruptedException ex) {
@@ -431,6 +425,7 @@ public class StudyBuddyConnector {
             }
         }
     }
+
     // Private thread which handles all incoming and outgoing messages.
     private class MessageQueue extends Thread {
 
@@ -451,9 +446,8 @@ public class StudyBuddyConnector {
                     Object object = (Object) messages.take();
                     switch (object.getClass().getSimpleName()) {
                         case "String": {
-                            String message = (String) object;
+                            final String message = (String) object;
                             String[] pieces = message.split(":");
-                            //System.out.println(pieces[0] + "\t" + pieces[1] + "\t" + pieces[5] + "\t" + pieces[6]);
                             if (pieces[6].equals("00")) {   // incoming messages from server.
                                 switch (pieces[0]) {
                                     case "00": {
@@ -477,7 +471,7 @@ public class StudyBuddyConnector {
                                     }
                                     case "03": {
                                         if (pieces[1].equals("CHANGESTATUS") && pieces[4].equals("00")) {
-                                            // Here we need to actually change the person's status in IRC since it has been verified.
+                                            // Here we need to actually change the person's status in connector since it has been verified.
                                         }
                                         break;
                                     }
@@ -497,13 +491,13 @@ public class StudyBuddyConnector {
                                             System.out.println(pieces[3] + " " + pieces[4] + " " + pieces[2]);
                                             // set buddy online for the chatroom passed in.
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
-                                            if (stud !=null) {
+                                            if (stud != null) {
                                                 stud.setOnlineStatus(true);
                                             } else {
                                                 // add the person to the list.
                                                 chatrooms.addStudent(pieces[3], pieces[4], pieces[5], pieces[2], true, Integer.valueOf(pieces[7]));
                                             }
-                                            for (int c = 0;c < listeners.size();c++){
+                                            for (int c = 0; c < listeners.size(); c++) {
                                                 listeners.get(c).onDataLoaded(message);
                                             }
 
@@ -511,7 +505,7 @@ public class StudyBuddyConnector {
                                             // set buddy offline for the chatroom passed in.
                                             Student stud = chatrooms.getStudent(pieces[3], pieces[4], pieces[2]);
                                             stud.setOnlineStatus(false);
-                                            for (int c = 0;c < listeners.size();c++){
+                                            for (int c = 0; c < listeners.size(); c++) {
                                                 listeners.get(c).onDataLoaded(message);
                                             }
                                         }
@@ -531,17 +525,16 @@ public class StudyBuddyConnector {
                                         break;
                                     }
                                     case "08": {
-                                        if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[4].equals("00") && pieces[5].equals("INCOMING")){
+                                        if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[4].equals("00") && pieces[5].equals("INCOMING")) {
                                             String mess = (String) messages.take();
-                                            if (mess.substring(mess.length() - 3, mess.length()).equals(":08")){
+                                            if (mess.substring(mess.length() - 3, mess.length()).equals(":08")) {
                                                 String sender = "08:" + pieces[2] + ":" + pieces[3] + ":" + pieces[5] + ":" + mess.substring(0, mess.length() - 3);
-                                                for (int c = 0;c < listeners.size();c++){
+                                                for (int c = 0; c < listeners.size(); c++) {
                                                     listeners.get(c).onDataLoaded(sender);
                                                 }
                                             }
-                                        }
-                                        else if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[4].equals("00")) {
-                                            String chatMessage="";
+                                        } else if (pieces[1].equals("TEXTMESSAGE") && pieces[2].length() > 0 && pieces[3].length() > 0 && pieces[4].equals("00")) {
+                                            String chatMessage = "";
                                             if (pieces.length > 8) {
                                                 for (int c = 7; c < pieces.length; c++) {
                                                     chatMessage += pieces[c] + ":";
@@ -554,7 +547,7 @@ public class StudyBuddyConnector {
                                                 chatMessage = pieces[7];
                                             }
                                             String sender = "08:" + pieces[2] + ":" + pieces[3] + ":" + pieces[5] + ":" + chatMessage;
-                                            for (int c = 0;c < listeners.size();c++){
+                                            for (int c = 0; c < listeners.size(); c++) {
                                                 listeners.get(c).onDataLoaded(sender);
                                             }
                                         }
@@ -578,8 +571,8 @@ public class StudyBuddyConnector {
                                         if (pieces[1].equals("CHATMESS")) {
                                             // add to local copy of chatrooms and notify activity.
                                             String chatMessage = "";
-                                            if (pieces.length > 8){
-                                                for (int c = 7; c < pieces.length;c++){
+                                            if (pieces.length > 8) {
+                                                for (int c = 7; c < pieces.length; c++) {
                                                     chatMessage += pieces[c] + ":";
                                                 }
                                                 chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
@@ -587,54 +580,50 @@ public class StudyBuddyConnector {
                                                 chatMessage = pieces[7];
                                             }
                                             chatrooms.addMessage(pieces[2], pieces[3], pieces[4], chatMessage);
-                                            for (int c = 0;c < listeners.size();c++){
+                                            for (int c = 0; c < listeners.size(); c++) {
                                                 listeners.get(c).onDataLoaded(message);
                                             }
                                         }
                                     }
                                     case "12": {
-                                        if (pieces[1].equals("NEWSTUDENT")){
+                                        if (pieces[1].equals("NEWSTUDENT")) {
                                             // pull new chat rooms from the server
                                             getChatroomsFromServer();
                                             System.out.println("New Chatrooms received.");
                                         }
                                     }
                                     case "13": {
-                                        if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")){
-                                            System.out.println("Incoming file: " + pieces[3] + " " + pieces[4] + " " + pieces[8]);
-                                            //String test = in.readUTF();
-                                            //System.out.println(test);
+                                        if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
                                             int fileSize = in.readInt();
                                             byte[] incomingFile = new byte[fileSize];
                                             in.readFully(incomingFile, 0, incomingFile.length);
-                                            System.out.println("We Got a File!!!");
+                                            for (int c = 0; c < listeners.size(); c++) {
+                                                listeners.get(c).onDataLoaded(message);
+                                            }
                                             waiter.set(false);
-                                        }
-
-                                        else if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("ACCEPTED")){
+                                        } else if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("ACCEPTED")) {
                                             // Create a new thread here that listens for an incoming connection from server.
                                             Thread thread = new Thread() {
                                                 @Override
                                                 public void run() {
-                                                    Socket clientSocket;
                                                     try {
-                                                        clientSocket = new Socket(IP, 8009);
-                                                        DataOutputStream sendFileOut = new DataOutputStream(clientSocket.getOutputStream());
                                                         File file = files.get(0);
                                                         files.remove(file);
                                                         files.trimToSize();
-                                                        FileInputStream fis = new FileInputStream (file);
+                                                        FileInputStream fis = new FileInputStream(file);
                                                         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                                                        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(),bmOptions);
+                                                        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), bmOptions);
                                                         ByteArrayOutputStream bos = new ByteArrayOutputStream();
                                                         bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
                                                         byte[] array = bos.toByteArray();
-
-                                                        sendFileOut.writeInt(array.length);
-                                                        sendFileOut.write(array, 0, array.length);
-                                                        sendFileOut.flush();
+                                                        out.writeInt(array.length);
+                                                        out.write(array, 0, array.length);
+                                                        out.flush();
                                                         fis.close();
-                                                        sendFileOut.close();
+                                                        waiter.set(false);
+                                                        for (int c = 0; c < listeners.size();c++){
+                                                            listeners.get(c).onDataLoaded(message);
+                                                        }
                                                     } catch (IOException ex) {
                                                         System.out.println(ex);
                                                     }
@@ -650,11 +639,11 @@ public class StudyBuddyConnector {
                                 }
                                 break;
                             } else if (pieces[6].equals("01")) {    // Outgoing messages from client.
-                                if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")){
-                                    String textMessage = (String)messages.take();
+                                if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
+                                    String textMessage = (String) messages.take();
                                     out.writeUTF(message);
                                     out.writeUTF(textMessage);
-                                } else{
+                                } else {
                                     out.writeUTF(message);
                                 }
                             } else {
@@ -666,7 +655,7 @@ public class StudyBuddyConnector {
                             chatrooms = null;
                             chatrooms = (Chatrooms) object;
                             Student stud = chatrooms.getStudent(userEmail);
-                            if (stud.getStudentName() !=null){
+                            if (stud.getStudentName() != null) {
                                 userName = stud.getStudentName();
                             } else {
                                 userName = userEmail;
@@ -679,7 +668,7 @@ public class StudyBuddyConnector {
                             logout();
                         }
                     }
-                } catch (InterruptedException | IOException  | IllegalMonitorStateException ex) {
+                } catch (InterruptedException | IOException | IllegalMonitorStateException ex) {
                     messageQueue.interrupt();
                     messageHandler.interrupt();
                 }
@@ -690,6 +679,7 @@ public class StudyBuddyConnector {
     public interface MyCustomObjectListener {
         // need to pass relevant arguments related to the event triggered
         public void onObjectReady(String title);
+
         // or when data has been loaded
         public void onDataLoaded(String data);
     }
