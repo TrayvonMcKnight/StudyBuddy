@@ -61,7 +61,6 @@ public class Database {
         }
         System.out.println("Connected to Database");
         this.connected = true;
-        this.addOfflineMessage("you@uncg.edu", "me@uncg.edu", "Hello there.  it was really nice seeing you the other day and I hope we can hang out again sometime real soon.");
     }
 
     // Public getters and setters
