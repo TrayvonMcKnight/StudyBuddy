@@ -36,10 +36,9 @@ public class Attendance extends AppCompatActivity {
         StudyBuddyConnector connector = StartActivity.server.getInstance();
         classes = connector.getChatrooms();
 
-        final String className = extras.getString("className");
-        final String section = extras.getString("section");
 
-        Student[] students = classes.getStudents(className, section);
+        Student[] students = classes.getStudents(extras.getString("className"),
+                extras.getString("section"));
 
         final List<String> arrayList = new ArrayList<>();
         for(int i = 0; i < students.length; i++){
