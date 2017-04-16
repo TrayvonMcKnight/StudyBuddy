@@ -14,6 +14,7 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class AttendanceAdapter extends BaseAdapter {
@@ -22,7 +23,7 @@ public class AttendanceAdapter extends BaseAdapter {
     LayoutInflater inflter;
     public static ArrayList<String> selectedAnswers;
 
-    public AttendanceAdapter(Context applicationContext, String[] questionsList) {
+    public AttendanceAdapter(Context applicationContext, List<String> questionsList) {
         this.context = context;
         this.questionsList = questionsList;
         // initialize arraylist and add static string for all the questions

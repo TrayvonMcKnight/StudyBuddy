@@ -24,22 +24,42 @@ import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 public class Attendance extends AppCompatActivity {
 
 
-    ListView simpleList;
-    String[] questions;
+    ListView studentList;
     Button submit;
+    private Chatrooms classes;
+    private ListView classList;
+    private String myName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_attendance);
-        // get the string array from string.xml file
-        questions = getResources().getStringArray(R.array.questions);
+
+
+        Bundle extras = getIntent().getExtras();
+        this.myName = extras.getString("myName");
+        studentList = (ListView) findViewById(R.id.list_classes);
+
+        StudyBuddyConnector connector = StartActivity.server.getInstance();
+        classes = connector.getChatrooms();
+
+
+        Student[] students = classes.getStudents(extras.getString("className"),
+                extras.getString("section"));
+
+        final List<String> arrayList = new ArrayList<>();
+        for(int i = 0; i < students.length; i++){
+            arrayList.add(students[i].getStudentName());
+        }
+
         // get the reference of ListView and Button
-        simpleList = (ListView) findViewById(R.id.simpleListView);
+        studentList = (ListView) findViewById(R.id.studentListView);
         submit = (Button) findViewById(R.id.submit);
         // set the adapter to fill the data in the ListView
-        AttendanceAdapter attendanceAdapter = new AttendanceAdapter(getApplicationContext(), questions);
-        simpleList.setAdapter(attendanceAdapter);
+
+        AttendanceAdapter attendanceAdapter = new AttendanceAdapter(getApplicationContext(), arrayList);
+        studentList.setAdapter(attendanceAdapter);
+
         // perform setOnClickListerner event on Button
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,7 +78,7 @@ public class Attendance extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
