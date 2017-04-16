@@ -16,10 +16,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import static edu.uncg.studdybuddy.studybuddy.R.id.studentList;
-import static edu.uncg.studdybuddy.studybuddy.R.id.studentListView;
-
-
 public class AttendanceAdapter extends BaseAdapter {
     Context context;
     List<String> studentList;
