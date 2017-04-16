@@ -16,19 +16,22 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import static edu.uncg.studdybuddy.studybuddy.R.id.studentList;
+import static edu.uncg.studdybuddy.studybuddy.R.id.studentListView;
+
 
 public class AttendanceAdapter extends BaseAdapter {
     Context context;
-    String[] questionsList;
+    List<String> studentList;
     LayoutInflater inflter;
     public static ArrayList<String> selectedAnswers;
 
-    public AttendanceAdapter(Context applicationContext, List<String> questionsList) {
+    public AttendanceAdapter(Context applicationContext, List<String> studentList) {
         this.context = context;
-        this.questionsList = questionsList;
+        this.studentList = studentList;
         // initialize arraylist and add static string for all the questions
         selectedAnswers = new ArrayList<>();
-        for (int i = 0; i < questionsList.length; i++) {
+        for (int i = 0; i < studentList.size(); i++) {
             selectedAnswers.add("Not Attempted");
         }
         inflter = (LayoutInflater.from(applicationContext));
@@ -36,7 +39,7 @@ public class AttendanceAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return questionsList.length;
+        return studentList.size();
     }
 
     @Override
@@ -76,7 +79,7 @@ public class AttendanceAdapter extends BaseAdapter {
             }
         });
         // set the value in TextView
-        question.setText(questionsList[i]);
+        question.setText(studentList.get(i));
         return view;
     }
 }
