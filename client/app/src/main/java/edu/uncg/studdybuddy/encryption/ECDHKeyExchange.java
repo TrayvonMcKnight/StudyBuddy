@@ -1,4 +1,4 @@
-package Encryption;
+package edu.uncg.studdybuddy.encryption;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -22,8 +22,7 @@ public class ECDHKeyExchange {
     private PublicKey theirKey;
     private KeyAgreement keyAgree;
     private int KEYSIZE;
-    private AlgorithmParameterSpec dhecParamSpec;
-    
+
     public ECDHKeyExchange(){
         this.initializeDHECParameters();
     }
@@ -34,10 +33,10 @@ public class ECDHKeyExchange {
     }
     
     private void initializeDHECParameters(){
-        this.dhecParamSpec = this.getECDHParameterSpec();
+        AlgorithmParameterSpec dhecParamSpec = this.getECDHParameterSpec();
         try {
             this.kpg = KeyPairGenerator.getInstance("EC");
-            this.kpg.initialize(this.dhecParamSpec);
+            this.kpg.initialize(dhecParamSpec);
             this.keyPair = kpg.generateKeyPair();
             this.keyAgree = KeyAgreement.getInstance("ECDH");
             this.keyAgree.init(this.returnMyPrivateKey());

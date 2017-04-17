@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.StrictMode;
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -28,6 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
+import edu.uncg.studdybuddy.encryption.AES128CBC;
+import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 /**
  * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
@@ -35,7 +38,7 @@ import StudyBuddy.Student;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -60,6 +63,7 @@ public class StudyBuddyConnector {
     private ArrayList<MyCustomObjectListener> listeners;    // Array list which holds all available event listeners registered.
     private ArrayList<File> files;
     private AtomicBoolean waiter;
+    private AES128CBC aes128;
 
 
     // Class constructor
@@ -145,12 +149,24 @@ public class StudyBuddyConnector {
         try {
             this.outToServer = client.getOutputStream();    // Instantiate output stream from socket.
             this.out = new DataOutputStream(outToServer);   // Instantiate data stream from output stream.
-            out.writeUTF(this.greetString); // Send handshake string though data stream.
-            out.flush();
             this.inFromServer = client.getInputStream(); // Instantiate input stream from socket.
             this.in = new DataInputStream(inFromServer); // Instantiate data stream from input stream.
 
-            if (in.readUTF().equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
+            // Perform Key Agreement
+            ECDHKeyExchange keyXchanger = new ECDHKeyExchange();
+            byte[] myPublic = keyXchanger.returnMyPublicKey();
+            out.writeUTF(new String(Base64.encodeToString(myPublic, Base64.DEFAULT)));
+            out.flush();
+            String key = in.readUTF();
+            byte[] theirPublic =Base64.decode(key, Base64.DEFAULT);
+            keyXchanger.setTheirPublicKey(theirPublic);
+            this.aes128 = new AES128CBC(keyXchanger.computeSharedSecret());
+
+            out.writeUTF(aes128.encrypt(this.greetString)); // Send handshake string though data stream.
+            out.flush();
+
+
+            if (aes128.decrypt(in.readUTF()).equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
                 // Possibly consider not getting these until the session has been created.
                 outToServerObj = new ObjectOutputStream(this.client.getOutputStream());
                 inFromServerObj = new ObjectInputStream(this.client.getInputStream());
