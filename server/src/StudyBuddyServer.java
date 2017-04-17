@@ -69,10 +69,10 @@ public class StudyBuddyServer extends Thread {
                 // Start key agreement
                 ECDHKeyExchange keyXchanger = new ECDHKeyExchange();
                 String key = in.readUTF();
-                byte[] theirKey = Base64.getDecoder().decode(key);
+                byte[] theirKey = Base64.getMimeDecoder().decode(key);
                 keyXchanger.setTheirPublicKey(theirKey);
                 byte[] myKey = keyXchanger.returnMyPublicKey();
-                out.writeUTF(new String(Base64.getEncoder().encode(myKey)));
+                out.writeUTF(new String(Base64.getMimeEncoder().encode(myKey)));
                 // Compute Symmetric Key
                 byte[] aesKey = keyXchanger.computeSharedSecret();
                 // Create symmetric cipher.
