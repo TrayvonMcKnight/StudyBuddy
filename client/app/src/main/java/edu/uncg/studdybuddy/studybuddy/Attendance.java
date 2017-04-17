@@ -1,6 +1,8 @@
 package edu.uncg.studdybuddy.studybuddy;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -29,6 +31,7 @@ public class Attendance extends AppCompatActivity {
     private Chatrooms classes;
     private ListView classList;
     private String myName;
+    AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +72,25 @@ public class Attendance extends AppCompatActivity {
                 for (int i = 0; i < AttendanceAdapter.selectedAnswers.size(); i++) {
                     message = message + "\n" + (i + 1) + " " + AttendanceAdapter.selectedAnswers.get(i);
                 }
-                // display the message on screen with the help of Toast.
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+
+                // display the message on screen with the help of Dialog.
+                builder.setTitle("Attendance for Today");
+
+                builder.setMessage("Are you sure this is attendance you want to submit?")
+                        .setCancelable(false)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // TODO: handle the OK
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
             }
         });
     }
@@ -98,11 +118,7 @@ public class Attendance extends AppCompatActivity {
     }
 }
 
-
-
-
-
-
+//LEAVE until the code above works and has been tested
     /*
 
     @InjectView(R.id.studentList) ListView studentList;

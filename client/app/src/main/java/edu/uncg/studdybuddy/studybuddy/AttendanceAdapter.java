@@ -23,9 +23,8 @@ public class AttendanceAdapter extends BaseAdapter {
     public static ArrayList<String> selectedAnswers;
 
     public AttendanceAdapter(Context applicationContext, List<String> studentList) {
-        this.context = context;
         this.studentList = studentList;
-        // initialize arraylist and add static string for all the questions
+        // initialize arraylist and add static string for all the students
         selectedAnswers = new ArrayList<>();
         for (int i = 0; i < studentList.size(); i++) {
             selectedAnswers.add("Not Attempted");
