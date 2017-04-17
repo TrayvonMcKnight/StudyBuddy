@@ -1,4 +1,6 @@
 
+import Encryption.AES128CBC;
+import Encryption.ECDHKeyExchange;
 import StudyBuddy.ChatRoomBackups;
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Chatrooms.Chatroom;
@@ -17,7 +19,7 @@ import java.net.SocketTimeoutException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
-import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,9 +29,9 @@ public class StudyBuddyServer extends Thread {
     private final String version = "1.20";
     private ServerSocket serverSocket;
     private Database database;
-    private OnlineClientList onlineList;
+    private final OnlineClientList onlineList;
     private Chatrooms chatrooms;
-    private ChatRoomBackups backups;
+    private final ChatRoomBackups backups;
 
     // Server constructor
     public StudyBuddyServer(int port) {
@@ -62,15 +64,30 @@ public class StudyBuddyServer extends Thread {
             try {
                 Socket server = serverSocket.accept();
                 DataInputStream in = new DataInputStream(server.getInputStream());
+                DataOutputStream out = new DataOutputStream(server.getOutputStream());
+                
+                // Start key agreement
+                ECDHKeyExchange keyXchanger = new ECDHKeyExchange();
+                String key = in.readUTF();
+                byte[] theirKey = Base64.getDecoder().decode(key);
+                keyXchanger.setTheirPublicKey(theirKey);
+                byte[] myKey = keyXchanger.returnMyPublicKey();
+                out.writeUTF(new String(Base64.getEncoder().encode(myKey)));
+                // Compute Symmetric Key
+                byte[] aesKey = keyXchanger.computeSharedSecret();
+                // Create symmetric cipher.
+                AES128CBC aes128 = new AES128CBC(aesKey);
+                
+                
+                
                 Date curDate = new Date();
-                if (in.readUTF().equals("05:HANDSHAKE:STUDYBUDDY:1.00:::01")) {
-                    DataOutputStream out = new DataOutputStream(server.getOutputStream());
-                    out.writeUTF("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00");
+                if (aes128.decrypt(in.readUTF()).equals("05:HANDSHAKE:STUDYBUDDY:1.00:::01")) {
+                    out.writeUTF(aes128.encrypt("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00"));
+                    
                     System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Handshake:: Request from: " + server.getRemoteSocketAddress().toString().substring(1) + " - HandShake Accepted.");
                     Thread auth = new Thread(new AuthenticationThread(server, this.onlineList));
                     auth.start();
                 } else {
-                    DataOutputStream out = new DataOutputStream(server.getOutputStream());
                     out.writeUTF("GOODBYE");
                     System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Handshake:: Request from: " + server.getRemoteSocketAddress().toString().substring(1) + " - HandShake Rejected.");
                     server.close();
