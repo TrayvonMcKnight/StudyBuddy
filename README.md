@@ -1,3 +1,8 @@
+![alt tag](https://github.com/Metalaxe1/StudyBuddy/blob/master/logo1.png?raw=true)
+
+
+
+
 # Project Name:  ### Study Buddy
 CSC-490 Senior Capstone Project.  The Study Buddy application will allow students in a particular class to communicate with other students in the same class.
 
