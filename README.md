@@ -1,4 +1,4 @@
-<center>![alt tag](https://github.com/Metalaxe1/StudyBuddy/blob/master/logo1.png?raw=true) </center>
+![alt tag](https://github.com/Metalaxe1/StudyBuddy/blob/master/logo1.png?raw=true) 
 
 
 
