@@ -5,7 +5,7 @@
 
 
 
-# _Project Name:  Study Buddy_ 
+# _CSC 490 Senior Capstone Project_ 
 The Study Buddy application will allow students in a particular class to communicate with other students in their classes and send/receive notes from the day. 
 
 # Project Description:
