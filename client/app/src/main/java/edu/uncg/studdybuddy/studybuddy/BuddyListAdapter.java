@@ -82,6 +82,15 @@ public class BuddyListAdapter extends BaseAdapter {
             }
         });
 
+        convertView.setOnLongClickListener(new View.OnLongClickListener() {
+                                               @Override
+                                               public boolean onLongClick(View v) {
+
+                                                   return false;
+                                               }
+                                           }
+        );
+
         return convertView;
     }
 }
