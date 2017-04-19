@@ -45,11 +45,4 @@
     <string name="try_again">Try Again</string>
     <string name="attendance">Attendance</string>
 
-    <string name="studentCredentials">studentCredentials</string>
-    <string name="student_name">StudentName</string>
-    <string name="studentNameRow">studentNameRow</string>
-    <string name="studentName">studentName</string>
-    <string name="StudentEmail">StudentEmail</string>
-    <string name="studentEmailRow">studentEmailRow</string>
-    <string name="studentEmail">studentEmail</string>
 </resources>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_profile"
     android:layout_width="match_parent"
@@ -13,6 +13,35 @@
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
- 
+
+        <TableRow
+            android:id="@+id/nameRow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/get_name"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/studentName"
+                android:layout_weight="1"/>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/emailRow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/get_email"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/studentEmail"
+                android:layout_weight="1" />
+        </TableRow>
+
     </TableLayout>
-</RelativeLayout>
+
+</android.support.v7.widget.LinearLayoutCompat>
