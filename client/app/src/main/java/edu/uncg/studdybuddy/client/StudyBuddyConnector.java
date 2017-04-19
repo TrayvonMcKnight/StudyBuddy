@@ -38,7 +38,7 @@ import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
+    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -208,8 +208,8 @@ public class StudyBuddyConnector {
         String[] pieces = {};
         try {
             String login = "01:LOGIN:" + email + ":" + pass + ":::01";
-            this.out.writeUTF(login);
-            String reply = (String) in.readUTF();
+            this.out.writeUTF(aes128.encrypt(login));
+            String reply = (String) aes128.decrypt(in.readUTF());
             pieces = reply.split(":");
             answer = pieces[5];
 
@@ -265,8 +265,8 @@ public class StudyBuddyConnector {
             String[] pieces = {};
             String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 + ":" + fName + ":" + lName;
             try {
-                this.out.writeUTF(create);
-                String reply = (String) in.readUTF();
+                this.out.writeUTF(aes128.encrypt(create));
+                String reply = (String) aes128.decrypt(in.readUTF());
                 pieces = reply.split(":");
                 answer = pieces[4];
                 switch (answer) {
@@ -403,7 +403,7 @@ public class StudyBuddyConnector {
             boolean iterate = true;
             while (iterate) {
                 try {
-                    String mess = (String) in.readUTF();
+                    String mess = (String) aes128.decrypt(in.readUTF());
                     String[] pieces = mess.split(":");
                     if (pieces[0].equals("00") && pieces[5].equals("GOODBYE") && pieces[6].equals("00")) {
                         break;
@@ -657,10 +657,10 @@ public class StudyBuddyConnector {
                             } else if (pieces[6].equals("01")) {    // Outgoing messages from client.
                                 if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                     String textMessage = (String) messages.take();
-                                    out.writeUTF(message);
-                                    out.writeUTF(textMessage);
+                                    out.writeUTF(aes128.encrypt(message));
+                                    out.writeUTF(aes128.encrypt(textMessage));
                                 } else {
-                                    out.writeUTF(message);
+                                    out.writeUTF(aes128.encrypt(message));
                                 }
                             } else {
                                 logout();
