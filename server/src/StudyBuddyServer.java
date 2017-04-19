@@ -32,6 +32,7 @@ public class StudyBuddyServer extends Thread {
     private final OnlineClientList onlineList;
     private Chatrooms chatrooms;
     private final ChatRoomBackups backups;
+    private AES128CBC aes128;
 
     // Server constructor
     public StudyBuddyServer(int port) {
@@ -73,10 +74,8 @@ public class StudyBuddyServer extends Thread {
                 keyXchanger.setTheirPublicKey(theirKey);
                 byte[] myKey = keyXchanger.returnMyPublicKey();
                 out.writeUTF(new String(Base64.getMimeEncoder().encode(myKey)));
-                // Compute Symmetric Key
-                byte[] aesKey = keyXchanger.computeSharedSecret();
-                // Create symmetric cipher.
-                AES128CBC aes128 = new AES128CBC(aesKey);
+                // Compute Symmetric Key and create symmetric cipher.
+                aes128 = new AES128CBC(keyXchanger.computeSharedSecret());
                 
                 
                 
@@ -203,7 +202,7 @@ public class StudyBuddyServer extends Thread {
                     if (loggedIn) {
                         break;
                     }
-                    String authType = (String) inStream.readUTF();
+                    String authType = (String) aes128.decrypt(inStream.readUTF());
                     String[] pieces = authType.split(":");
                     if (pieces[1].equals("CREATEACCOUNT") && pieces[0].equals("09")) {
                         this.createAccount(inStream, outStream, pieces);
@@ -233,7 +232,7 @@ public class StudyBuddyServer extends Thread {
                     Date curDate = new Date();
                     switch (database.registerUser(pieces[2], pieces[3], pieces[5], pieces[6])) {
                         case 0: {
-                            outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":ACCEPTED:00::00");
+                            outStream.writeUTF(aes128.encrypt("09:CREATEACCOUNT:" + pieces[2] + ":ACCEPTED:00::00"));
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Accepted - New user added.");
                             this.assignClasses(pieces[2]);
                             // Need to notify all other students who are online, that someone has been added.
@@ -241,22 +240,22 @@ public class StudyBuddyServer extends Thread {
                             break;
                         }
                         case 1: {
-                            outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:01::00");
+                            outStream.writeUTF(aes128.encrypt("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:01::00"));
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Rejected - User with email already exists.");
                             break;
                         }
                         case 2: {
-                            outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:02::00");
+                            outStream.writeUTF(aes128.encrypt("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:02::00"));
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Rejected - Incorrect password format.");
                             break;
                         }
                         case 3: {
-                            outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:03::00");
+                            outStream.writeUTF(aes128.encrypt("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:03::00"));
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Rejected - Incorrect email format.");
                             break;
                         }
                         case 4: {
-                            outStream.writeUTF("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:04::00");
+                            outStream.writeUTF(aes128.encrypt("09:CREATEACCOUNT:" + pieces[2] + ":REJECTED:04::00"));
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Register:::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Registration Rejected - Unknown database error.");
                             break;
                         }
@@ -306,7 +305,7 @@ public class StudyBuddyServer extends Thread {
                     // If this is not the first call to this method.....
                     if (attempts != 0) {
                         // Get another login attempt.
-                        login = (String) inStream.readUTF();
+                        login = (String) aes128.decrypt(inStream.readUTF());
                         pieces = login.split(":");
                     }
                     if (!pieces[2].equals("null") && !pieces[3].equals("null")) {
@@ -321,7 +320,7 @@ public class StudyBuddyServer extends Thread {
                             attempts++;
                             if (attempts != 3) {
                                 String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":01:NOUSER:00";
-                                outStream.writeUTF(reply);
+                                outStream.writeUTF(aes128.encrypt(reply));
                             }
                         } else if (result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
@@ -329,14 +328,14 @@ public class StudyBuddyServer extends Thread {
                             database.updateUserLoggedIn(result.getString("sEmail"), true);
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("sEmail") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
                             String reply = "01:LOGIN:" + result.getString("sEmail") + ":" + pieces[3] + ":00:ACCEPTED:00";
-                            outStream.writeUTF(reply);
+                            outStream.writeUTF(aes128.encrypt(reply));
                             // Update chat rooms.
                             ResultSet rooms = database.returnAllClassesByStudent(userName);
                             while (rooms.next()) {
                                 Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), result.getString("sEmail"));
                                 stud.setOnlineStatus(true);
                             }
-                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms);
+                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms, aes128);
                             Thread session = new Thread(sess);
                             String first = result.getString("sFName");
                             String last = result.getString("sLName");
@@ -354,7 +353,7 @@ public class StudyBuddyServer extends Thread {
                             attempts++;
                             if (attempts != 3) {
                                 String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":02:BADPASS:00";
-                                outStream.writeUTF(reply);
+                                outStream.writeUTF(aes128.encrypt(reply));
 
                             }
                         }
@@ -362,7 +361,7 @@ public class StudyBuddyServer extends Thread {
                             Date curDate = new Date();
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - Too many failed attempts.");
                             String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":03:GOODBYE:00";
-                            outStream.writeUTF(reply);
+                            outStream.writeUTF(aes128.encrypt(reply));
                             attempts++;
                             con.close();
                         }
@@ -371,7 +370,7 @@ public class StudyBuddyServer extends Thread {
                         Date curDate = new Date();
                         System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - User canceled login.");
                         String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":05:LOGINCANCELED:00";
-                        outStream.writeUTF(reply);
+                        outStream.writeUTF(aes128.encrypt(reply));
                         this.con.close();
                         attempts = 4;
                     }
