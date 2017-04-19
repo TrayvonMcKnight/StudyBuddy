@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.StrictMode;
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -28,6 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
+import edu.uncg.studdybuddy.encryption.AES128CBC;
+import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 /**
  * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
@@ -60,6 +63,7 @@ public class StudyBuddyConnector {
     private ArrayList<MyCustomObjectListener> listeners;    // Array list which holds all available event listeners registered.
     private ArrayList<File> files;
     private AtomicBoolean waiter;
+    private AES128CBC aes128;
 
 
     // Class constructor
@@ -145,12 +149,24 @@ public class StudyBuddyConnector {
         try {
             this.outToServer = client.getOutputStream();    // Instantiate output stream from socket.
             this.out = new DataOutputStream(outToServer);   // Instantiate data stream from output stream.
-            out.writeUTF(this.greetString); // Send handshake string though data stream.
-            out.flush();
             this.inFromServer = client.getInputStream(); // Instantiate input stream from socket.
             this.in = new DataInputStream(inFromServer); // Instantiate data stream from input stream.
 
-            if (in.readUTF().equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
+            // Perform Key Agreement
+            ECDHKeyExchange keyXchanger = new ECDHKeyExchange();
+            byte[] myPublic = keyXchanger.returnMyPublicKey();
+            out.writeUTF(new String(Base64.encodeToString(myPublic, Base64.DEFAULT)));
+            out.flush();
+            String key = in.readUTF();
+            byte[] theirPublic =Base64.decode(key, Base64.DEFAULT);
+            keyXchanger.setTheirPublicKey(theirPublic);
+            this.aes128 = new AES128CBC(keyXchanger.computeSharedSecret());
+
+            out.writeUTF(aes128.encrypt(this.greetString)); // Send handshake string though data stream.
+            out.flush();
+
+
+            if (aes128.decrypt(in.readUTF()).equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
                 // Possibly consider not getting these until the session has been created.
                 outToServerObj = new ObjectOutputStream(this.client.getOutputStream());
                 inFromServerObj = new ObjectInputStream(this.client.getInputStream());
@@ -192,8 +208,8 @@ public class StudyBuddyConnector {
         String[] pieces = {};
         try {
             String login = "01:LOGIN:" + email + ":" + pass + ":::01";
-            this.out.writeUTF(login);
-            String reply = (String) in.readUTF();
+            this.out.writeUTF(aes128.encrypt(login));
+            String reply = (String) aes128.decrypt(in.readUTF());
             pieces = reply.split(":");
             answer = pieces[5];
 
@@ -249,8 +265,8 @@ public class StudyBuddyConnector {
             String[] pieces = {};
             String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 + ":" + fName + ":" + lName;
             try {
-                this.out.writeUTF(create);
-                String reply = (String) in.readUTF();
+                this.out.writeUTF(aes128.encrypt(create));
+                String reply = (String) aes128.decrypt(in.readUTF());
                 pieces = reply.split(":");
                 answer = pieces[4];
                 switch (answer) {
@@ -387,7 +403,7 @@ public class StudyBuddyConnector {
             boolean iterate = true;
             while (iterate) {
                 try {
-                    String mess = (String) in.readUTF();
+                    String mess = (String) aes128.decrypt(in.readUTF());
                     String[] pieces = mess.split(":");
                     if (pieces[0].equals("00") && pieces[5].equals("GOODBYE") && pieces[6].equals("00")) {
                         break;
@@ -641,10 +657,10 @@ public class StudyBuddyConnector {
                             } else if (pieces[6].equals("01")) {    // Outgoing messages from client.
                                 if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                     String textMessage = (String) messages.take();
-                                    out.writeUTF(message);
-                                    out.writeUTF(textMessage);
+                                    out.writeUTF(aes128.encrypt(message));
+                                    out.writeUTF(aes128.encrypt(textMessage));
                                 } else {
-                                    out.writeUTF(message);
+                                    out.writeUTF(aes128.encrypt(message));
                                 }
                             } else {
                                 logout();
