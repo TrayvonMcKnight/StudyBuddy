@@ -21,9 +21,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     private ListView common_classList;
     ArrayList<String> student1_classes;
-    ArrayList<String> student2_classes;
     private Chatrooms classes;
-
+    String[] pieces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +36,11 @@ public class ProfileActivity extends AppCompatActivity {
         classes = connector.getChatrooms();
         final String[] classArray = classes.getClassNamesAndSection();
 
+        for (String aClassArray : classArray) {
+            pieces = aClassArray.split(":");
+        }
 
+        student1_classes = compareClasses(pieces, classes, extras.get("otherEmail").toString());
 
         common_classList = (ListView) findViewById(R.id.common_classes_list);
 
@@ -48,8 +51,15 @@ public class ProfileActivity extends AppCompatActivity {
 
     }
 
-    private String[] compareClasses(String[] student1 , String email){
-        String[] compared;
+    private ArrayList<String> compareClasses(String[] classPieces, Chatrooms sClasses, String email){
+        ArrayList<String> compared = null;
+
+        int i = 0;
+        while(i < classPieces.length){
+            if(sClasses.getStudent(pieces[i], pieces[i+1], email) != null){
+                compared.add(pieces[i] + ":" + pieces[i+1] );
+            }
+        }
 
         return compared;
     }
