@@ -46,8 +46,8 @@ public class ECDHKeyExchange {
         }
     }
     
-    public PublicKey returnMyPublicKey(){
-        return keyPair.getPublic();
+    public byte[] returnMyPublicKey(){
+        return keyPair.getPublic().getEncoded();
         
     }
     public PrivateKey returnMyPrivateKey(){

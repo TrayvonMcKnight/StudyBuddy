@@ -3,15 +3,19 @@ package edu.uncg.studdybuddy.client;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.os.StrictMode;
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -28,6 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
+import edu.uncg.studdybuddy.encryption.AES128CBC;
+import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 /**
  * Created by Anthony Ratliff, Trayvon McKnight and Jlesa Carr on 2/10/2017.
@@ -49,6 +55,7 @@ public class StudyBuddyConnector {
     private DataInputStream in; // TCP Input Data Stream.
     private boolean loggedIn;  // Boolean to hold if the user has actually logged into the server.
     private boolean connected;  // Boolean to hold the connection status.
+    private boolean isProfessor;
     private String userName;    // String to represent the user's real name.
     private String userEmail;   // String to represent the user's email address.
     private LinkedBlockingQueue<Object> messages;   // Queue for outgoing and incoming server messages.
@@ -60,6 +67,7 @@ public class StudyBuddyConnector {
     private ArrayList<MyCustomObjectListener> listeners;    // Array list which holds all available event listeners registered.
     private ArrayList<File> files;
     private AtomicBoolean waiter;
+    private AES128CBC aes128;
 
 
     // Class constructor
@@ -79,6 +87,7 @@ public class StudyBuddyConnector {
             e.printStackTrace();
         }
         this.waiter = new AtomicBoolean(false);
+        this.isProfessor = false;
     }
 
     // Public class methods
@@ -100,6 +109,10 @@ public class StudyBuddyConnector {
 
     public boolean hasConnection() {
         return this.connected;
+    }
+
+    public boolean isProfessor(){
+        return this.isProfessor;
     }
 
     public String getUserName() {
@@ -145,12 +158,24 @@ public class StudyBuddyConnector {
         try {
             this.outToServer = client.getOutputStream();    // Instantiate output stream from socket.
             this.out = new DataOutputStream(outToServer);   // Instantiate data stream from output stream.
-            out.writeUTF(this.greetString); // Send handshake string though data stream.
-            out.flush();
             this.inFromServer = client.getInputStream(); // Instantiate input stream from socket.
             this.in = new DataInputStream(inFromServer); // Instantiate data stream from input stream.
 
-            if (in.readUTF().equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
+            // Perform Key Agreement
+            ECDHKeyExchange keyXchanger = new ECDHKeyExchange();
+            byte[] myPublic = keyXchanger.returnMyPublicKey();
+            out.writeUTF(new String(Base64.encodeToString(myPublic, Base64.DEFAULT)));
+            out.flush();
+            String key = in.readUTF();
+            byte[] theirPublic =Base64.decode(key, Base64.DEFAULT);
+            keyXchanger.setTheirPublicKey(theirPublic);
+            this.aes128 = new AES128CBC(keyXchanger.computeSharedSecret());
+
+            out.writeUTF(aes128.encrypt(this.greetString)); // Send handshake string though data stream.
+            out.flush();
+
+
+            if (aes128.decrypt(in.readUTF()).equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
                 // Possibly consider not getting these until the session has been created.
                 outToServerObj = new ObjectOutputStream(this.client.getOutputStream());
                 inFromServerObj = new ObjectInputStream(this.client.getInputStream());
@@ -192,8 +217,8 @@ public class StudyBuddyConnector {
         String[] pieces = {};
         try {
             String login = "01:LOGIN:" + email + ":" + pass + ":::01";
-            this.out.writeUTF(login);
-            String reply = (String) in.readUTF();
+            this.out.writeUTF(aes128.encrypt(login));
+            String reply = (String) aes128.decrypt(in.readUTF());
             pieces = reply.split(":");
             answer = pieces[5];
 
@@ -249,8 +274,8 @@ public class StudyBuddyConnector {
             String[] pieces = {};
             String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 + ":" + fName + ":" + lName;
             try {
-                this.out.writeUTF(create);
-                String reply = (String) in.readUTF();
+                this.out.writeUTF(aes128.encrypt(create));
+                String reply = (String) aes128.decrypt(in.readUTF());
                 pieces = reply.split(":");
                 answer = pieces[4];
                 switch (answer) {
@@ -387,7 +412,7 @@ public class StudyBuddyConnector {
             boolean iterate = true;
             while (iterate) {
                 try {
-                    String mess = (String) in.readUTF();
+                    String mess = (String) aes128.decrypt(in.readUTF());
                     String[] pieces = mess.split(":");
                     if (pieces[0].equals("00") && pieces[5].equals("GOODBYE") && pieces[6].equals("00")) {
                         break;
@@ -594,9 +619,41 @@ public class StudyBuddyConnector {
                                     }
                                     case "13": {
                                         if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
+
+                                            File mediaStorageDir = new File(Environment.getExternalStorageDirectory(), pieces[3] + "_" + pieces[4]);
+                                            //File mediaStorageDir = new File("/data/data/edu.uncg.studdybuddy.studybuddy", pieces[3] + "_" + pieces[4]);
+                                            if (!mediaStorageDir.exists()) {
+                                                if (!mediaStorageDir.mkdirs()) {
+                                                    Log.d("App", "failed to create directory");
+                                                }
+                                            }
+
+                                            File imageFile = new File(mediaStorageDir.getAbsolutePath() + "/" + pieces[2]);
+                                            if (!imageFile.exists()){
+                                                imageFile.createNewFile();
+                                            }
+
+                                            FileOutputStream fos = new FileOutputStream(imageFile, false);
+                                            BufferedOutputStream bos = new BufferedOutputStream(fos);
                                             int fileSize = in.readInt();
                                             byte[] incomingFile = new byte[fileSize];
                                             in.readFully(incomingFile, 0, incomingFile.length);
+                                            bos.write(incomingFile, 0, incomingFile.length);
+                                            bos.close();
+                                            fos.close();
+                                            // Create local folder from class name.
+
+
+
+                                            // Store file in the folder.
+                                            if (imageFile.exists()){
+                                                System.out.println("File");
+                                                System.out.println(imageFile.getPath());
+                                            } else {
+                                                System.out.println("No File");
+                                            }
+
+
                                             for (int c = 0; c < listeners.size(); c++) {
                                                 listeners.get(c).onDataLoaded(message);
                                             }
@@ -641,10 +698,10 @@ public class StudyBuddyConnector {
                             } else if (pieces[6].equals("01")) {    // Outgoing messages from client.
                                 if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                     String textMessage = (String) messages.take();
-                                    out.writeUTF(message);
-                                    out.writeUTF(textMessage);
+                                    out.writeUTF(aes128.encrypt(message));
+                                    out.writeUTF(aes128.encrypt(textMessage));
                                 } else {
-                                    out.writeUTF(message);
+                                    out.writeUTF(aes128.encrypt(message));
                                 }
                             } else {
                                 logout();
@@ -661,7 +718,9 @@ public class StudyBuddyConnector {
                                 userName = userEmail;
                             }
                             Thread.sleep(500);
-                            listeners.get(0).onObjectReady("Chatrooms");
+                            if (!listeners.isEmpty()) {
+                                listeners.get(0).onObjectReady("Chatrooms");
+                            }
                             break;
                         }
                         default: {
