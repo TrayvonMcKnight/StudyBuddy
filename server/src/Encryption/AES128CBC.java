@@ -1,5 +1,6 @@
 package Encryption;
 
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -34,9 +35,7 @@ public class AES128CBC {
         this.secretKey = new SecretKeySpec(this.key, "AES");
         try {
             cipher = Cipher.getInstance(ENCRYPTION_ALGO);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(AES128CBC.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchPaddingException ex) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
             Logger.getLogger(AES128CBC.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -56,14 +55,14 @@ public class AES128CBC {
     public String encrypt(String plaintext){
         try {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);    // Initialize the cipher for encrypt.
-            byte[] messageArray = plaintext.getBytes();   // byte array for message.
+            byte[] messageArray = plaintext.getBytes("UTF-8");   // byte array for message.
             byte[] iv = cipher.getIV(); // Byte array for initialization vector.
             byte[] cipherText = cipher.doFinal(messageArray);   // Encrypted message.
             byte[] appendedMessage = new byte[iv.length + cipherText.length];   // Byte Array for total message sent.
             System.arraycopy(iv, 0, appendedMessage, 0, iv.length); // Copy iv as first 16 bytes.
             System.arraycopy(cipherText, 0, appendedMessage, iv.length, cipherText.length); // Copy the encrypted message as remaining bytes.
-            return new String(Base64.getEncoder().encode(appendedMessage));  // Encrypted string as Base64 encoder.
-        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
+            return new String(Base64.getMimeEncoder().encode(appendedMessage));  // Encrypted string as Base64 encoder.
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | UnsupportedEncodingException ex) {
             Logger.getLogger(AES128CBC.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
@@ -71,16 +70,15 @@ public class AES128CBC {
     
     public String decrypt(String ciphertext){
         try {
-            byte[] incoming = Base64.getDecoder().decode(ciphertext);  // Encrypted string as Base64 decoder.
+            byte[] incoming = Base64.getMimeDecoder().decode(ciphertext);  // Encrypted string as Base64 decoder.
             byte[] ivArray = new byte[KEYSIZE];  // Byte array for initialization vector.
             byte[] messageArray = new byte[incoming.length - KEYSIZE];   // Byte array to hold the actual message.
             System.arraycopy(incoming, 0, ivArray, 0, KEYSIZE);  // Read first 16 bytes into ivArray.
             System.arraycopy(incoming, KEYSIZE, messageArray, 0, incoming.length - KEYSIZE);  // Read the additional bytes as the message.
             IvParameterSpec iv = new IvParameterSpec(ivArray);  // create iv from first 16 bytes.
-            Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGO); // Select Encryption Algorithm.
             cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);     // Initialize the cipher for decrypt with key and iv extracted from input.
             return new String(cipher.doFinal(messageArray));  // Decrypt the original message.
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException ex) {
+        } catch (InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException ex) {
             Logger.getLogger(AES128CBC.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;

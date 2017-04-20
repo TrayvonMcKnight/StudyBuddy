@@ -1,5 +1,6 @@
 package StudyBuddy;
 
+import Encryption.AES128CBC;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -38,9 +39,10 @@ public class Session extends Thread {
     private Chatrooms userChatrooms;
     private final ChatRoomBackups backup;
     private final AtomicBoolean waiting = new AtomicBoolean(false);
+    private final AES128CBC aes128;
 
     // Public constructor.
-    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats) {
+    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, AES128CBC aes) {
         this.con = con;
         this.onlineList = list;
         this.clientIP = con.getRemoteSocketAddress().toString().substring(1);
@@ -54,6 +56,7 @@ public class Session extends Thread {
         this.mainChatrooms = mainChats;
         this.userChatrooms = null;
         this.backup = new ChatRoomBackups();
+        this.aes128 = aes;
     }
 
     @Override
@@ -166,7 +169,7 @@ public class Session extends Thread {
 
     private void sendData(String mess) {
         try {
-            dataOut.writeUTF(mess);
+            dataOut.writeUTF(aes128.encrypt(mess));
         } catch (IOException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -410,7 +413,7 @@ public class Session extends Thread {
             boolean iterate = true;
             while (iterate) {
                 try {
-                    String message = (String) dataIn.readUTF();
+                    String message = (String) aes128.decrypt(dataIn.readUTF());
                     String[] pieces = message.split(":");
                     if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
                         waiting.set(true);
