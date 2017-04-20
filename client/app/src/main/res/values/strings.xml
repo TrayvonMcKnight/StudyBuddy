@@ -43,4 +43,9 @@
     <string name="send_image_to_chat_room">Send Image to Chat Room</string>
     <string name="classmates">Classmates</string>
     <string name="try_again">Try Again</string>
+    <string name="attendance">Attendance</string>
+    <string name="classes_you_have_together">Classes You Have Together</string>
+    <string name="email2">Email:</string>
+    <string name="name2">Name:</string>
+
 </resources>

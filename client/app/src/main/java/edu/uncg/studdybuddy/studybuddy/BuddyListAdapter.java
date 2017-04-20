@@ -82,6 +82,16 @@ public class BuddyListAdapter extends BaseAdapter {
             }
         });
 
+        convertView.setOnLongClickListener(new View.OnLongClickListener() {
+                                               @Override
+                public boolean onLongClick(View v) {
+                Intent intent = new Intent(c, ProfileActivity.class);
+                intent.putExtra("otherEmail", s.getStudentEmail());
+                intent.putExtra("otherName", s.getStudentName());
+                return false;
+                }
+        });
+
         return convertView;
     }
 }
