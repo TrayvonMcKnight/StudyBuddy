@@ -41,7 +41,7 @@ import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
+    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
