@@ -183,7 +183,7 @@ public class Database {
             return success;
         }
 
-        /*
+        
         this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`attendance` (" +
                 "  `profName` VARCHAR(45) NOT NULL," +
                 "  `cID` INT(12) NOT NULL," +
@@ -217,7 +217,7 @@ public class Database {
             System.out.println("Could not execute create attendance table");
             System.out.println(ex);            
             return success;}
-         */
+         
         this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` ("
                 + "  `RsID` INT(12) NOT NULL,"
                 + "  `SsID` INT(12) NOT NULL,"
