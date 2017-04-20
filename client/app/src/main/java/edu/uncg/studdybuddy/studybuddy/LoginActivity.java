@@ -171,7 +171,12 @@ public class LoginActivity extends AppCompatActivity {
     public void onLoginSuccess() {
         loginButton.setEnabled(true);
         //Start Main menu activity
-        Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+        Intent intent = null;
+        if (StartActivity.server.isProfessor()){
+            intent = new Intent(getApplicationContext(), TeacherMenu.class);
+        } else {
+            intent = new Intent(getApplicationContext(), MainMenu.class);
+        }
         startActivity(intent);
         finish();
     }

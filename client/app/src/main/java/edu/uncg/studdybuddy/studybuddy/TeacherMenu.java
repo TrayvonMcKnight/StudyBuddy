@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import butterknife.ButterKnife;
 import butterknife.InjectView;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
@@ -16,13 +17,15 @@ public class TeacherMenu extends AppCompatActivity {
     @InjectView(R.id.settingsButton) Button settingsBtn;
     @InjectView(R.id.logOut) Button logOutBtn;
     @InjectView(R.id.attendanceButton) Button attendanceBtn;
+    //Button attendanceBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teacher_menu);
-
-        //This should bring up all of the clases the professor teaches
+        ButterKnife.inject(this);
+        this.ourConnector = StartActivity.server.getInstance();
+        //This should bring up all of the classes the professor teaches
         attendanceBtn.setOnClickListener(new View.OnClickListener(){
 
             @Override
