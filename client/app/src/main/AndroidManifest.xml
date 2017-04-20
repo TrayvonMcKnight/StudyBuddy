@@ -11,10 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
 
-    <!--
-    Study Buddy Logo
-        https://www.pinterest.com/pin/542261611366514326/
-    -->
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/sb_logo"
@@ -63,11 +60,11 @@
             android:name=".ChangePasswordActivity"
             android:label="@string/change_password" />
         <activity android:name=".Attendance"
-            android:label="@string/change_password">
+            android:label="@string/attendance">
         </activity>
 
         <activity android:name=".TeacherMenu"
-            android:label="@string/change_password">
+            android:label="@string/main_menu">
         </activity>
 
         <provider

@@ -34,6 +34,7 @@ public class ClassesActivity extends AppCompatActivity {
             String[] pieces = aClassArray.split(":");
             arrayList.add(pieces[0] + "-" + pieces[1] + " Professor: " + classes.getProfessorName(pieces[0], pieces[1]));
         }
+
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, arrayList);
 
