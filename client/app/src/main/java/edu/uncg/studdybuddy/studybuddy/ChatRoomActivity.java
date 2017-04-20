@@ -4,6 +4,7 @@ package edu.uncg.studdybuddy.studybuddy;
 import android.app.Activity;
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -25,6 +26,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -149,10 +151,20 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                                 String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
                                                                 chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
                                                                 updateAdapter();
+
+
+                                                                //Uri filepath = Uri.parse(s + "/" + pieces[2]);
+                                                                File filepath = new File(Environment.getExternalStorageDirectory() + "/" + className + "_" + sec + "/" + pieces[2]);
+                                                                if (filepath.exists()){
+                                                                    showPhoto(filepath);
+                                                                }
+
                                                             } else if (pieces[5].equalsIgnoreCase("ACCEPTED") && pieces[1].equalsIgnoreCase("SENDFILE")) {
                                                                 String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
                                                                 chatMessList.add(new ChatRoomMessage(myName, chatMessage));
                                                                 updateAdapter();
+
+
                                                             }
                                                             break;
                                                         }
@@ -279,30 +291,32 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                 File out = new File(getFilesDir(), "newImage.jpg");
 
                 if(!out.exists()) {
-                    System.out.println("There is no damned file.");
                     return;
                 }
                 File finalFile = createFile(out);
                 String mCurrentPhotoPath = finalFile.getAbsolutePath();
-
-                //Bitmap photo = (Bitmap) data.getExtras().get("data");
-                //System.out.println("We have a bitmap");
                 server.sendFileToChatroom(getApplicationContext(), this.className, this.sec, createFile(out));
 
             }
         }
     }
+
+    private void showPhoto(File entry){
+        Uri uri =  Uri.parse("file://" + entry.getPath());
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+        String mime = "*/*";
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        if (mimeTypeMap.hasExtension(
+                mimeTypeMap.getFileExtensionFromUrl(uri.toString())))
+            mime = mimeTypeMap.getMimeTypeFromExtension(
+                    mimeTypeMap.getFileExtensionFromUrl(uri.toString()));
+        intent.setDataAndType(uri,mime);
+        startActivity(intent);
+    }
+
     private File createFile(File source) {
-        PackageManager m = getPackageManager();
-        String s = getPackageName();
-        PackageInfo p = null;
-        try {
-            p = m.getPackageInfo(s, 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        s = p.applicationInfo.dataDir;
-        File directory = new File(s + "/" + this.className);
+
+        File directory = new File(Environment.getExternalStorageDirectory() + "/" + this.className + "_" + this.sec);
 
         //if it doesn't exist the folder will be created
         if(!directory.exists())

@@ -3,16 +3,19 @@ package edu.uncg.studdybuddy.client;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.os.StrictMode;
 import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -38,7 +41,7 @@ import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -52,6 +55,7 @@ public class StudyBuddyConnector {
     private DataInputStream in; // TCP Input Data Stream.
     private boolean loggedIn;  // Boolean to hold if the user has actually logged into the server.
     private boolean connected;  // Boolean to hold the connection status.
+    private boolean isProfessor;
     private String userName;    // String to represent the user's real name.
     private String userEmail;   // String to represent the user's email address.
     private LinkedBlockingQueue<Object> messages;   // Queue for outgoing and incoming server messages.
@@ -83,6 +87,7 @@ public class StudyBuddyConnector {
             e.printStackTrace();
         }
         this.waiter = new AtomicBoolean(false);
+        this.isProfessor = false;
     }
 
     // Public class methods
@@ -104,6 +109,10 @@ public class StudyBuddyConnector {
 
     public boolean hasConnection() {
         return this.connected;
+    }
+
+    public boolean isProfessor(){
+        return this.isProfessor;
     }
 
     public String getUserName() {
@@ -610,9 +619,41 @@ public class StudyBuddyConnector {
                                     }
                                     case "13": {
                                         if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
+
+                                            File mediaStorageDir = new File(Environment.getExternalStorageDirectory(), pieces[3] + "_" + pieces[4]);
+                                            //File mediaStorageDir = new File("/data/data/edu.uncg.studdybuddy.studybuddy", pieces[3] + "_" + pieces[4]);
+                                            if (!mediaStorageDir.exists()) {
+                                                if (!mediaStorageDir.mkdirs()) {
+                                                    Log.d("App", "failed to create directory");
+                                                }
+                                            }
+
+                                            File imageFile = new File(mediaStorageDir.getAbsolutePath() + "/" + pieces[2]);
+                                            if (!imageFile.exists()){
+                                                imageFile.createNewFile();
+                                            }
+
+                                            FileOutputStream fos = new FileOutputStream(imageFile, false);
+                                            BufferedOutputStream bos = new BufferedOutputStream(fos);
                                             int fileSize = in.readInt();
                                             byte[] incomingFile = new byte[fileSize];
                                             in.readFully(incomingFile, 0, incomingFile.length);
+                                            bos.write(incomingFile, 0, incomingFile.length);
+                                            bos.close();
+                                            fos.close();
+                                            // Create local folder from class name.
+
+
+
+                                            // Store file in the folder.
+                                            if (imageFile.exists()){
+                                                System.out.println("File");
+                                                System.out.println(imageFile.getPath());
+                                            } else {
+                                                System.out.println("No File");
+                                            }
+
+
                                             for (int c = 0; c < listeners.size(); c++) {
                                                 listeners.get(c).onDataLoaded(message);
                                             }
@@ -677,7 +718,9 @@ public class StudyBuddyConnector {
                                 userName = userEmail;
                             }
                             Thread.sleep(500);
-                            listeners.get(0).onObjectReady("Chatrooms");
+                            if (!listeners.isEmpty()) {
+                                listeners.get(0).onObjectReady("Chatrooms");
+                            }
                             break;
                         }
                         default: {
