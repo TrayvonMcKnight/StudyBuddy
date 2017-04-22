@@ -356,7 +356,7 @@ public class Database {
                         this.statement.execute();
                         temp = 0;
                         // automatically enrole this user in the 490 class.
-                        this.enroll(this.getUserID(email), 3);
+                        this.enroll(this.getUserID(email), 20);
                     } catch (SQLException ex) {
                         Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
                         temp = 4;
@@ -416,6 +416,27 @@ public class Database {
         }
         return result;
     }
+    
+    public ResultSet returnProfessorInfo(String email){
+        ResultSet result = null;
+        this.sql = "SELECT * FROM instructors WHERE email= ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            this.statement.setString(1, email);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            result = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
 
     public boolean updateLastLoginTime(String username) {
         boolean result = false;
@@ -442,7 +463,12 @@ public class Database {
         boolean success = false;
         if (this.getUserID(username) != 0) {
             try {
-                this.sql = "UPDATE students SET sPass= ? WHERE sEmail= ?";
+                if (this.isProfessor(username)){
+                    this.sql = "UPDATE instructors SET pass= ? WHERE email= ?";
+                } else {
+                    this.sql = "UPDATE students SET sPass= ? WHERE sEmail= ?";
+                }
+                
                 statement = db_con.prepareStatement(this.sql);
                 statement.setString(1, pass);
                 statement.setString(2, username);
@@ -518,13 +544,20 @@ public class Database {
 
     public int getUserID(String username) {
         int id = 0;
-        this.sql = "SELECT sID FROM students WHERE sEmail= ?";
+        String field = "";
+        if (this.isProfessor(username)){
+            this.sql = "SELECT iID FROM instructors WHERE email= ?";
+            field = "iID";
+        } else {
+            this.sql = "SELECT sID FROM students WHERE sEmail= ?";
+            field = "sID";
+        }
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, username);
             ResultSet result = statement.executeQuery();
             while (result.next()) {
-                id = result.getInt("sID");
+                id = result.getInt(field);
             }
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
@@ -740,5 +773,28 @@ public class Database {
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
+     }
+     
+     private boolean isProfessor(String email){
+         boolean success = false;
+         ResultSet temp = null;
+        this.sql = "select * from instructors where email = ?;";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, email);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            if (temp.next()){
+                success = true;
+            } else {
+                success = false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         return success;
      }
 }
