@@ -30,7 +30,7 @@ public class TeacherMenu extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), ClassesActivity.class);
+                Intent intent = new Intent(getApplicationContext(), InstructorClassesActivity.class);
                 intent.putExtra("myName", ourConnector.getUserName());
                 startActivity(intent);
             }
