@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 public class StudyBuddyServer extends Thread {
     // private class fields.
-    private final String version = "1.20";
+    private final String version = "1.34";
     private ServerSocket serverSocket;
     private Database database;
     private final OnlineClientList onlineList;
