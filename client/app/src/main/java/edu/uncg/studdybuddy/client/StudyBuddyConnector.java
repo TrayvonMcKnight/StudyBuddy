@@ -41,7 +41,7 @@ import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
@@ -133,6 +133,8 @@ public class StudyBuddyConnector {
             this.client.close();
             this.loggedIn = false;
             this.connected = false;
+            this.messageQueue.interrupt();
+            this.messageHandler.interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -443,6 +445,11 @@ public class StudyBuddyConnector {
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                    // Notify all that server is gone.
+                    for (int c = 0; c < listeners.size();c++){
+                        listeners.get(c).onDataLoaded("20:SERVERGONE:DISCONNECT::::00");
+                    }
+
                     iterate = false;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
