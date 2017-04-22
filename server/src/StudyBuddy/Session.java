@@ -328,24 +328,46 @@ public class Session extends Thread {
     private void changePassword(String oldPass, String newPass) {
         try {
             ResultSet result = database.returnUserInfo(userName);
-            result.next();
-            if (!result.getString("sPass").equals(oldPass)) {
-                String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":01:BADPASS:00";
-                this.messages.put(error);
-                Date curDate = new Date();
-                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Unsuccessful due to bad password.");
+            if (result.next()){
+                if (!result.getString("sPass").equals(oldPass)) {
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":01:BADPASS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Unsuccessful due to bad password.");
+                } else {
+                    database.updateUserPassword(userName, newPass);
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:SUCCESS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Password Changed.");
+                }
             } else {
-                database.updateUserPassword(userName, newPass);
-                String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:SUCCESS:00";
-                this.messages.put(error);
-                Date curDate = new Date();
-                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Password Changed.");
+                ResultSet result2 = database.returnProfessorInfo(userName);
+                if (result2.next()){
+                    if (!result2.getString("pass").equals(oldPass)) {
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":01:BADPASS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Unsuccessful due to bad password.");
+                } else {
+                    database.updateUserPassword(userName, newPass);
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:SUCCESS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Password Changed.");
+                }
+                } else {
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:FAIL:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - User not in database.");
+                }
             }
         } catch (SQLException | InterruptedException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+        
         }
-
-    }
+        }
 
     private void sendChatrooms() {
         if (this.userChatrooms == null) {
