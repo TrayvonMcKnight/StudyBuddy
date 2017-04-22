@@ -90,8 +90,14 @@ public class MainMenu extends AppCompatActivity {
                         intent.putExtra("MESSAGE", chatMessage);
                         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                         startActivity(intent);
+                        break;
                     }
-
+                    case "20": {
+                        ourConnector.close();
+                        Intent splashIntent = new Intent(MainMenu.this, SplashActivity.class);
+                        MainMenu.this.startActivity(splashIntent);
+                        finish();
+                    }
 
                 }
             }
