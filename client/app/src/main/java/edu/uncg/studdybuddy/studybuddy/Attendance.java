@@ -68,7 +68,7 @@ public class Attendance extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<String> attendance = new ArrayList<String>();
+                final ArrayList<String> attendance = new ArrayList<String>();
 
                 // get the value of selected answers from custom adapter
                 for (int i = 0; i < AttendanceAdapter.selectedAnswers.size(); i++) {
@@ -83,6 +83,7 @@ public class Attendance extends AppCompatActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 // TODO: handle the OK
+                                StartActivity.server.updateAttendance(cName, section, attendance);
 
                                 finish();
                             }
