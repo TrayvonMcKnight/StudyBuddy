@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 public class StudyBuddyServer extends Thread {
     // private class fields.
-    private final String version = "1.20";
+    private final String version = "1.34";
     private ServerSocket serverSocket;
     private Database database;
     private final OnlineClientList onlineList;
@@ -315,19 +315,44 @@ public class StudyBuddyServer extends Thread {
                         result = database.returnUserInfo(userName);
 
                         if (!result.next()) {
-                            Date curDate = new Date();
-                            System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - No such user.");
-                            attempts++;
-                            if (attempts != 3) {
-                                String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":01:NOUSER:00";
+                            result = database.returnInstructorInfo(userName);
+                            
+                            if(!result.next()){
+                                Date curDate = new Date();
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - No such user.");
+                                attempts++;
+                                if (attempts != 3) {
+                                    String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":01:NOUSER:00";
+                                    outStream.writeUTF(aes128.encrypt(reply));
+                                }
+                            } else if (result.getString("pass").equals(passWord)){
+                                Date curDate = new Date();
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("email") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
+                                String reply = "01:LOGIN:" + result.getString("email") + ":" + pieces[3] + ":00:ACCEPTED:00:01";
                                 outStream.writeUTF(aes128.encrypt(reply));
+                                Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("email"), database, chatrooms, aes128, true);
+                                Thread session = new Thread(sess);
+                                session.start();
+                                this.loggedIn = true;
+                                break;
+                            } else {
+                                Date curDate = new Date();
+                                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Rejected - Incorrect password.");
+                                attempts++;
+                                if (attempts != 3) {
+                                    String reply = "01:LOGIN:" + pieces[2] + ":" + pieces[3] + ":02:BADPASS:00";
+                                    outStream.writeUTF(aes128.encrypt(reply));
+                                }
                             }
+                            
+                            
+                            
                         } else if (result.getString("sPass").equals(passWord)) {
                             Date curDate = new Date();
                             database.updateLastLoginTime(result.getString("sEmail"));
                             database.updateUserLoggedIn(result.getString("sEmail"), true);
                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Login:::::: Request from: " + result.getString("sEmail") + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Login Accepted.");
-                            String reply = "01:LOGIN:" + result.getString("sEmail") + ":" + pieces[3] + ":00:ACCEPTED:00";
+                            String reply = "01:LOGIN:" + result.getString("sEmail") + ":" + pieces[3] + ":00:ACCEPTED:00:00";
                             outStream.writeUTF(aes128.encrypt(reply));
                             // Update chat rooms.
                             ResultSet rooms = database.returnAllClassesByStudent(userName);
@@ -335,7 +360,7 @@ public class StudyBuddyServer extends Thread {
                                 Student stud = chatrooms.getStudent(rooms.getString(1), rooms.getString(2), result.getString("sEmail"));
                                 stud.setOnlineStatus(true);
                             }
-                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms, aes128);
+                            Session sess = new Session(con, inStream, outStream, inFromClient, outToClient, this.onlineList, result.getString("sEmail"), database, chatrooms, aes128, false);
                             Thread session = new Thread(sess);
                             String first = result.getString("sFName");
                             String last = result.getString("sLName");

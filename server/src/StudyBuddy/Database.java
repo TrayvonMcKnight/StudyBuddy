@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -125,8 +126,6 @@ public class Database {
                 + "  `cStartTm` TIME NOT NULL,"
                 + "  `cEndTm` TIME NOT NULL,"
                 + "  `cDescription` VARCHAR(255) NOT NULL,"
-                + "  `profLName` VARCHAR(45) NOT NULL,"
-                + "  `profEmail` VARCHAR(45) NOT NULL,"
                 + "  PRIMARY KEY (`cID`),"
                 + "  UNIQUE INDEX `cID_UNIQUE` (`cID` ASC),"
                 + "  UNIQUE INDEX `className_UNIQUE` (`cName` ASC))"
@@ -183,12 +182,69 @@ public class Database {
             return success;
         }
 
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`instructors` ("
+                + "`iID` INT(12) NOT NULL AUTO_INCREMENT,"
+                + "`email` VARCHAR(45) NOT NULL,"
+                + "`pass` VARCHAR(45) NOT NULL,"
+                + "`instructor_name` VARCHAR(45) NOT NULL,"
+                + "PRIMARY KEY (`iID`),"
+                + "UNIQUE INDEX `iID_UNIQUE` (`iID` ASC),"
+                + "UNIQUE INDEX `email_UNIQUE` (`email` ASC))"
+                + "ENGINE = InnoDB;";
+                       
+        try {
+            this.callable = db_con.prepareCall(this.sql);
+        } catch (SQLException ex) {
+            System.out.println("Could not create instructors prepared statement");
+            System.out.println(ex);
+            
+            return success;}
+        
+        try {
+            this.callable.execute();
+        } catch (SQLException ex) {
+            System.out.println("Could not execute create instructors table");
+            System.out.println(ex);            
+            return success;}
+        
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`teaches` ("
+                + "`iID` INT(12) NOT NULL,"
+                + " `cID` INT(12) NOT NULL,"
+                + " INDEX `Instructor_idx` (`iID` ASC),"
+                + " INDEX `Class_idx` (`cID` ASC),"
+                + " CONSTRAINT `Instructor`"
+                + " FOREIGN KEY (`iID`)"
+                + " REFERENCES `studybuddy`.`instructors` (`iID`)"
+                + " ON DELETE NO ACTION "
+                + " ON UPDATE NO ACTION,"
+                + " CONSTRAINT `Class`"
+                + " FOREIGN KEY (`cID`)"
+                + " REFERENCES `studybuddy`.`classes` (`cID`)"
+                + " ON DELETE NO ACTION"
+                + " ON UPDATE NO ACTION)"
+                + " ENGINE = InnoDB;";
+                       
+        try {
+            this.callable = db_con.prepareCall(this.sql);
+        } catch (SQLException ex) {
+            System.out.println("Could not create teaches prepared statement");
+            System.out.println(ex);
+            
+            return success;}
+        
+        try {
+            this.callable.execute();
+        } catch (SQLException ex) {
+            System.out.println("Could not execute create teaches table");
+            System.out.println(ex);            
+            return success;}
+        
         
         this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`attendance` (" +
                 "  `profName` VARCHAR(45) NOT NULL," +
                 "  `cID` INT(12) NOT NULL," +
                 "  `sID` INT(12) NOT NULL," +
-                "  `sAtt` BINARY(1) NOT NULL," +
+                "  `sAtt` TINYINT(1) NOT NULL," +
                 "  `timestmp` TIMESTAMP(6) NOT NULL," +
                 "  INDEX `cID_idx` (`cID` ASC)," +
                 "  INDEX `sID_idx` (`sID` ASC)," +
@@ -300,7 +356,7 @@ public class Database {
                         this.statement.execute();
                         temp = 0;
                         // automatically enrole this user in the 490 class.
-                        this.enroll(this.getUserID(email), 3);
+                        this.enroll(this.getUserID(email), 20);
                     } catch (SQLException ex) {
                         Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
                         temp = 4;
@@ -360,6 +416,27 @@ public class Database {
         }
         return result;
     }
+    
+    public ResultSet returnProfessorInfo(String email){
+        ResultSet result = null;
+        this.sql = "SELECT * FROM instructors WHERE email= ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            this.statement.setString(1, email);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            result = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
 
     public boolean updateLastLoginTime(String username) {
         boolean result = false;
@@ -386,7 +463,12 @@ public class Database {
         boolean success = false;
         if (this.getUserID(username) != 0) {
             try {
-                this.sql = "UPDATE students SET sPass= ? WHERE sEmail= ?";
+                if (this.isProfessor(username)){
+                    this.sql = "UPDATE instructors SET pass= ? WHERE email= ?";
+                } else {
+                    this.sql = "UPDATE students SET sPass= ? WHERE sEmail= ?";
+                }
+                
                 statement = db_con.prepareStatement(this.sql);
                 statement.setString(1, pass);
                 statement.setString(2, username);
@@ -462,13 +544,20 @@ public class Database {
 
     public int getUserID(String username) {
         int id = 0;
-        this.sql = "SELECT sID FROM students WHERE sEmail= ?";
+        String field = "";
+        if (this.isProfessor(username)){
+            this.sql = "SELECT iID FROM instructors WHERE email= ?";
+            field = "iID";
+        } else {
+            this.sql = "SELECT sID FROM students WHERE sEmail= ?";
+            field = "sID";
+        }
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, username);
             ResultSet result = statement.executeQuery();
             while (result.next()) {
-                id = result.getInt("sID");
+                id = result.getInt(field);
             }
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
@@ -515,7 +604,7 @@ public class Database {
 
     public ResultSet returnAllClasses() {
         ResultSet result = null;
-        this.sql = "SELECT * FROM classes;";
+        this.sql = "select cID, cName, cSection, cDay, cStartTm, cEndTm, cDescription, instructor_name, email from classes natural join teaches natural join instructors order by cID;";
         try {
             this.statement = db_con.prepareStatement(this.sql);
         } catch (SQLException ex) {
@@ -531,7 +620,7 @@ public class Database {
 
     public ResultSet returnAllClassesByStudent(String email) {
         ResultSet temp = null;
-        this.sql = "select cName, cSection, cDay, cStartTm, cEndTm, cDescription, profLName, profEmail from classes natural join enrolled natural join students where students.sEmail = ?";
+        this.sql = "select cName, cSection, cDay, cStartTm, cEndTm, cDescription, instructor_name, email from classes natural join enrolled natural join students natural join teaches natural join instructors where students.sEmail = ?";
         try {
             this.statement = db_con.prepareStatement(this.sql);
             this.statement.setString(1, email);
@@ -605,4 +694,107 @@ public class Database {
         }
         return success;
     }
+
+    public ResultSet returnInstructorInfo(String username) {
+        ResultSet result = null;
+        this.sql = "SELECT * FROM instructors WHERE email= ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            this.statement.setString(1, username);
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            result = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    ResultSet returnAllClassesByInstructor(String email) {
+        ResultSet temp = null;
+        this.sql = "select cName, cSection, cDay, cStartTm, cEndTm, cDescription, instructor_name, email from classes natural join teaches natural join instructors where email = ?";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, email);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return temp;
+    }
+    
+     private ResultSet returnCIDandProfessorName(String name, String section) {
+        ResultSet temp = null;
+        this.sql = "select instructor_name, cID from classes natural join teaches natural join instructors where cName = ? and cSection = ?;";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, name);
+            this.statement.setString(2, section);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return temp;
+    }
+     
+     public void updateAttendance(String name, String section, String email, Boolean attendance){
+         ResultSet instructorInfo = this.returnCIDandProfessorName(name, section);
+         int cID = 0;
+         int sID = this.getUserID(email);
+         byte present = 1;
+         String profName = "";
+        try {
+            while (instructorInfo.next()){
+                profName = instructorInfo.getString(1);
+                cID = instructorInfo.getInt(2);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (!attendance) present = 0;
+        Date curDate = new Date();
+        Timestamp timestamp = new Timestamp(curDate.getTime());
+        
+        this.sql = "insert into attendance (profName, cID, sID, sAtt, timestmp) values (?, ?, ?, ?, ?);";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, profName);
+            this.statement.setInt(2, cID);
+            this.statement.setInt(3, sID);
+            this.statement.setByte(4, present);
+            this.statement.setTimestamp(5, timestamp);
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+     }
+     
+     private boolean isProfessor(String email){
+         boolean success = false;
+         ResultSet temp = null;
+        this.sql = "select * from instructors where email = ?;";
+        try {
+            this.statement = db_con.prepareStatement(this.sql);
+            this.statement.setString(1, email);
+            temp = statement.executeQuery();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            if (temp.next()){
+                success = true;
+            } else {
+                success = false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         return success;
+     }
 }

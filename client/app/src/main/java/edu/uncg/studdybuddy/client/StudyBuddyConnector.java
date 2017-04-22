@@ -68,6 +68,7 @@ public class StudyBuddyConnector {
     private ArrayList<File> files;
     private AtomicBoolean waiter;
     private AES128CBC aes128;
+    private ArrayList<String> attendance;
 
 
     // Class constructor
@@ -133,6 +134,8 @@ public class StudyBuddyConnector {
             this.client.close();
             this.loggedIn = false;
             this.connected = false;
+            this.messageQueue.interrupt();
+            this.messageHandler.interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -230,6 +233,11 @@ public class StudyBuddyConnector {
         switch (answer) {
             // If the login is accepted...
             case "ACCEPTED":
+                if (pieces[7].equals("01")){
+                    this.isProfessor = true;
+                } else {
+                    this.isProfessor = false;
+                }
                 loggedIn = true;
                 this.userEmail = pieces[2];
                 this.messages = new LinkedBlockingQueue();
@@ -361,6 +369,22 @@ public class StudyBuddyConnector {
         return success;
     }
 
+    public boolean updateAttendance(String cName, String section, ArrayList<String> attendance){
+        boolean success = false;
+        if (loggedIn && isProfessor){
+            this.attendance = attendance;
+            String serverMessage = "14:ATTENDANCE:" + cName + ":" + section + ":" + this.getUserEmail() + ":INCOMING:01";
+            try {
+                messages.put(serverMessage);
+                success = true;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return success;
+    }
+
     public void sendPrivateTextMessage(String to, String message) {
         if (loggedIn && to.length() > 0 && message.length() > 0) {
             try {
@@ -433,6 +457,11 @@ public class StudyBuddyConnector {
                         while (waiter.get()) {
 
                         }
+                    } else if (pieces[1].equalsIgnoreCase("ATTENDANCE")) {
+                        messages.put(mess);
+                        waiter.set(true);
+                        while (waiter.get()) {
+                        }
                     } else {
                         try {
                             messages.put(mess);
@@ -443,6 +472,11 @@ public class StudyBuddyConnector {
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                    // Notify all that server is gone.
+                    for (int c = 0; c < listeners.size();c++){
+                        listeners.get(c).onDataLoaded("20:SERVERGONE:DISCONNECT::::00");
+                    }
+
                     iterate = false;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -627,7 +661,7 @@ public class StudyBuddyConnector {
                                                     Log.d("App", "failed to create directory");
                                                 }
                                             }
-
+                                            // Create local folder from class name.
                                             File imageFile = new File(mediaStorageDir.getAbsolutePath() + "/" + pieces[2]);
                                             if (!imageFile.exists()){
                                                 imageFile.createNewFile();
@@ -641,9 +675,6 @@ public class StudyBuddyConnector {
                                             bos.write(incomingFile, 0, incomingFile.length);
                                             bos.close();
                                             fos.close();
-                                            // Create local folder from class name.
-
-
 
                                             // Store file in the folder.
                                             if (imageFile.exists()){
@@ -690,6 +721,15 @@ public class StudyBuddyConnector {
                                             thread.start();
                                         }
                                     }
+                                    case "14": {
+                                        if (pieces[1].equalsIgnoreCase("ATTENDANCE") && pieces[5].equalsIgnoreCase("ACCEPTED")) {
+                                            out.writeInt(attendance.size());
+                                            for (int c = 0;c < attendance.size();c++){
+                                                out.writeUTF(aes128.encrypt(attendance.get(c)));
+                                            }
+                                            waiter.set(false);
+                                        }
+                                    }
 
                                     default: {
                                     }
@@ -711,12 +751,18 @@ public class StudyBuddyConnector {
                         case "Chatrooms": {
                             chatrooms = null;
                             chatrooms = (Chatrooms) object;
-                            Student stud = chatrooms.getStudent(userEmail);
-                            if (stud.getStudentName() != null) {
-                                userName = stud.getStudentName();
+                            if (!isProfessor) {
+                                Student stud = chatrooms.getStudent(userEmail);
+                                if (stud.getStudentName() != null) {
+                                    userName = stud.getStudentName();
+                                } else {
+                                    userName = userEmail;
+                                }
                             } else {
                                 userName = userEmail;
                             }
+
+
                             Thread.sleep(500);
                             if (!listeners.isEmpty()) {
                                 listeners.get(0).onObjectReady("Chatrooms");

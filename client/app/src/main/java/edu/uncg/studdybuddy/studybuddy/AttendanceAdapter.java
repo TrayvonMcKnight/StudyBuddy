@@ -27,7 +27,7 @@ public class AttendanceAdapter extends BaseAdapter {
         // initialize arraylist and add static string for all the students
         selectedAnswers = new ArrayList<>();
         for (int i = 0; i < studentList.size(); i++) {
-            selectedAnswers.add("Not Attempted");
+            selectedAnswers.add("yes");
         }
         inflter = (LayoutInflater.from(applicationContext));
     }
@@ -49,11 +49,13 @@ public class AttendanceAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int i, View view, ViewGroup viewGroup) {
+        final String[] pieces = studentList.get(i).split(":");
         view = inflter.inflate(R.layout.list_items_attendance, null);
         // get the reference of TextView and Button's
         TextView question = (TextView) view.findViewById(R.id.question);
         RadioButton yes = (RadioButton) view.findViewById(R.id.yes);
         RadioButton no = (RadioButton) view.findViewById(R.id.no);
+        yes.setChecked(true);
         // perform setOnCheckedChangeListener event on yes button
         yes.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -74,7 +76,8 @@ public class AttendanceAdapter extends BaseAdapter {
             }
         });
         // set the value in TextView
-        question.setText(studentList.get(i));
+
+        question.setText(pieces[0]);
         return view;
     }
 }

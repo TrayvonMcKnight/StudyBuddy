@@ -31,13 +31,14 @@ public class Attendance extends AppCompatActivity {
     private Chatrooms classes;
     private ListView classList;
     private String myName;
-    AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+    private String cName, section;
+    AlertDialog.Builder builder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_attendance);
-
+        this.builder = new AlertDialog.Builder(Attendance.this);
 
         Bundle extras = getIntent().getExtras();
         this.myName = extras.getString("myName");
@@ -45,14 +46,14 @@ public class Attendance extends AppCompatActivity {
 
         StudyBuddyConnector connector = StartActivity.server.getInstance();
         classes = connector.getChatrooms();
+        this.cName = extras.getString("className");
+        this.section = extras.getString("section");
 
-
-        Student[] students = classes.getStudents(extras.getString("className"),
-                extras.getString("section"));
+        final Student[] students = classes.getStudents(cName, section);
 
         final List<String> arrayList = new ArrayList<>();
         for(int i = 0; i < students.length; i++){
-            arrayList.add(students[i].getStudentName());
+            arrayList.add(students[i].getStudentName() + ":" + students[i].getStudentEmail());
         }
 
         // get the reference of ListView and Button
@@ -67,10 +68,11 @@ public class Attendance extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String message = "";
+                final ArrayList<String> attendance = new ArrayList<String>();
+
                 // get the value of selected answers from custom adapter
                 for (int i = 0; i < AttendanceAdapter.selectedAnswers.size(); i++) {
-                    message = message + "\n" + (i + 1) + " " + AttendanceAdapter.selectedAnswers.get(i);
+                    attendance.add(cName + ":" + section + ":" + students[i].getStudentEmail() + ":" + AttendanceAdapter.selectedAnswers.get(i));
                 }
 
                 // display the message on screen with the help of Dialog.
@@ -81,6 +83,9 @@ public class Attendance extends AppCompatActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 // TODO: handle the OK
+                                StartActivity.server.updateAttendance(cName, section, attendance);
+
+                                finish();
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {

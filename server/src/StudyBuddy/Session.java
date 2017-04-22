@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,9 +41,10 @@ public class Session extends Thread {
     private final ChatRoomBackups backup;
     private final AtomicBoolean waiting = new AtomicBoolean(false);
     private final AES128CBC aes128;
+    private final boolean isInstructor;
 
     // Public constructor.
-    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, AES128CBC aes) {
+    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, AES128CBC aes, boolean instruct) {
         this.con = con;
         this.onlineList = list;
         this.clientIP = con.getRemoteSocketAddress().toString().substring(1);
@@ -57,14 +59,19 @@ public class Session extends Thread {
         this.userChatrooms = null;
         this.backup = new ChatRoomBackups();
         this.aes128 = aes;
+        this.isInstructor = instruct;
     }
 
     @Override
     public void run() {
         // Build the user's copy of the Chatrooms class when a new session is created for a user.
+        if (this.isInstructor){
+            this.userChatrooms = this.buildInstructorChatrooms(this.userName);
+        } else {
         this.userChatrooms = this.buildUserChatrooms(this.userName);
         // Notify all of the user's classmates that the user has logged in.
         this.broadcastOnlineBuddies(true);
+        }
         // Create the user's message listener and handler threads.
         this.messageHandling = new Thread(new MessageQueue());
         this.messageHandling.start();
@@ -321,24 +328,46 @@ public class Session extends Thread {
     private void changePassword(String oldPass, String newPass) {
         try {
             ResultSet result = database.returnUserInfo(userName);
-            result.next();
-            if (!result.getString("sPass").equals(oldPass)) {
-                String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":01:BADPASS:00";
-                this.messages.put(error);
-                Date curDate = new Date();
-                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Unsuccessful due to bad password.");
+            if (result.next()){
+                if (!result.getString("sPass").equals(oldPass)) {
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":01:BADPASS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Unsuccessful due to bad password.");
+                } else {
+                    database.updateUserPassword(userName, newPass);
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:SUCCESS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Password Changed.");
+                }
             } else {
-                database.updateUserPassword(userName, newPass);
-                String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:SUCCESS:00";
-                this.messages.put(error);
-                Date curDate = new Date();
-                System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Password Changed.");
+                ResultSet result2 = database.returnProfessorInfo(userName);
+                if (result2.next()){
+                    if (!result2.getString("pass").equals(oldPass)) {
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":01:BADPASS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Unsuccessful due to bad password.");
+                } else {
+                    database.updateUserPassword(userName, newPass);
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:SUCCESS:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Password Changed.");
+                }
+                } else {
+                    String error = "04:CHANGEPASS:" + oldPass + ":" + newPass + ":00:FAIL:00";
+                    this.messages.put(error);
+                    Date curDate = new Date();
+                    System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::ChangePass: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - User not in database.");
+                }
             }
         } catch (SQLException | InterruptedException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+        
         }
-
-    }
+        }
 
     private void sendChatrooms() {
         if (this.userChatrooms == null) {
@@ -405,6 +434,20 @@ public class Session extends Thread {
         return temp;
     }
 
+    private Chatrooms buildInstructorChatrooms(String email) {
+        Chatrooms temp = new Chatrooms();
+        ResultSet rooms = database.returnAllClassesByInstructor(email);
+        try {
+            while (rooms.next()) {
+                temp.addChatroom(mainChatrooms.getChatroom(rooms.getString(1), rooms.getString(2)));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return temp;
+    }
+
     private class ObjectMessageHandler extends Thread {
         // Class Fields
 
@@ -416,6 +459,10 @@ public class Session extends Thread {
                     String message = (String) aes128.decrypt(dataIn.readUTF());
                     String[] pieces = message.split(":");
                     if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
+                        waiting.set(true);
+                        messages.put(message);
+                        while (waiting.get());
+                    } else if (pieces[1].equalsIgnoreCase("ATTENDANCE") && pieces[5].equalsIgnoreCase("INCOMING")){
                         waiting.set(true);
                         messages.put(message);
                         while (waiting.get());
@@ -606,6 +653,32 @@ public class Session extends Thread {
 
                                             thread.start();
                                         }
+                                        break;
+                                    }
+                                    case "14": {
+                                        if (pieces[1].equalsIgnoreCase("ATTENDANCE") && pieces[5].equalsIgnoreCase("INCOMING")) {
+                                            ArrayList<String> attendanceSheet = new ArrayList<>();
+                                            String serverMessage = "14:ATTENDANCE:" + pieces[2] + ":" + pieces[3] + "::ACCEPTED:00";
+                                            dataOut.writeUTF(aes128.encrypt(serverMessage));
+                                            int listSize = dataIn.readInt();
+                                            for (int c=0;c < listSize;c++){
+                                                attendanceSheet.add(aes128.decrypt(dataIn.readUTF()));
+                                            }
+                                            waiting.set(false);
+                                            for (int d=0;d < attendanceSheet.size();d++){
+                                                String[] parts = attendanceSheet.get(d).split(":");
+                                                boolean present = true;
+                                                if (parts[3].equalsIgnoreCase("No")) {
+                                                    present = false;
+                                                }
+                                                database.updateAttendance(parts[0], parts[1], parts[2], present);
+                                            }
+                                            Date curDate = new Date();
+                                            System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Attendance: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Attendance added.");
+                                            
+                                        }
+                                        
+                                        
                                         break;
                                     }
                                     default:
