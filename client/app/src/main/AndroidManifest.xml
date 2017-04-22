@@ -46,6 +46,9 @@
             android:name=".ClassesActivity"
             android:label="@string/classes" />
         <activity
+            android:name=".InstructorClassesActivity"
+            android:label="@string/insturctorsClasses" />
+        <activity
             android:name=".MainMenu"
             android:label="@string/main_menu" />
         <activity
