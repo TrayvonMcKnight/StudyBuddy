@@ -49,7 +49,7 @@ public class PrivateChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_drawer);
+        setContentView(R.layout.activity_chat_room);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         this.server = StartActivity.server.getInstance();
         Bundle extras = getIntent().getExtras();
