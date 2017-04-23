@@ -369,6 +369,10 @@ public class StudyBuddyConnector {
         return success;
     }
 
+    public void addMessageToChatrooms(String cName, String cSection, String sender, String message){
+        this.chatrooms.addMessage(cName, cSection, sender, message);
+    }
+
     public boolean updateAttendance(String cName, String section, ArrayList<String> attendance){
         boolean success = false;
         if (loggedIn && isProfessor){
