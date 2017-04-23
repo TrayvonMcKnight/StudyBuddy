@@ -201,7 +201,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                         String[] parts = reply.split(" ");
                         String fileName = parts[3];
                         File clickedFile = new File(Environment.getExternalStorageDirectory() + "/" + className + "_" + sec + "/" + fileName);
-                        if (clickedFile.isFile()) {
+                        if (clickedFile.isFile() && isStoragePermissionGranted()) {
                             showPhoto(clickedFile);
                         }
                     }
@@ -304,14 +304,14 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
     public  boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 Log.v(TAG,"Permission is granted");
                 return true;
             } else {
 
                 Log.v(TAG,"Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 2);
                 return false;
             }
         }
