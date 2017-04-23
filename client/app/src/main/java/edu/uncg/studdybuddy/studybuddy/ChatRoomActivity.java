@@ -27,11 +27,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -151,20 +153,10 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                                                                 String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
                                                                 chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
                                                                 updateAdapter();
-
-
-                                                                //Uri filepath = Uri.parse(s + "/" + pieces[2]);
-                                                                File filepath = new File(Environment.getExternalStorageDirectory() + "/" + className + "_" + sec + "/" + pieces[2]);
-                                                                if (filepath.exists()){
-                                                                    showPhoto(filepath);
-                                                                }
-
                                                             } else if (pieces[5].equalsIgnoreCase("ACCEPTED") && pieces[1].equalsIgnoreCase("SENDFILE")) {
                                                                 String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
                                                                 chatMessList.add(new ChatRoomMessage(myName, chatMessage));
                                                                 updateAdapter();
-
-
                                                             }
                                                             break;
                                                         }
@@ -192,6 +184,26 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         // init adapter
         adapter = new ChatAdapter(getApplicationContext(), chatMessList);
         messagesList.setAdapter(adapter);
+        messagesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                                    long id) {
+
+                //String item = ((TextView)view).getText().toString();
+                String reply = chatMessList.get(position).getMessage();
+                String substring = reply.substring(0, 14);
+                if (substring.equals("INCOMING FILE:")){
+                    String[] parts = reply.split(" ");
+                    String fileName = parts[3];
+                    File clickedFile = new File(Environment.getExternalStorageDirectory() + "/" + className + "_" + sec + "/" + fileName);
+                    if (clickedFile.isFile()){
+                        showPhoto(clickedFile);
+                    }
+                }
+
+
+            }
+        });
 
         mBtnSend = (Button) findViewById(R.id.btnSend);
         mBtnSend.setOnClickListener(new View.OnClickListener() {
@@ -295,7 +307,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                 }
                 File finalFile = createFile(out);
                 String mCurrentPhotoPath = finalFile.getAbsolutePath();
-                server.sendFileToChatroom(getApplicationContext(), this.className, this.sec, createFile(out));
+                server.sendFileToChatroom(getApplicationContext(), this.className, this.sec, finalFile);
 
             }
         }
