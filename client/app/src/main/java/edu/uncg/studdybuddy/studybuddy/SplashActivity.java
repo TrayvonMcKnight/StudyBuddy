@@ -18,7 +18,7 @@ import edu.uncg.studdybuddy.client.StudyBuddyConnector;
  */
 
 public class SplashActivity extends AppCompatActivity {
-    private final String VERSION = "1.38";
+    private String VERSION;
     private TextView versionText;
     private TextView statusText;
     private Button try_again;
@@ -31,6 +31,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         this.connector = StartActivity.server.getInstance();
+        this.VERSION = this.connector.getVersion();
         this.try_again = (Button) findViewById(R.id.tryAgainbtn);
         this.versionText = (TextView) findViewById(R.id.versionText);
         this.statusText = (TextView) findViewById(R.id.statusText);
