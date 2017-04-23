@@ -92,6 +92,19 @@ public class MainMenu extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     }
+                    case "13": {
+                        if (pieces[5].equalsIgnoreCase("INCOMING") && pieces[1].equalsIgnoreCase("SENDFILE")){
+                            String senderName = MainMenu.chatrooms.getStudent(pieces[3], pieces[4], pieces[8]).getStudentName();
+                            String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
+                            chatrooms.addMessage(pieces[3], pieces[4], pieces[8], chatMessage);
+                            ourConnector.addMessageToChatrooms(pieces[3], pieces[4], pieces[8], chatMessage);
+                        } else if (pieces[5].equalsIgnoreCase("ACCEPTED") && pieces[1].equalsIgnoreCase("SENDFILE")) {
+                            String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
+                            //chatMessList.add(new ChatRoomMessage(myName, chatMessage));
+                            //updateAdapter();
+                        }
+                        break;
+                    }
                     case "20": {
                         ourConnector.close();
                         Intent splashIntent = new Intent(MainMenu.this, SplashActivity.class);
