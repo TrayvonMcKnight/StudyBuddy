@@ -18,7 +18,7 @@ import edu.uncg.studdybuddy.client.StudyBuddyConnector;
  */
 
 public class SplashActivity extends AppCompatActivity {
-    private final String VERSION = "1.36";
+    private final String VERSION = "1.34";
     private TextView versionText;
     private TextView statusText;
     private Button try_again;
