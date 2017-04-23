@@ -265,11 +265,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                 startActivity(intent);
                 return true;
             case R.id.action_sendpic:
-                if (Build.VERSION.SDK_INT >= 23) {
-                    requestCameraPermissions();
-                } else {
-                    dispatchTakePictureIntent();
-                }
+                dispatchTakePictureIntent();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -296,11 +292,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-            if (Build.VERSION.SDK_INT >= 23) {
-                requestCameraPermissions();
-            } else {
-                dispatchTakePictureIntent();
-            }
+            dispatchTakePictureIntent();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -309,45 +301,6 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
     }
 
     // Permissions for camera and external storage.
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        boolean allowed = true;
-        switch (requestCode) {
-            case MY_REQUEST_CODE:
-                for (int res : grantResults) {
-                    // if user granted all required permissions then 'allowed' will return true.
-                    allowed = allowed && (res == PackageManager.PERMISSION_GRANTED);
-                }
-                break;
-            default:
-                // if user denied then 'allowed' return false.
-                allowed = false;
-                break;
-        }
-        if (allowed) {
-            // if user granted permissions then do your work.
-            dispatchTakePictureIntent();
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    private void takePicture(){
-        Intent cameraIntent=new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, MyFileContentProvider.CONTENT_URI);
-        startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private void requestCameraPermissions(){
-
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    MY_REQUEST_CODE);
-        } else {
-            dispatchTakePictureIntent();
-        }
-    }
 
     public  boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
