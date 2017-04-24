@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">StudyBuddy</string>
     <string name="title_activity_profile">ProfileActivity</string>
-    <string name="title_activity_settings">Study Buddy Settings</string>
+    <string name="title_activity_settings">Settings</string>
     <string name="RegistrationActivity">Create New User Account</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
