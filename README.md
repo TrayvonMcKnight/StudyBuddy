@@ -1,4 +1,4 @@
-<p align="center">
+
   ![Alt text]StudyBuddy/images.png
 
 
