@@ -1,7 +1,12 @@
 package edu.uncg.studdybuddy.studybuddy;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -20,6 +25,7 @@ public class MainMenu extends AppCompatActivity {
     protected static Chatrooms chatrooms;
     private StudyBuddyConnector ourConnector;
     private StudyBuddyConnector.MyCustomObjectListener listener;
+    private final int MY_REQUEST_CODE = 1000;
     protected static ArrayList<String> privateChats;
 
     @InjectView(R.id.classesButton) Button classesButton;
@@ -36,6 +42,10 @@ public class MainMenu extends AppCompatActivity {
         this.listener = null;
         ourConnector = StartActivity.server.getInstance();
         privateChats = new ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            this.handlePermissions();
+        }
 
         ourConnector.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
             @Override
@@ -205,5 +215,39 @@ public class MainMenu extends AppCompatActivity {
                 welcome.setText("Logged in as: " + userName);
             }
         });
+    }
+
+
+    // Handle Permissions
+    @TargetApi(Build.VERSION_CODES.M)
+    private void handlePermissions(){
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_REQUEST_CODE);
+        } else {
+            System.out.println("We got the damned thing...");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        boolean allowed = true;
+        switch (requestCode) {
+            case MY_REQUEST_CODE:
+                for (int res : grantResults) {
+                    // if user granted all required permissions then 'allowed' will return true.
+                    allowed = allowed && (res == PackageManager.PERMISSION_GRANTED);
+                }
+                break;
+            default:
+                // if user denied then 'allowed' return false.
+                allowed = false;
+                break;
+        }
+        if (allowed) {
+            // if user granted permissions then do your work.
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
