@@ -48,5 +48,8 @@
     <string name="email2">Email:</string>
     <string name="name2">Name:</string>
     <string name="insturctorsClasses">Instructor\'s Classes</string>
+    <string name="emailCap">EMAIL</string>
+    <string name="nameCap">NAME</string>
+    <string name="Cap">PROFILE</string>
 
 </resources>
