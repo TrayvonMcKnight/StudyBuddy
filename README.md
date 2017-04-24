@@ -1,6 +1,6 @@
 <p align="center">
-  
-![alt tag https://github.com/Metalaxe1/StudyBuddy/blob/master/images.png ]</p>
+  ![Alt text](https://github.com/Metalaxe1/StudyBuddy/blob/master/images.png)
+
 
 
 
