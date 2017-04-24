@@ -1,8 +1,6 @@
 
-  ![Alt text]StudyBuddy/images.png
 
-
-
+![Alt text](https://github.com/Metalaxe1/StudyBuddy/blob/master/images.png)
 
 
 # _CSC 490 Senior Capstone Project_ 
