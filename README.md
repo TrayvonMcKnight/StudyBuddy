@@ -1,5 +1,5 @@
 <p align="center">
-  ![Alt text](https://github.com/Metalaxe1/StudyBuddy/blob/master/images.png)
+  ![Alt text]StudyBuddy/images.png
 
 
 
