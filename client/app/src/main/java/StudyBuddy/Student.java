@@ -8,11 +8,13 @@ public class Student implements Serializable {
     private String name, email;
     private boolean online;
     private int status;
+    private boolean absent;
 
     public Student(String name, String email){
         this.name = name;
         this.email = email;
         this.online = false;
+        this.absent = false;
     }
 
     public Student(String name, String email, Boolean online, int status){
@@ -28,6 +30,14 @@ public class Student implements Serializable {
 
     public boolean getOnlineStatus(){
         return this.online;
+    }
+
+    public void setAbsent(Boolean attend){
+        this.absent = attend;
+    }
+
+    public boolean getAbsent(){
+        return this.absent;
     }
 
     public void setAvailability(int status){

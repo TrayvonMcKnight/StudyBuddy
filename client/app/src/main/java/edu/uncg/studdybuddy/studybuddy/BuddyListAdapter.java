@@ -70,6 +70,14 @@ public class BuddyListAdapter extends BaseAdapter {
         }
         statTxt.setText(stat);
 
+        boolean absent = s.getAbsent();
+        if (absent){
+            String name = s.getStudentName();
+            nameTxt.setTextColor(Color.BLACK);
+        } else {
+            nameTxt.setTextColor(Color.BLUE);
+        }
+
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

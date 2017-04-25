@@ -49,6 +49,10 @@ public class Chatrooms implements Serializable {
         return temp;
     }
 
+    public void updateStudentAbsence(String cName, String sec, String mail, boolean attend) {
+        this.rooms[getIndex(cName, sec)].setStudentAbsent(mail, attend);
+    }
+
     public int getNumberOfStudents(String className, String section) {
         return this.rooms[this.getIndex(className, section)].returnNumberOfStudents();
     }
@@ -67,7 +71,7 @@ public class Chatrooms implements Serializable {
         return this.rooms[this.getIndex(chatName, section)];
     }
 
-    public Chatroom getChatroom(int index){
+    public Chatroom getChatroom(int index) {
         Chatroom temp = null;
         if (index < this.numElements && index >= 0) {
             return this.rooms[index];
@@ -91,10 +95,12 @@ public class Chatrooms implements Serializable {
         return this.rooms[this.getIndex(chatName, section)].getStudent(email);
     }
 
-    public Student getStudent(String email){
-        if (this.rooms[0] != null){
+    public Student getStudent(String email) {
+        if (this.rooms[0] != null) {
             return this.rooms[0].getStudent(email);
-        } else return null;
+        } else {
+            return null;
+        }
     }
 
     public String[][] getMessages(String chatName, String section) {
@@ -187,19 +193,19 @@ public class Chatrooms implements Serializable {
             return this.professorName;
         }
 
-        public String getDays(){
+        public String getDays() {
             return this.days;
         }
 
-        public String getDescription(){
+        public String getDescription() {
             return this.description;
         }
 
-        public Time getStartTime(){
+        public Time getStartTime() {
             return this.start;
         }
 
-        public Time getEndTime(){
+        public Time getEndTime() {
             return this.end;
         }
 
@@ -237,7 +243,15 @@ public class Chatrooms implements Serializable {
             return null;
         }
 
-        public Student getStudent(int index){
+        public void setStudentAbsent(String mail, boolean attend) {
+            for (int c = 0; c < this.studentElements; c++) {
+                if (this.students[c].getStudentEmail().equalsIgnoreCase(mail)) {
+                    this.students[c].setAbsent(attend);
+                }
+            }
+        }
+
+        public Student getStudent(int index) {
             Student student = null;
             if (index < this.returnNumberOfStudents() && index >= 0) {
                 student = this.students[index];
@@ -247,7 +261,7 @@ public class Chatrooms implements Serializable {
 
         public String[][] getMessages() {
             String[][] temp = new String[this.messageElements][3];
-            for (int c = 0;c < this.messageElements;c++){
+            for (int c = 0; c < this.messageElements; c++) {
                 temp[c][0] = this.messages[c][0];
                 temp[c][1] = this.messages[c][1];
                 temp[c][2] = this.messages[c][2];

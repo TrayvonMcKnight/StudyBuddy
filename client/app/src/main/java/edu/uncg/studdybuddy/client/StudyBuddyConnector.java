@@ -41,9 +41,9 @@ import edu.uncg.studdybuddy.encryption.ECDHKeyExchange;
 
 public class StudyBuddyConnector {
     // Private class fields
-    private final String IP = "studybuddy.uncg.edu";   // byte array to hold server IP address.
+    private final String IP = "192.168.0.5";   // byte array to hold server IP address.
     private final int port = 8008; // integer to hold server port number.
-    private final String VERSION = "1.39";
+    private final String VERSION = "1.40";
     private InetAddress address;    // InetAddress comprised of IP and port.
     private final String greetString = "05:HANDSHAKE:STUDYBUDDY:1.00:::01";   // String to hold the handshake greeting.
     private final int handshakeTimeout = 5000; // integer to hold the server timeout for the handshake.
@@ -68,7 +68,7 @@ public class StudyBuddyConnector {
     private ArrayList<MyCustomObjectListener> listeners;    // Array list which holds all available event listeners registered.
     private ArrayList<File> files;
     private AtomicBoolean waiter;
-    private AES128CBC aes128;
+    //private AES128CBC aes128;
     private ArrayList<String> attendance;
 
 
@@ -168,20 +168,20 @@ public class StudyBuddyConnector {
             this.in = new DataInputStream(inFromServer); // Instantiate data stream from input stream.
 
             // Perform Key Agreement
-            ECDHKeyExchange keyXchanger = new ECDHKeyExchange();
-            byte[] myPublic = keyXchanger.returnMyPublicKey();
-            out.writeUTF(new String(Base64.encodeToString(myPublic, Base64.DEFAULT)));
+            //ECDHKeyExchange keyXchanger = new ECDHKeyExchange();
+            //byte[] myPublic = keyXchanger.returnMyPublicKey();
+            //out.writeUTF(new String(Base64.encodeToString(myPublic, Base64.DEFAULT)));
+            //out.flush();
+            //String key = in.readUTF();
+           // byte[] theirPublic =Base64.decode(key, Base64.DEFAULT);
+            //keyXchanger.setTheirPublicKey(theirPublic);
+            //this.aes128 = new AES128CBC(keyXchanger.computeSharedSecret());
+
+            out.writeUTF(this.greetString); // Send handshake string though data stream.
             out.flush();
-            String key = in.readUTF();
-            byte[] theirPublic =Base64.decode(key, Base64.DEFAULT);
-            keyXchanger.setTheirPublicKey(theirPublic);
-            this.aes128 = new AES128CBC(keyXchanger.computeSharedSecret());
-
-            out.writeUTF(aes128.encrypt(this.greetString)); // Send handshake string though data stream.
-            out.flush();
 
 
-            if (aes128.decrypt(in.readUTF()).equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
+            if (in.readUTF().equals("05:HANDSHAKE:STUDYBUDDY:1.00:00:HELLO:00")) { // Read the incoming packet and verify the server said 'HELLO' to ensure proper handshake.
                 // Possibly consider not getting these until the session has been created.
                 outToServerObj = new ObjectOutputStream(this.client.getOutputStream());
                 inFromServerObj = new ObjectInputStream(this.client.getInputStream());
@@ -223,8 +223,8 @@ public class StudyBuddyConnector {
         String[] pieces = {};
         try {
             String login = "01:LOGIN:" + email + ":" + pass + ":::01";
-            this.out.writeUTF(aes128.encrypt(login));
-            String reply = (String) aes128.decrypt(in.readUTF());
+            this.out.writeUTF(login);
+            String reply = (String) in.readUTF();
             pieces = reply.split(":");
             answer = pieces[5];
 
@@ -285,8 +285,8 @@ public class StudyBuddyConnector {
             String[] pieces = {};
             String create = "09:CREATEACCOUNT:" + email + ":" + pass1 + ":" + pass2 + ":" + fName + ":" + lName;
             try {
-                this.out.writeUTF(aes128.encrypt(create));
-                String reply = (String) aes128.decrypt(in.readUTF());
+                this.out.writeUTF(create);
+                String reply = (String) in.readUTF();
                 pieces = reply.split(":");
                 answer = pieces[4];
                 switch (answer) {
@@ -443,7 +443,7 @@ public class StudyBuddyConnector {
             boolean iterate = true;
             while (iterate) {
                 try {
-                    String mess = (String) aes128.decrypt(in.readUTF());
+                    String mess = (String) in.readUTF();
                     String[] pieces = mess.split(":");
                     if (pieces[0].equals("00") && pieces[5].equals("GOODBYE") && pieces[6].equals("00")) {
                         break;
@@ -732,7 +732,7 @@ public class StudyBuddyConnector {
                                         if (pieces[1].equalsIgnoreCase("ATTENDANCE") && pieces[5].equalsIgnoreCase("ACCEPTED")) {
                                             out.writeInt(attendance.size());
                                             for (int c = 0;c < attendance.size();c++){
-                                                out.writeUTF(aes128.encrypt(attendance.get(c)));
+                                                out.writeUTF(attendance.get(c));
                                             }
                                             waiter.set(false);
                                         }
@@ -745,10 +745,10 @@ public class StudyBuddyConnector {
                             } else if (pieces[6].equals("01")) {    // Outgoing messages from client.
                                 if (pieces[1].equals("TEXTMESSAGE") && pieces[5].equals("INCOMING")) {
                                     String textMessage = (String) messages.take();
-                                    out.writeUTF(aes128.encrypt(message));
-                                    out.writeUTF(aes128.encrypt(textMessage));
+                                    out.writeUTF(message);
+                                    out.writeUTF(textMessage);
                                 } else {
-                                    out.writeUTF(aes128.encrypt(message));
+                                    out.writeUTF(message);
                                 }
                             } else {
                                 logout();
