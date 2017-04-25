@@ -61,10 +61,12 @@
             android:label="@string/change_password" />
         <activity
             android:name=".Attendance"
-            android:label="@string/attendance"></activity>
+            android:label="@string/attendance">
+        </activity>
         <activity
             android:name=".TeacherMenu"
-            android:label="@string/main_menu"></activity>
+            android:label="@string/main_menu">
+        </activity>
 
         <provider
             android:name=".MyFileContentProvider"
@@ -72,7 +74,10 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".BasicProfile"></activity>
+        <activity
+            android:name=".BasicProfile"
+            android:label="@string/Profile">
+        </activity>
     </application>
 
 </manifest>

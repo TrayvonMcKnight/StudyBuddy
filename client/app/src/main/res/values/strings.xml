@@ -51,5 +51,6 @@
     <string name="emailCap">EMAIL</string>
     <string name="nameCap">NAME</string>
     <string name="Cap">PROFILE</string>
+    <string name="Profile">Profile</string>
 
 </resources>
