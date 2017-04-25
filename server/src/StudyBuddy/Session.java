@@ -40,11 +40,11 @@ public class Session extends Thread {
     private Chatrooms userChatrooms;
     private final ChatRoomBackups backup;
     private final AtomicBoolean waiting = new AtomicBoolean(false);
-    private final AES128CBC aes128;
+    //private final AES128CBC aes128;
     private final boolean isInstructor;
 
     // Public constructor.
-    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, AES128CBC aes, boolean instruct) {
+    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, boolean instruct) {
         this.con = con;
         this.onlineList = list;
         this.clientIP = con.getRemoteSocketAddress().toString().substring(1);
@@ -58,7 +58,7 @@ public class Session extends Thread {
         this.mainChatrooms = mainChats;
         this.userChatrooms = null;
         this.backup = new ChatRoomBackups();
-        this.aes128 = aes;
+        //this.aes128 = aes;
         this.isInstructor = instruct;
     }
 
@@ -176,7 +176,7 @@ public class Session extends Thread {
 
     private void sendData(String mess) {
         try {
-            dataOut.writeUTF(aes128.encrypt(mess));
+            dataOut.writeUTF(mess);
         } catch (IOException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -456,7 +456,7 @@ public class Session extends Thread {
             boolean iterate = true;
             while (iterate) {
                 try {
-                    String message = (String) aes128.decrypt(dataIn.readUTF());
+                    String message = (String) dataIn.readUTF();
                     String[] pieces = message.split(":");
                     if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
                         waiting.set(true);
@@ -659,19 +659,20 @@ public class Session extends Thread {
                                         if (pieces[1].equalsIgnoreCase("ATTENDANCE") && pieces[5].equalsIgnoreCase("INCOMING")) {
                                             ArrayList<String> attendanceSheet = new ArrayList<>();
                                             String serverMessage = "14:ATTENDANCE:" + pieces[2] + ":" + pieces[3] + "::ACCEPTED:00";
-                                            dataOut.writeUTF(aes128.encrypt(serverMessage));
+                                            dataOut.writeUTF(serverMessage);
                                             int listSize = dataIn.readInt();
                                             for (int c=0;c < listSize;c++){
-                                                attendanceSheet.add(aes128.decrypt(dataIn.readUTF()));
+                                                attendanceSheet.add(dataIn.readUTF());
                                             }
                                             waiting.set(false);
                                             for (int d=0;d < attendanceSheet.size();d++){
                                                 String[] parts = attendanceSheet.get(d).split(":");
-                                                boolean present = true;
+                                                boolean absent = false;
                                                 if (parts[3].equalsIgnoreCase("No")) {
-                                                    present = false;
+                                                    absent = true;
                                                 }
-                                                database.updateAttendance(parts[0], parts[1], parts[2], present);
+                                                mainChatrooms.updateStudentAbsence(parts[0], parts[1], parts[2], absent);
+                                                database.updateAttendance(parts[0], parts[1], parts[2], !absent);
                                             }
                                             Date curDate = new Date();
                                             System.out.println("RECEIVED: " + DateFormat.getInstance().format(curDate) + "  ::Attendance: Request from: " + userName + " @ " + con.getRemoteSocketAddress().toString().substring(1) + " - Attendance added.");
