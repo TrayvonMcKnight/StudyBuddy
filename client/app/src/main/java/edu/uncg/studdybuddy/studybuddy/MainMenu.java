@@ -128,7 +128,7 @@ public class MainMenu extends AppCompatActivity {
 
             @Override
             public void onClick(View v){
-                Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                Intent intent = new Intent(getApplicationContext(), BasicProfile.class);
                 startActivity(intent);
             }
         });
