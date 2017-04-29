@@ -1,0 +1,130 @@
+##### Study Buddy User Manual #####
+
+Written By: Trayvon McKnight, Tony Ratliff, J'lesa Carr
+
+USER TRAINING
+
+Server Installation
+The server software was written using the Java SE programming language.  While 
+the distribution software was compiled with Java 1.8.111, it was designed to be 
+Java 7 compatible as no advanced features from Java 8 was used in this production.
+To run the software, an "IBM-compatible" machine with an x86 or x64 processor 
+will be required.  The system can either be physical or virtual, but should have 
+at least 8 cores at 2.2 GHz or higher, at least 16GB of ram, and at minimum a 
+500GB hard drive.  While the Java programming language is cross-platform, a 
+Linux OS gives the best results when it comes to multiple threads running at 
+highest efficiency.  For this report, Ubuntu Server 16.04 is used.
+
+The Study Buddy server is comprised of ten different classes all working in 
+tandem to create a central hub allowing multiple users to communicate with each 
+other.  Nine of these classes can run with only the Java JRE, but the class 
+handling the calls to the database requires a database management system. 
+The software was designed around MySQL Server 5.7.  This version or latter 
+should be installed on the server machine after Ubuntu Server has been installed 
+and updated.  Once MySQL has been installed, a database user should be added 
+which will be used by the server software to access the database.  This user 
+does not have to be the root user, the only permissions required are to be able 
+to create the schema, insert into tables, and alter table data.  There are no 
+operations such as dropping tables or working in any other database schemas.
+
+While there are many classes in the server software, the entire solution has 
+been packaged into an easy to execute java .jar file named ‘server.jar’. This 
+file, along with other supporting files, are placed into a folder named 
+‘StudyBuddy’.  This folder should be placed on the root of Ubuntu Server file 
+system by copying the folder over from a flash drive or some other type of 
+removable device which can be mounted.  The contents of the folder and content 
+descriptions are shown below:
+
+ 
+Lib - Contains the ODBC Driver to communication between Java and MySQL. 
+Server.jar - The server executable.  This file contains all the different parts 
+of the server software.
+Studybuddy.conf - UPStart config file for starting the server at system startup.
+Studybuddy-start.sh - Bash start script for starting the server.
+Studybuddy-stop.sh - Bash stop script for killing the server process.
+After installing the OS, MySQL , Java JRE 7 (or higher), and copying the contents 
+of the StudyBuddy folder to the root directory, the server may now be started.  
+For the purposes of troubleshooting any issues that may arise on the first 
+startup, it is recommended to initially start the software from the command line 
+to address any issues which may not allow the server to start with the system on 
+startup. The server will start by running the start script with the following 
+command:  
+./studybuddy-start.sh from the StudyBuddy folder.  
+A successful start should appear as the following:
+
+ 
+However, there are four possible issues which may cause the server not to start.
+ODBC Driver Missing – this error results when the contents of the lib folder are 
+missing or not available. To correct this error, please verify the folder exists 
+and has not been moved or accidently deleted.
+Database Server Not Running – this error results when the MySQL server is either 
+not installed, its service is not started, or the server is running on a port 
+other than the default 3306.  Please verify MySQL installation and that the DBMS 
+is running.  Avoid configuring the server for any other port.
+Incorrect User or Password – this error results when the DBMS is available, but 
+the studybuddy user has either not been set up, or the password is incorrect.  
+Please verify these two issues have been resolved.
+
+Port In Use – this error results when port 8008 is being used by another 
+application.  This error could also show when trying to start the server again 
+after it is already running.  Please ensure no other instances of the server is 
+running.
+Any of the above issues will prevent the server from starting, however if there 
+are no problems and the server starts as it does in the image above, the server 
+is now ready and listening for incoming connections from the Study Buddy Client.
+The software looks for the correct tables used by the application.  If the 
+tables are not present, the database schema is created as well as all the 
+required tables for the software to properly run.  The following image shows a 
+server log file from normal operation:
+
+While the log is displayed in the shell, the log is also stored in a file when 
+the shell is not available.  Once the server accepts and correctly processes 
+incoming connections, the software should now be set to run when the system is 
+started regardless if there is a user logged into the machine or not.
+
+Within the StudyBuddy folder, there is a file named ‘studybuddy.conf’.  The 
+shell user should log in as the root user on the Ubuntu server.  Once logged in 
+as root, copy the file from the StudyBuddy folder over to the /etc/init folder.  
+Restart the Ubuntu system and the Study Buddy server software should run 
+whenever the system is started.
+
+	
+User Manual:
+	How to Install on Device:
+	Since Study Buddy is currently not an app on the Google Play Store, there 
+	are a few extra steps that must be taken before the app can be installed.
+Go to Settings
+Navigate to General Setting (if needed)
+Navigate to Security
+Check Unknown Sources
+Then go to studybuddy.uncg.edu
+
+If you have already used this app before, or have registered previously, enter 
+your email and password and tap the Login button to log into Study Buddy. 
+Otherwise, tap the  “No account yet? Create one” link.
+
+To register for Study Buddy, fill out the form and tap the Create Account button. 
+If you already have an account, tap the “Already a member? Login” link.
+
+The main menu offers a central location where you can navigate to all the Study 
+Buddy’s features. From the main menu you can look at your profile, go into the 
+settings, look at the classes you are taking, or logout. 
+
+In the settings menu you have the ability to change your password.
+
+To change your password, simply enter your current password, and the new 
+password.
+
+If you choose classes from the main menu, you will have all of the classes you 
+are currently enrolled in displayed in a list.
+
+Upon selecting a class from the classes menu, you will be taken into the chat 
+room for that class. The chat room is accessible by every student who is 
+enrolled in that particular class. To type a message, tap the text box at the 
+bottom of the screen. After entering a message, tap the green SEND button.  
+
+Tapping the menu icon in the top left corner of the Chat room opens the drawer. 
+In the drawer, every student in the chat room is listed. The drawer tells you 
+who is currently online and who is not. Tapping the send image icon will allow 
+you to capture a photo to send in the chat room. Tapping on a user opens up a 
+private chat between you and the other user.
