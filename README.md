@@ -11,4 +11,4 @@ When it comes to classes and absences, some people would rather be without the d
 
 
 # Member Roles:
-__Jaee Carr__ will be leading the work for the database systems as well as working on server side implementation. __Tony Ratliff__ will be leading the client/server communication and working on server side implementation as well as client side implementation. __Trayvon McKnight__ will be leading the work for the graphical user interfaces as well as working on client side implementation.
+__Jaee Carr__  lead the work for the database systems as well as the server side implementation.  __Tony Ratliff__ lead the client/server communication and worked on server side implementation as well as client side implementation. __Trayvon McKnight__ lead the work for the graphical user interfaces as well as worked on client side implementation.
