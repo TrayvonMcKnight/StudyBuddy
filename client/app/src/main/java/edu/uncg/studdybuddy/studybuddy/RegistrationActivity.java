@@ -18,13 +18,20 @@ import butterknife.InjectView;
 public class RegistrationActivity extends AppCompatActivity {
     private static final String TAG = "RegistrationActivity";
 
-    @InjectView(R.id.input_fname) EditText _fnameText;
-    @InjectView(R.id.input_lname) EditText _lnameText;
-    @InjectView(R.id.input_email) EditText _emailText;
-    @InjectView(R.id.input_password) EditText _passwordText;
-    @InjectView(R.id.input_password2) EditText _password2Text;
-    @InjectView(R.id.btn_register) Button _registerButton;
-    @InjectView(R.id.link_login) TextView _loginLink;
+    @InjectView(R.id.input_fname)
+    EditText _fnameText;
+    @InjectView(R.id.input_lname)
+    EditText _lnameText;
+    @InjectView(R.id.input_email)
+    EditText _emailText;
+    @InjectView(R.id.input_password)
+    EditText _passwordText;
+    @InjectView(R.id.input_password2)
+    EditText _password2Text;
+    @InjectView(R.id.btn_register)
+    Button _registerButton;
+    @InjectView(R.id.link_login)
+    TextView _loginLink;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,8 +77,8 @@ public class RegistrationActivity extends AppCompatActivity {
         String password = _passwordText.getText().toString();
         String password2 = _password2Text.getText().toString();
 
-        if (password.equals(password2)){
-            switch (StartActivity.server.createNewUser(email, password, password2, fname, lname)){
+        if (password.equals(password2)) {
+            switch (StartActivity.server.createNewUser(email, password, password2, fname, lname)) {
                 case 0: {
                     Toast.makeText(getBaseContext(), "Account created successfully.  Please login.", Toast.LENGTH_LONG).show();
                     this.onSignupSuccess();
@@ -145,12 +152,10 @@ public class RegistrationActivity extends AppCompatActivity {
         if (fname.isEmpty() || fname.length() < 3) {
             _fnameText.setError("at least 3 characters");
             valid = false;
-        }
-        else if((lname.isEmpty() || lname.length() < 3)) {
+        } else if ((lname.isEmpty() || lname.length() < 3)) {
             _lnameText.setError("at least 3 characters");
             valid = false;
-        }
-        else {
+        } else {
             _fnameText.setError(null);
             _lnameText.setError(null);
         }
@@ -166,11 +171,9 @@ public class RegistrationActivity extends AppCompatActivity {
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
             _passwordText.setError("between 4 and 10 alphanumeric characters");
             valid = false;
-        }
-        else if(!password.equals(password2)){
+        } else if (!password.equals(password2)) {
             _password2Text.setError("Password does not match");
-        }
-        else {
+        } else {
             _passwordText.setError(null);
             _password2Text.setError(null);
         }

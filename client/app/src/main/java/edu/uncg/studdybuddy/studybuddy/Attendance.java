@@ -52,7 +52,7 @@ public class Attendance extends AppCompatActivity {
         final Student[] students = classes.getStudents(cName, section);
 
         final List<String> arrayList = new ArrayList<>();
-        for(int i = 0; i < students.length; i++){
+        for (int i = 0; i < students.length; i++) {
             arrayList.add(students[i].getStudentName() + ":" + students[i].getStudentEmail());
         }
 

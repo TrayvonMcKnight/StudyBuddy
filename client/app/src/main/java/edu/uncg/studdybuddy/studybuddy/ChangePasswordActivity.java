@@ -13,10 +13,14 @@ import butterknife.InjectView;
 
 public class ChangePasswordActivity extends AppCompatActivity {
 
-    @InjectView(R.id.currentPassword) EditText currPass;
-    @InjectView(R.id.newPassword) EditText newPass;
-    @InjectView(R.id.confirmPassword) EditText confirmPass;
-    @InjectView(R.id.submitButton) Button submit;
+    @InjectView(R.id.currentPassword)
+    EditText currPass;
+    @InjectView(R.id.newPassword)
+    EditText newPass;
+    @InjectView(R.id.confirmPassword)
+    EditText confirmPass;
+    @InjectView(R.id.submitButton)
+    Button submit;
 
 
     @Override
@@ -28,10 +32,10 @@ public class ChangePasswordActivity extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(newPass.getText().toString().equals(confirmPass.getText().toString())) {
+                if (newPass.getText().toString().equals(confirmPass.getText().toString())) {
                     int error = StartActivity.server.changePassword(currPass.getText().toString(), newPass.getText().toString());
 
-                    switch (error){
+                    switch (error) {
                         case 0: {
                             Toast.makeText(getBaseContext(), "Password successfully changed.", Toast.LENGTH_LONG).show();
                             finish();
@@ -40,11 +44,11 @@ public class ChangePasswordActivity extends AppCompatActivity {
                         case 1: {
                             Toast.makeText(getBaseContext(), "Incorrect Password.  Please try again.", Toast.LENGTH_LONG).show();
                             currPass.setText("");
-                            if (currPass.requestFocus()){
+                            if (currPass.requestFocus()) {
                                 getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                             }
                         }
-                        default:{
+                        default: {
 
                         }
                     }
@@ -53,7 +57,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
                     Toast.makeText(getBaseContext(), "Passwords do not match.  Try again.", Toast.LENGTH_LONG).show();
                     newPass.setText("");
                     confirmPass.setText("");
-                    if (newPass.requestFocus()){
+                    if (newPass.requestFocus()) {
                         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                     }
                 }

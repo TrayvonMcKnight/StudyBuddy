@@ -48,8 +48,8 @@ public class BuddyListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if(convertView==null) {
-            convertView= LayoutInflater.from(c).inflate(R.layout.model_buddy_list,parent,false);
+        if (convertView == null) {
+            convertView = LayoutInflater.from(c).inflate(R.layout.model_buddy_list, parent, false);
         }
         final Student s = (Student) this.getItem(position);
         ImageView img = (ImageView) convertView.findViewById(R.id.smileyImg);
@@ -63,15 +63,14 @@ public class BuddyListAdapter extends BaseAdapter {
         if (online) {
             stat = "Online";
             statTxt.setTextColor(Color.GREEN);
-        }
-        else {
+        } else {
             stat = "Offline";
             statTxt.setTextColor(Color.RED);
         }
         statTxt.setText(stat);
 
         boolean absent = s.getAbsent();
-        if (absent){
+        if (absent) {
             String name = s.getStudentName();
             nameTxt.setTextColor(Color.BLACK);
         } else {

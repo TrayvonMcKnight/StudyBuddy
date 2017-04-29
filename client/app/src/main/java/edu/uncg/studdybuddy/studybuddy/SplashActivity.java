@@ -27,7 +27,7 @@ public class SplashActivity extends AppCompatActivity {
     private StudyBuddyConnector connector;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         this.connector = StartActivity.server.getInstance();
@@ -66,7 +66,6 @@ public class SplashActivity extends AppCompatActivity {
         this.statusText.setText("Looking For Server...");
 
 
-
     }
 
     public void openLogin() {
@@ -74,10 +73,10 @@ public class SplashActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public boolean performHandshake(){
+    public boolean performHandshake() {
         boolean success = false;
-        if (!StartActivity.server.hasConnection()){
-            switch (StartActivity.server.handshake()){
+        if (!StartActivity.server.hasConnection()) {
+            switch (StartActivity.server.handshake()) {
                 case 0: {
                     success = true;
                     break;

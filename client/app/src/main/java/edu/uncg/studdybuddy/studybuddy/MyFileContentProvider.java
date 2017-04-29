@@ -13,15 +13,17 @@ import java.util.HashMap;
 public class MyFileContentProvider extends ContentProvider {
     public static final Uri CONTENT_URI = Uri.parse("content://edu.uncg.studdybuddy.studybuddy/");
     private static final HashMap<String, String> MIME_TYPES = new HashMap<String, String>();
+
     static {
         MIME_TYPES.put(".jpg", "image/jpeg");
         MIME_TYPES.put(".jpeg", "image/jpeg");
     }
+
     @Override
     public boolean onCreate() {
         try {
             File mFile = new File(getContext().getFilesDir(), "newImage.jpg");
-            if(!mFile.exists()) {
+            if (!mFile.exists()) {
                 mFile.createNewFile();
             }
             getContext().getContentResolver().notifyChange(CONTENT_URI, null);
@@ -31,6 +33,7 @@ public class MyFileContentProvider extends ContentProvider {
             return false;
         }
     }
+
     @Override
     public String getType(Uri uri) {
         String path = uri.toString();
@@ -41,6 +44,7 @@ public class MyFileContentProvider extends ContentProvider {
         }
         return (null);
     }
+
     @Override
     public ParcelFileDescriptor openFile(Uri uri, String mode)
             throws FileNotFoundException {
@@ -51,20 +55,24 @@ public class MyFileContentProvider extends ContentProvider {
         }
         throw new FileNotFoundException(uri.getPath());
     }
+
     @Override
     public Cursor query(Uri url, String[] projection, String selection,
                         String[] selectionArgs, String sort) {
         throw new RuntimeException("Operation not supported");
     }
+
     @Override
     public Uri insert(Uri uri, ContentValues initialValues) {
         throw new RuntimeException("Operation not supported");
     }
+
     @Override
     public int update(Uri uri, ContentValues values, String where,
                       String[] whereArgs) {
         throw new RuntimeException("Operation not supported");
     }
+
     @Override
     public int delete(Uri uri, String where, String[] whereArgs) {
         throw new RuntimeException("Operation not supported");

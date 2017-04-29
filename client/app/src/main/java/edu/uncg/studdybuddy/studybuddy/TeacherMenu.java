@@ -14,9 +14,12 @@ public class TeacherMenu extends AppCompatActivity {
 
     private StudyBuddyConnector ourConnector;
 
-    @InjectView(R.id.settingsButton) Button settingsBtn;
-    @InjectView(R.id.logOut) Button logOutBtn;
-    @InjectView(R.id.attendanceButton) Button attendanceBtn;
+    @InjectView(R.id.settingsButton)
+    Button settingsBtn;
+    @InjectView(R.id.logOut)
+    Button logOutBtn;
+    @InjectView(R.id.attendanceButton)
+    Button attendanceBtn;
     //Button attendanceBtn;
 
     @Override
@@ -26,7 +29,7 @@ public class TeacherMenu extends AppCompatActivity {
         ButterKnife.inject(this);
         this.ourConnector = StartActivity.server.getInstance();
         //This should bring up all of the classes the professor teaches
-        attendanceBtn.setOnClickListener(new View.OnClickListener(){
+        attendanceBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -36,7 +39,7 @@ public class TeacherMenu extends AppCompatActivity {
             }
         });
 
-        settingsBtn.setOnClickListener(new View.OnClickListener(){
+        settingsBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -50,7 +53,7 @@ public class TeacherMenu extends AppCompatActivity {
             public void onClick(View v) {
                 ourConnector.logout();
                 Intent homeIntent = new Intent(Intent.ACTION_MAIN);
-                homeIntent.addCategory( Intent.CATEGORY_HOME );
+                homeIntent.addCategory(Intent.CATEGORY_HOME);
                 homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(homeIntent);
                 finish();
