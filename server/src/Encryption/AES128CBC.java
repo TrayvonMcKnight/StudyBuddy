@@ -15,23 +15,24 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class AES128CBC {
+
     private final String ENCRYPTION_ALGO = "AES/CBC/PKCS5PADDING";
     private final int KEYSIZE = 16;
     private byte[] key;
     private SecretKeySpec secretKey;
     private Cipher cipher;
-    
+
     // Class Constructor
     public AES128CBC(byte[] sharedkey) {
-        if (sharedkey.length == KEYSIZE){
+        if (sharedkey.length == KEYSIZE) {
             this.key = sharedkey;
         } else {
             this.key = new byte[KEYSIZE];
         }
         this.initCipher();
     }
-    
-    private void initCipher(){
+
+    private void initCipher() {
         this.secretKey = new SecretKeySpec(this.key, "AES");
         try {
             cipher = Cipher.getInstance(ENCRYPTION_ALGO);
@@ -39,20 +40,20 @@ public class AES128CBC {
             Logger.getLogger(AES128CBC.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public byte[] getKey(){
+
+    public byte[] getKey() {
         return this.key;
     }
-    
-    public boolean setKey(byte[] input){
+
+    public boolean setKey(byte[] input) {
         if (input.length == KEYSIZE) {
             this.key = input;
             return true;
         }
         return false;
     }
-    
-    public String encrypt(String plaintext){
+
+    public String encrypt(String plaintext) {
         try {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);    // Initialize the cipher for encrypt.
             byte[] messageArray = plaintext.getBytes("UTF-8");   // byte array for message.
@@ -67,8 +68,8 @@ public class AES128CBC {
         }
         return null;
     }
-    
-    public String decrypt(String ciphertext){
+
+    public String decrypt(String ciphertext) {
         try {
             byte[] incoming = Base64.getMimeDecoder().decode(ciphertext);  // Encrypted string as Base64 decoder.
             byte[] ivArray = new byte[KEYSIZE];  // Byte array for initialization vector.
@@ -84,4 +85,3 @@ public class AES128CBC {
         return null;
     }
 }
-
