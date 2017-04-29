@@ -11,8 +11,10 @@ import butterknife.InjectView;
 public class BasicProfile extends AppCompatActivity {
 
 
-    @InjectView(R.id.displayName) TextView displayName;
-    @InjectView(R.id.displayEmail) TextView displayEmail;
+    @InjectView(R.id.displayName)
+    TextView displayName;
+    @InjectView(R.id.displayEmail)
+    TextView displayEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

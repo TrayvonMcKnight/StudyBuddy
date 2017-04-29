@@ -12,7 +12,7 @@ import java.util.List;
  * Created by Anthony Ratliff on 4/4/2017.
  */
 
-class ChatAdapter extends BaseAdapter{
+class ChatAdapter extends BaseAdapter {
     private Context mContext;
     private List<ChatRoomMessage> mMessageList;
 

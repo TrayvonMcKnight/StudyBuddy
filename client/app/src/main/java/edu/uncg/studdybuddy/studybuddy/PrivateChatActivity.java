@@ -53,10 +53,10 @@ public class PrivateChatActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         this.server = StartActivity.server.getInstance();
         Bundle extras = getIntent().getExtras();
-        if (extras.getString("SENDER_CLASS_NAME").equals("DRAWER")){
+        if (extras.getString("SENDER_CLASS_NAME").equals("DRAWER")) {
             this.otherEmail = extras.getString("otherEmail");
             this.otherName = extras.getString("otherName");
-            MainMenu.addPrivateChat(server.getUserEmail()+":"+this.otherEmail);
+            MainMenu.addPrivateChat(server.getUserEmail() + ":" + this.otherEmail);
         } else {
             this.otherEmail = extras.getString("otherEmail");
             this.otherName = MainMenu.getRealName(this.otherEmail);
@@ -65,7 +65,6 @@ public class PrivateChatActivity extends AppCompatActivity {
 
         this.myName = server.getUserName();
         this.myEmail = server.getUserEmail();
-
 
 
         this.myName = server.getUserName();
@@ -81,10 +80,10 @@ public class PrivateChatActivity extends AppCompatActivity {
             @Override
             public void onDataLoaded(String data) {
                 String[] pieces = data.split(":");
-                switch (pieces[0]){
-                    case "08":{
-                        if (pieces[1].equalsIgnoreCase(otherEmail) || pieces[1].equalsIgnoreCase(myEmail)){
-                            String chatMessage="";
+                switch (pieces[0]) {
+                    case "08": {
+                        if (pieces[1].equalsIgnoreCase(otherEmail) || pieces[1].equalsIgnoreCase(myEmail)) {
+                            String chatMessage = "";
                             if (pieces.length > 5) {
                                 for (int c = 4; c < pieces.length; c++) {
                                     chatMessage += pieces[c] + ":";
@@ -96,7 +95,7 @@ public class PrivateChatActivity extends AppCompatActivity {
                             } else {
                                 chatMessage = pieces[4];
                             }
-                            if (pieces[1].equalsIgnoreCase(myEmail)){
+                            if (pieces[1].equalsIgnoreCase(myEmail)) {
                                 chatMessList.add(new ChatRoomMessage(otherName, chatMessage));
                             } else {
                                 chatMessList.add(new ChatRoomMessage(myName, chatMessage));
@@ -134,12 +133,12 @@ public class PrivateChatActivity extends AppCompatActivity {
 
     }
 
-    private void sendMessage(){
+    private void sendMessage() {
         server.sendPrivateTextMessage(otherEmail, mTxtTextBody.getText().toString());
         mTxtTextBody.setText("");
     }
 
-    private void updateAdapter(){
+    private void updateAdapter() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -154,8 +153,9 @@ public class PrivateChatActivity extends AppCompatActivity {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
     }
+
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
         MainMenu.removePrivateChat(myEmail + ":" + otherEmail);
         super.onDestroy();
     }

@@ -10,14 +10,14 @@ import java.io.ObjectOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ChatRoomBackups{
+public class ChatRoomBackups {
+
     // private class fields
     private final File file = new File("SavedRooms.dat");
-    
+
     // public class methods.
-    
     // Save the current state of the chatrooms to file.
-    public boolean saveChatRoomStatus(Chatrooms rooms){
+    public boolean saveChatRoomStatus(Chatrooms rooms) {
         boolean success = false;
         FileOutputStream fout;
         try {
@@ -30,13 +30,12 @@ public class ChatRoomBackups{
         } catch (IOException ex) {
             Logger.getLogger(ChatRoomBackups.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
+
         return success;
     }
-    
+
     // Load the current state of the chatrooms from file.
-    public Chatrooms loadChatRoomStatus(){
+    public Chatrooms loadChatRoomStatus() {
         Chatrooms rooms = null;
         FileInputStream fin;
         try {
@@ -48,12 +47,12 @@ public class ChatRoomBackups{
         } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(ChatRoomBackups.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return rooms;
     }
-    
+
     // Determine if a file exists.
-    public boolean fileExists(){
+    public boolean fileExists() {
         return file.exists();
     }
 }

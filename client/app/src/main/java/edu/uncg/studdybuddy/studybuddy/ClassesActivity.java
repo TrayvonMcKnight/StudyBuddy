@@ -7,8 +7,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import StudyBuddy.Chatrooms;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
@@ -39,17 +41,17 @@ public class ClassesActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, arrayList);
 
         classList.setAdapter(arrayAdapter);
-        classList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        classList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Intent intent = new Intent(view.getContext(), ChatRoomActivity.class);
-                        String chatInfo = classArray[position];
-                        String[] pieces = chatInfo.split(":");
-                        intent.putExtra("className", pieces[0]);
-                        intent.putExtra("section", pieces[1]);
-                        intent.putExtra("studentName", myName);
-                        startActivity(intent);
+                Intent intent = new Intent(view.getContext(), ChatRoomActivity.class);
+                String chatInfo = classArray[position];
+                String[] pieces = chatInfo.split(":");
+                intent.putExtra("className", pieces[0]);
+                intent.putExtra("section", pieces[1]);
+                intent.putExtra("studentName", myName);
+                startActivity(intent);
             }
         });
     }

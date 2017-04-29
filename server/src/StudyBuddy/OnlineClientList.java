@@ -3,7 +3,8 @@ package StudyBuddy;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-public class OnlineClientList{
+public class OnlineClientList {
+
     // Private class fields.
     private ClientNode header;
     private int numElements;
@@ -133,8 +134,8 @@ public class OnlineClientList{
         }
         return tempArray;
     }
-    
-    public boolean contains(String username){
+
+    public boolean contains(String username) {
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
         while (curr != header) {
@@ -147,7 +148,7 @@ public class OnlineClientList{
         }
         return false;
     }
-    
+
     public Object returnUserSession(String username) {
         ClientNode curr = header.next;   // Create a pointer node.
         // Loop through the list
@@ -169,7 +170,6 @@ public class OnlineClientList{
         private final ObjectInputStream in;
         private final ObjectOutputStream out;
         private final Object session;
-        
 
         private ClientNode() {
             this.name = null;
@@ -192,8 +192,8 @@ public class OnlineClientList{
             this.session = sess;
             next = prev = this;
         }
-        
-        private Object getSession(){
+
+        private Object getSession() {
             return this.session;
         }
     }

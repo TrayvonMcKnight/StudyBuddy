@@ -40,11 +40,11 @@ public class Session extends Thread {
     private Chatrooms userChatrooms;
     private final ChatRoomBackups backup;
     private final AtomicBoolean waiting = new AtomicBoolean(false);
-    //private final AES128CBC aes128;
+    private final AES128CBC aes128;
     private final boolean isInstructor;
 
     // Public constructor.
-    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, boolean instruct) {
+    public Session(Socket con, DataInputStream in, DataOutputStream out, ObjectInputStream inObject, ObjectOutputStream outObject, OnlineClientList list, String user, Database database, Chatrooms mainChats, boolean instruct, AES128CBC aes) {
         this.con = con;
         this.onlineList = list;
         this.clientIP = con.getRemoteSocketAddress().toString().substring(1);
@@ -58,7 +58,7 @@ public class Session extends Thread {
         this.mainChatrooms = mainChats;
         this.userChatrooms = null;
         this.backup = new ChatRoomBackups();
-        //this.aes128 = aes;
+        this.aes128 = aes;
         this.isInstructor = instruct;
     }
 
@@ -176,7 +176,7 @@ public class Session extends Thread {
 
     private void sendData(String mess) {
         try {
-            dataOut.writeUTF(mess);
+            dataOut.writeUTF(aes128.encrypt(mess));
         } catch (IOException ex) {
             Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -456,7 +456,7 @@ public class Session extends Thread {
             boolean iterate = true;
             while (iterate) {
                 try {
-                    String message = (String) dataIn.readUTF();
+                    String message = (String) aes128.decrypt(dataIn.readUTF());
                     String[] pieces = message.split(":");
                     if (pieces[1].equalsIgnoreCase("SENDFILE") && pieces[5].equalsIgnoreCase("INCOMING")) {
                         waiting.set(true);
@@ -659,10 +659,10 @@ public class Session extends Thread {
                                         if (pieces[1].equalsIgnoreCase("ATTENDANCE") && pieces[5].equalsIgnoreCase("INCOMING")) {
                                             ArrayList<String> attendanceSheet = new ArrayList<>();
                                             String serverMessage = "14:ATTENDANCE:" + pieces[2] + ":" + pieces[3] + "::ACCEPTED:00";
-                                            dataOut.writeUTF(serverMessage);
+                                            dataOut.writeUTF(aes128.encrypt(serverMessage));
                                             int listSize = dataIn.readInt();
                                             for (int c=0;c < listSize;c++){
-                                                attendanceSheet.add(dataIn.readUTF());
+                                                attendanceSheet.add(aes128.decrypt(dataIn.readUTF()));
                                             }
                                             waiting.set(false);
                                             for (int d=0;d < attendanceSheet.size();d++){

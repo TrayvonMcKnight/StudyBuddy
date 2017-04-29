@@ -17,7 +17,8 @@ import butterknife.InjectView;
 public class SettingsActivity extends AppCompatActivity {
 
     List<String> settingsOptions = new ArrayList<>();
-    @InjectView(R.id.list_settings) ListView listView;
+    @InjectView(R.id.list_settings)
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +32,11 @@ public class SettingsActivity extends AppCompatActivity {
 
         listView.setAdapter(arrayAdapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                switch(position){
+                switch (position) {
                     case 0:
                         Intent intent = new Intent(view.getContext(), ChangePasswordActivity.class);
                         startActivity(intent);

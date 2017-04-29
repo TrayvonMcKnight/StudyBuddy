@@ -23,10 +23,14 @@ public class LoginActivity extends AppCompatActivity {
     private int loopCounter;
     private boolean loginAttempted = false;
 
-    @InjectView(R.id.input_email) EditText emailText;
-    @InjectView(R.id.input_password) EditText passwordText;
-    @InjectView(R.id.btn_login) Button loginButton;
-    @InjectView(R.id.link_signup) TextView signupLink;
+    @InjectView(R.id.input_email)
+    EditText emailText;
+    @InjectView(R.id.input_password)
+    EditText passwordText;
+    @InjectView(R.id.btn_login)
+    Button loginButton;
+    @InjectView(R.id.link_signup)
+    TextView signupLink;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,7 +44,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 boolean connected = StartActivity.server.hasConnection();
-                if (!StartActivity.server.hasConnection()){
+                if (!StartActivity.server.hasConnection()) {
                     StartActivity.server.handshake();
                 }
                 login();
@@ -59,12 +63,12 @@ public class LoginActivity extends AppCompatActivity {
                     StartActivity.server.handshake();
                 }
                 // Start the Signup activity
-               Intent intent = new Intent(getApplicationContext(), RegistrationActivity.class);
+                Intent intent = new Intent(getApplicationContext(), RegistrationActivity.class);
                 startActivityForResult(intent, REQUEST_SIGNUP);
             }
         });
 
-        if(!StartActivity.server.hasConnection()){
+        if (!StartActivity.server.hasConnection()) {
             StartActivity.server.handshake();
         }
 
@@ -114,7 +118,7 @@ public class LoginActivity extends AppCompatActivity {
                                     loopCounter++;
                                     emailText.setText("");
                                     passwordText.setText("");
-                                    if(emailText.requestFocus()) {
+                                    if (emailText.requestFocus()) {
                                         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                                     }
                                     //setContentView(R.layout.activity_login);
@@ -125,7 +129,7 @@ public class LoginActivity extends AppCompatActivity {
                                     Toast.makeText(getBaseContext(), "Incorrect Password.  Try again.", Toast.LENGTH_LONG).show();
                                     loopCounter++;
                                     passwordText.setText("");
-                                    if(passwordText.requestFocus()) {
+                                    if (passwordText.requestFocus()) {
                                         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                                     }
                                     break;
@@ -137,7 +141,7 @@ public class LoginActivity extends AppCompatActivity {
                                     loopCounter = 0;
                                     emailText.setText("");
                                     passwordText.setText("");
-                                    if(emailText.requestFocus()) {
+                                    if (emailText.requestFocus()) {
                                         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                                     }
                                     break;
@@ -172,7 +176,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setEnabled(true);
         //Start Main menu activity
         Intent intent = null;
-        if (StartActivity.server.isProfessor()){
+        if (StartActivity.server.isProfessor()) {
             intent = new Intent(getApplicationContext(), TeacherMenu.class);
         } else {
             intent = new Intent(getApplicationContext(), MainMenu.class);

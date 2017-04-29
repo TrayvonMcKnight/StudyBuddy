@@ -18,10 +18,14 @@ import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    @InjectView(R.id.get_name) TextView get_name;
-    @InjectView(R.id.get_email) TextView get_email;
-    @InjectView(R.id.studentName) TextView studentName;
-    @InjectView(R.id.studentEmail) TextView studentEmail;
+    @InjectView(R.id.get_name)
+    TextView get_name;
+    @InjectView(R.id.get_email)
+    TextView get_email;
+    @InjectView(R.id.studentName)
+    TextView studentName;
+    @InjectView(R.id.studentEmail)
+    TextView studentEmail;
 
     private ListView common_classList;
     ArrayList<String> student1_classes;
@@ -50,18 +54,18 @@ public class ProfileActivity extends AppCompatActivity {
         studentEmail.setText(extras.get("otherEmail").toString());
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1,student1_classes);
+                android.R.layout.simple_list_item_1, student1_classes);
 
         common_classList.setAdapter(arrayAdapter);
     }
 
-    private ArrayList<String> compareClasses(String[] classPieces, Chatrooms sClasses, String email){
+    private ArrayList<String> compareClasses(String[] classPieces, Chatrooms sClasses, String email) {
         ArrayList<String> compared = null;
 
         int i = 0;
-        while(i < classPieces.length){
-            if(sClasses.getStudent(pieces[i], pieces[i+1], email) != null){
-                compared.add(pieces[i] + ":" + pieces[i+1] );
+        while (i < classPieces.length) {
+            if (sClasses.getStudent(pieces[i], pieces[i + 1], email) != null) {
+                compared.add(pieces[i] + ":" + pieces[i + 1]);
             }
         }
 

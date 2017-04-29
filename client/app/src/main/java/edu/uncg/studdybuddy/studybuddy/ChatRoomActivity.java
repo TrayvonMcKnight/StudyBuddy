@@ -57,7 +57,7 @@ import StudyBuddy.Chatrooms;
 import StudyBuddy.Student;
 import edu.uncg.studdybuddy.client.StudyBuddyConnector;
 
-public class ChatRoomActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class ChatRoomActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = ChatRoomActivity.class.getSimpleName();
     private static final int MY_REQUEST_CODE = 1000;
@@ -107,70 +107,70 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         this.classDescription = MainMenu.chatrooms.getChatroom(this.className, this.sec).getDescription();
         server.setCustomObjectListener(new StudyBuddyConnector.MyCustomObjectListener() {
 
-                                                @Override
-                                                public void onObjectReady(String title) {
+            @Override
+            public void onObjectReady(String title) {
 
-                                                }
+            }
 
-                                                @Override
-                                                public void onDataLoaded(String data) {
-                                                    String[] pieces = data.split(":");
-                                                    switch (pieces[0]){
-                                                        case "06": {
-                                                            if (pieces[1].equalsIgnoreCase("BUDDYONLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
-                                                                for (int c = 0;c < studentList.size();c++){
-                                                                    Student stud = studentList.get(c);
-                                                                    if (stud.getStudentName().equals(pieces[5])){
-                                                                        stud.setOnlineStatus(true);
-                                                                    }
-                                                                }
-                                                                updateBuddyAdapter();
-                                                            } else if (pieces[1].equalsIgnoreCase("BUDDYOFFLINE") && pieces[3].equals(className) && pieces[4].equals(sec)){
-                                                                for (int c = 0;c < studentList.size();c++){
-                                                                    Student stud = studentList.get(c);
-                                                                    if (stud.getStudentName().equals(pieces[5])){
-                                                                        stud.setOnlineStatus(false);
-                                                                    }
-                                                                }
-                                                                updateBuddyAdapter();
-                                                            }
-                                                            break;
-                                                        }
+            @Override
+            public void onDataLoaded(String data) {
+                String[] pieces = data.split(":");
+                switch (pieces[0]) {
+                    case "06": {
+                        if (pieces[1].equalsIgnoreCase("BUDDYONLINE") && pieces[3].equals(className) && pieces[4].equals(sec)) {
+                            for (int c = 0; c < studentList.size(); c++) {
+                                Student stud = studentList.get(c);
+                                if (stud.getStudentName().equals(pieces[5])) {
+                                    stud.setOnlineStatus(true);
+                                }
+                            }
+                            updateBuddyAdapter();
+                        } else if (pieces[1].equalsIgnoreCase("BUDDYOFFLINE") && pieces[3].equals(className) && pieces[4].equals(sec)) {
+                            for (int c = 0; c < studentList.size(); c++) {
+                                Student stud = studentList.get(c);
+                                if (stud.getStudentName().equals(pieces[5])) {
+                                    stud.setOnlineStatus(false);
+                                }
+                            }
+                            updateBuddyAdapter();
+                        }
+                        break;
+                    }
 
-                                                        case "11": {
-                                                            if (pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)){
-                                                                String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
-                                                                String chatMessage = "";
-                                                                if (pieces.length > 8){
-                                                                    for (int c = 7; c < pieces.length;c++){
-                                                                        chatMessage += pieces[c] + ":";
-                                                                    }
-                                                                    chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
-                                                                } else {
-                                                                    chatMessage = pieces[7];
-                                                                }
-                                                                chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
-                                                                updateAdapter();
-                                                            }
-                                                            break;
-                                                        }
-                                                        case "13": {
-                                                            if (pieces[5].equalsIgnoreCase("INCOMING") && pieces[1].equalsIgnoreCase("SENDFILE")){
-                                                                String senderName = MainMenu.chatrooms.getStudent(pieces[3], pieces[4], pieces[8]).getStudentName();
-                                                                String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
-                                                                chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
-                                                                updateAdapter();
-                                                            } else if (pieces[5].equalsIgnoreCase("ACCEPTED") && pieces[1].equalsIgnoreCase("SENDFILE")) {
-                                                                String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
-                                                                chatMessList.add(new ChatRoomMessage(myName, chatMessage));
-                                                                updateAdapter();
-                                                                server.addMessageToChatrooms(pieces[3], pieces[4], server.getUserEmail(), chatMessage);
-                                                            }
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                            });
+                    case "11": {
+                        if (pieces[1].equals("CHATMESS") && pieces[2].equals(className) && pieces[3].equals(sec)) {
+                            String senderName = MainMenu.chatrooms.getStudent(pieces[2], pieces[3], pieces[4]).getStudentName();
+                            String chatMessage = "";
+                            if (pieces.length > 8) {
+                                for (int c = 7; c < pieces.length; c++) {
+                                    chatMessage += pieces[c] + ":";
+                                }
+                                chatMessage = chatMessage.substring(0, chatMessage.length() - 1);
+                            } else {
+                                chatMessage = pieces[7];
+                            }
+                            chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
+                            updateAdapter();
+                        }
+                        break;
+                    }
+                    case "13": {
+                        if (pieces[5].equalsIgnoreCase("INCOMING") && pieces[1].equalsIgnoreCase("SENDFILE")) {
+                            String senderName = MainMenu.chatrooms.getStudent(pieces[3], pieces[4], pieces[8]).getStudentName();
+                            String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
+                            chatMessList.add(new ChatRoomMessage(senderName, chatMessage));
+                            updateAdapter();
+                        } else if (pieces[5].equalsIgnoreCase("ACCEPTED") && pieces[1].equalsIgnoreCase("SENDFILE")) {
+                            String chatMessage = "INCOMING FILE:  " + pieces[2] + "  - " + pieces[7] + " bytes";
+                            chatMessList.add(new ChatRoomMessage(myName, chatMessage));
+                            updateAdapter();
+                            server.addMessageToChatrooms(pieces[3], pieces[4], server.getUserEmail(), chatMessage);
+                        }
+                        break;
+                    }
+                }
+            }
+        });
 
         // Read in objects from xml
         titleBanner = (TextView) findViewById(R.id.txtRecipient);
@@ -220,21 +220,21 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
     }
 
-        private void sendMessage(){
-            server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
-            mTxtTextBody.setText("");
-        }
+    private void sendMessage() {
+        server.sendToChatroom(this.className, this.sec, mTxtTextBody.getText().toString());
+        mTxtTextBody.setText("");
+    }
 
-        private void updateAdapter(){
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    adapter.notifyDataSetChanged();
-                }
-            });
-        }
+    private void updateAdapter() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
 
-    private void updateBuddyAdapter(){
+    private void updateBuddyAdapter() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -256,6 +256,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         updateList();
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
@@ -272,7 +273,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         }
     }
 
-    public void updateList(){
+    public void updateList() {
         studentList = new ArrayList<>();
         allChats = server.getChatrooms();
         students = allChats.getStudents(className, sec);
@@ -280,7 +281,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
             studentList.add(student);
         }
         studentListView = (ListView) findViewById(R.id.list_classmates);
-        buddyAdapter  = new BuddyListAdapter(this, studentList);
+        buddyAdapter = new BuddyListAdapter(this, studentList);
         studentListView.setAdapter(buddyAdapter);
     }
 
@@ -302,21 +303,20 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
     // Permissions for camera and external storage.
 
-    public  boolean isStoragePermissionGranted() {
+    public boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                     && checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG,"Permission is granted");
+                Log.v(TAG, "Permission is granted");
                 return true;
             } else {
 
-                Log.v(TAG,"Permission is revoked");
+                Log.v(TAG, "Permission is revoked");
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 2);
                 return false;
             }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
-            Log.v(TAG,"Permission is granted");
+        } else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG, "Permission is granted");
             return true;
         }
     }
@@ -331,14 +331,15 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
             }
         }
     }
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_IMAGE_CAPTURE) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if (resultCode == Activity.RESULT_OK) {
                 File out = new File(getFilesDir(), "newImage.jpg");
 
-                if(!out.exists()) {
+                if (!out.exists()) {
                     return;
                 }
                 File finalFile = createFile(out);
@@ -349,8 +350,8 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         }
     }
 
-    private void showPhoto(File entry){
-        Uri uri =  Uri.parse("file://" + entry.getPath());
+    private void showPhoto(File entry) {
+        Uri uri = Uri.parse("file://" + entry.getPath());
         Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
         String mime = "*/*";
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
@@ -358,7 +359,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
                 mimeTypeMap.getFileExtensionFromUrl(uri.toString())))
             mime = mimeTypeMap.getMimeTypeFromExtension(
                     mimeTypeMap.getFileExtensionFromUrl(uri.toString()));
-        intent.setDataAndType(uri,mime);
+        intent.setDataAndType(uri, mime);
         startActivity(intent);
     }
 
@@ -367,15 +368,16 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
         File directory = new File(Environment.getExternalStorageDirectory() + "/" + this.className + "_" + this.sec);
 
         //if it doesn't exist the folder will be created
-        if(!directory.exists())
-        {directory.mkdirs();}
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
 
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_"+ timeStamp + "_";
+        String imageFileName = "JPEG_" + timeStamp + "_";
         File image_file = null;
 
         try {
-            image_file = File.createTempFile(imageFileName,".jpg",directory);
+            image_file = File.createTempFile(imageFileName, ".jpg", directory);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -391,7 +393,7 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
 
         long sourceLength = source.length();
         // Transfer bytes from in to out
-        byte[] buf = new byte[(int)sourceLength];
+        byte[] buf = new byte[(int) sourceLength];
         int len;
         try {
             while ((len = in.read(buf)) > 0) {
@@ -403,8 +405,6 @@ public class ChatRoomActivity extends AppCompatActivity implements NavigationVie
             e.printStackTrace();
         }
 
-
-        //mCurrentPhotoPath = image_file.getAbsolutePath();
         return image_file;
     }
 
