@@ -191,22 +191,24 @@ public class Database {
                 + "UNIQUE INDEX `iID_UNIQUE` (`iID` ASC),"
                 + "UNIQUE INDEX `email_UNIQUE` (`email` ASC))"
                 + "ENGINE = InnoDB;";
-                       
+
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
             System.out.println("Could not create instructors prepared statement");
             System.out.println(ex);
-            
-            return success;}
-        
+
+            return success;
+        }
+
         try {
             this.callable.execute();
         } catch (SQLException ex) {
             System.out.println("Could not execute create instructors table");
-            System.out.println(ex);            
-            return success;}
-        
+            System.out.println(ex);
+            return success;
+        }
+
         this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`teaches` ("
                 + "`iID` INT(12) NOT NULL,"
                 + " `cID` INT(12) NOT NULL,"
@@ -223,57 +225,60 @@ public class Database {
                 + " ON DELETE NO ACTION"
                 + " ON UPDATE NO ACTION)"
                 + " ENGINE = InnoDB;";
-                       
+
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
             System.out.println("Could not create teaches prepared statement");
             System.out.println(ex);
-            
-            return success;}
-        
+
+            return success;
+        }
+
         try {
             this.callable.execute();
         } catch (SQLException ex) {
             System.out.println("Could not execute create teaches table");
-            System.out.println(ex);            
-            return success;}
-        
-        
-        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`attendance` (" +
-                "  `profName` VARCHAR(45) NOT NULL," +
-                "  `cID` INT(12) NOT NULL," +
-                "  `sID` INT(12) NOT NULL," +
-                "  `sAtt` TINYINT(1) NOT NULL," +
-                "  `timestmp` TIMESTAMP(6) NOT NULL," +
-                "  INDEX `cID_idx` (`cID` ASC)," +
-                "  INDEX `sID_idx` (`sID` ASC)," +
-                "  CONSTRAINT `cID`" +
-                "    FOREIGN KEY (`cID`)" +
-                "    REFERENCES `studybuddy`.`enrolled` (`cID`)" +
-                "    ON DELETE NO ACTION" +
-                "    ON UPDATE NO ACTION," +
-                "  CONSTRAINT `sID`" +
-                "    FOREIGN KEY (`sID`)" +
-                "    REFERENCES `studybuddy`.`enrolled` (`sID`)" +
-                "    ON DELETE NO ACTION" +
-                "    ON UPDATE NO ACTION);";
-                       
+            System.out.println(ex);
+            return success;
+        }
+
+        this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`attendance` ("
+                + "  `profName` VARCHAR(45) NOT NULL,"
+                + "  `cID` INT(12) NOT NULL,"
+                + "  `sID` INT(12) NOT NULL,"
+                + "  `sAtt` TINYINT(1) NOT NULL,"
+                + "  `timestmp` TIMESTAMP(6) NOT NULL,"
+                + "  INDEX `cID_idx` (`cID` ASC),"
+                + "  INDEX `sID_idx` (`sID` ASC),"
+                + "  CONSTRAINT `cID`"
+                + "    FOREIGN KEY (`cID`)"
+                + "    REFERENCES `studybuddy`.`enrolled` (`cID`)"
+                + "    ON DELETE NO ACTION"
+                + "    ON UPDATE NO ACTION,"
+                + "  CONSTRAINT `sID`"
+                + "    FOREIGN KEY (`sID`)"
+                + "    REFERENCES `studybuddy`.`enrolled` (`sID`)"
+                + "    ON DELETE NO ACTION"
+                + "    ON UPDATE NO ACTION);";
+
         try {
             this.callable = db_con.prepareCall(this.sql);
         } catch (SQLException ex) {
             System.out.println("Could not create attendance prepared statement");
             System.out.println(ex);
-            
-            return success;}
-        
+
+            return success;
+        }
+
         try {
             this.callable.execute();
         } catch (SQLException ex) {
             System.out.println("Could not execute create attendance table");
-            System.out.println(ex);            
-            return success;}
-         
+            System.out.println(ex);
+            return success;
+        }
+
         this.sql = "CREATE TABLE IF NOT EXISTS `studybuddy`.`offlinemessages` ("
                 + "  `RsID` INT(12) NOT NULL,"
                 + "  `SsID` INT(12) NOT NULL,"
@@ -416,8 +421,8 @@ public class Database {
         }
         return result;
     }
-    
-    public ResultSet returnProfessorInfo(String email){
+
+    public ResultSet returnProfessorInfo(String email) {
         ResultSet result = null;
         this.sql = "SELECT * FROM instructors WHERE email= ?";
         try {
@@ -463,12 +468,12 @@ public class Database {
         boolean success = false;
         if (this.getUserID(username) != 0) {
             try {
-                if (this.isProfessor(username)){
+                if (this.isProfessor(username)) {
                     this.sql = "UPDATE instructors SET pass= ? WHERE email= ?";
                 } else {
                     this.sql = "UPDATE students SET sPass= ? WHERE sEmail= ?";
                 }
-                
+
                 statement = db_con.prepareStatement(this.sql);
                 statement.setString(1, pass);
                 statement.setString(2, username);
@@ -545,7 +550,7 @@ public class Database {
     public int getUserID(String username) {
         int id = 0;
         String field = "";
-        if (this.isProfessor(username)){
+        if (this.isProfessor(username)) {
             this.sql = "SELECT iID FROM instructors WHERE email= ?";
             field = "iID";
         } else {
@@ -728,8 +733,8 @@ public class Database {
         }
         return temp;
     }
-    
-     private ResultSet returnCIDandProfessorName(String name, String section) {
+
+    private ResultSet returnCIDandProfessorName(String name, String section) {
         ResultSet temp = null;
         this.sql = "select instructor_name, cID from classes natural join teaches natural join instructors where cName = ? and cSection = ?;";
         try {
@@ -742,25 +747,27 @@ public class Database {
         }
         return temp;
     }
-     
-     public void updateAttendance(String name, String section, String email, Boolean attendance){
-         ResultSet instructorInfo = this.returnCIDandProfessorName(name, section);
-         int cID = 0;
-         int sID = this.getUserID(email);
-         byte present = 1;
-         String profName = "";
+
+    public void updateAttendance(String name, String section, String email, Boolean attendance) {
+        ResultSet instructorInfo = this.returnCIDandProfessorName(name, section);
+        int cID = 0;
+        int sID = this.getUserID(email);
+        byte present = 1;
+        String profName = "";
         try {
-            while (instructorInfo.next()){
+            while (instructorInfo.next()) {
                 profName = instructorInfo.getString(1);
                 cID = instructorInfo.getInt(2);
             }
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (!attendance) present = 0;
+        if (!attendance) {
+            present = 0;
+        }
         Date curDate = new Date();
         Timestamp timestamp = new Timestamp(curDate.getTime());
-        
+
         this.sql = "insert into attendance (profName, cID, sID, sAtt, timestmp) values (?, ?, ?, ?, ?);";
         try {
             this.statement = db_con.prepareStatement(this.sql);
@@ -773,11 +780,11 @@ public class Database {
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
-     }
-     
-     private boolean isProfessor(String email){
-         boolean success = false;
-         ResultSet temp = null;
+    }
+
+    private boolean isProfessor(String email) {
+        boolean success = false;
+        ResultSet temp = null;
         this.sql = "select * from instructors where email = ?;";
         try {
             this.statement = db_con.prepareStatement(this.sql);
@@ -787,7 +794,7 @@ public class Database {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
-            if (temp.next()){
+            if (temp.next()) {
                 success = true;
             } else {
                 success = false;
@@ -795,6 +802,6 @@ public class Database {
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
-         return success;
-     }
+        return success;
+    }
 }
